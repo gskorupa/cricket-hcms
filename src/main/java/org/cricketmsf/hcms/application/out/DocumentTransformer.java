@@ -13,8 +13,10 @@ import com.vladsch.flexmark.util.data.MutableDataSet;
 
 public class DocumentTransformer {
 
+    //https://github.com/vsch/flexmark-java
+
     public static Document transform(Document doc, String markdownExtension) {
-        if (doc.path.endsWith(markdownExtension)) {
+        if (doc.name.endsWith(markdownExtension)) {
             doc.content = getHtml(doc.content);
         }
         return doc;

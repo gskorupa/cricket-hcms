@@ -10,10 +10,16 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 
 import org.cricketmsf.hcms.domain.Document;
+import org.jboss.logging.Logger;
+
+import jakarta.inject.Inject;
 
 public class DocumentVisitor extends SimpleFileVisitor<Path> {
 
-    ArrayList<Document> files=new ArrayList<>();
+    @Inject
+    Logger logger;
+
+    ArrayList<Document> files = new ArrayList<>();
     String root;
     ArrayList<String> excludes = new ArrayList<>();
     String syntax = "github";
@@ -62,8 +68,13 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                 if (name.endsWith(markdownFileExtension)) {
                     githubWikiReader.parse(file);
                     doc = githubWikiReader.getDocument();
-                    doc.path = path.substring(path.indexOf(root)+root.length());
-                    System.out.println("PATH: " + doc.path);
+                    System.out.println("path: " + path);
+                    System.out.println("root: " + root);
+                    // doc.path = path.substring(path.indexOf(root)+root.length());
+                    doc.name = path;
+                    doc.path = path.substring(0, path.lastIndexOf("/")+1);
+                    System.out.println("doc.name: " + doc.name);
+                    System.out.println("doc.path: " + doc.path);
                     doc.updateTimestamp = udateTimestamp;
                     files.add(doc);
                 } else {
@@ -87,7 +98,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     @Override
     public FileVisitResult visitFileFailed(Path file,
             IOException exc) {
-        
+
         return CONTINUE;
     }
 

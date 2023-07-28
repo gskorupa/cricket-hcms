@@ -1,0 +1,24 @@
+services:
+  hcms:
+    image: gskorupa/crickethcms:latest
+    expose:
+      - "8080"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./documents:/home/jboss/documents
+    networks:
+      - hcms
+  
+  website:
+    image: gskorupa/crickethcms-website-template:latest
+    depends_on:
+      - hcms
+    ports:
+      - "8000:3000"
+    networks:
+      - hcms
+
+networks:
+  hcms:
+    name: hcms-network

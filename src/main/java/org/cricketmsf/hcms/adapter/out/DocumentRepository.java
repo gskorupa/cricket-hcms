@@ -19,29 +19,51 @@ public class DocumentRepository implements DocumentRepositoryIface {
     @Inject
     Logger logger;
 
-    public ConcurrentHashMap<String, Document> documents;
+    public ConcurrentHashMap<String, Document> documents = null;
 
     void onStart(@Observes StartupEvent ev) {
-        documents = new ConcurrentHashMap<>();
+        if (documents == null) {
+            documents = new ConcurrentHashMap<>();
+        }
+    }
+
+    private ConcurrentHashMap<String, Document> getDocuments() {
+        if (documents == null) {
+            documents = new ConcurrentHashMap<>();
+        }
+        return documents;
     }
 
     @Override
     public List<Document> getDocuments(String path) {
         ArrayList<Document> docs = new ArrayList<>();
         logger.info("database size: " + documents.size());
-        documents.forEach((k, v) -> {
-            if (k.startsWith(path) && k.indexOf("/", path.length() + 1) < 0) {
-                docs.add(v);
+        String searchPath = "/"+path;
+        logger.info("searching: " + searchPath);
+        getDocuments().forEach((k, v) -> {
+            if(isFolder(searchPath)){
+                if(k.startsWith(searchPath) && k.indexOf("/", searchPath.length() + 1) < 0){
+                    docs.add(v);
+                }
+            }else{
+                if(k.equals(searchPath)){
+                    docs.add(v);
+                }
             }
         });
+        logger.info("found: " + docs.size());
         return docs;
+    }
+
+    private boolean isFolder(String path) {
+        return path.indexOf(".") < 0;
     }
 
     @Override
     public List<Document> getAllDocuments() {
         ArrayList<Document> docs = new ArrayList<>();
         logger.info("database size: " + documents.size());
-        documents.forEach((k, v) -> {
+        getDocuments().forEach((k, v) -> {
             docs.add(v);
         });
         return docs;
@@ -49,17 +71,18 @@ public class DocumentRepository implements DocumentRepositoryIface {
 
     @Override
     public void addDocument(Document doc) {
-        documents.put(doc.path, doc);
+        logger.info("addDocument: " + doc.path);
+        getDocuments().put(doc.name, doc);
     }
 
     @Override
     public void deleteDocument(String path) {
-        documents.remove(path);
+        getDocuments().remove(path);
     }
 
     @Override
     public long getDocumentsCount() {
-        return documents.size();
+        return getDocuments().size();
     }
 
 }

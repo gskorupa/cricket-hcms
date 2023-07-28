@@ -11,7 +11,7 @@ import org.cricketmsf.hcms.domain.Document;
 
 public class GithubWikiReader {
 
-    Document doc = new Document();
+    Document doc = null;
 
     public GithubWikiReader() {
     }
@@ -21,6 +21,7 @@ public class GithubWikiReader {
     } 
 
     public void parse(Path file) {
+        doc = new Document();
         boolean comment = false;
         boolean summary = false;
         boolean metadata = false;
