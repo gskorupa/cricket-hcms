@@ -27,6 +27,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     String htmlFileExtension = ".html";
 
     GithubWikiReader githubWikiReader = new GithubWikiReader();
+    HtmlReader htmlReader = new HtmlReader();
 
     public void setRoot(String root) {
         this.root = root;
@@ -72,15 +73,33 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                     System.out.println("root: " + root);
                     // doc.path = path.substring(path.indexOf(root)+root.length());
                     doc.name = path;
-                    doc.path = path.substring(0, path.lastIndexOf("/")+1);
+                    doc.path = path.substring(0, path.lastIndexOf("/") + 1);
+                    System.out.println("doc.name: " + doc.name);
+                    System.out.println("doc.path: " + doc.path);
+                    doc.updateTimestamp = udateTimestamp;
+                    files.add(doc);
+                } else if (name.endsWith(htmlFileExtension)) {
+                    htmlReader.parse(file);
+                    doc = htmlReader.getDocument();
+                    System.out.println("path: " + path);
+                    System.out.println("root: " + root);
+                    doc.name = path;
+                    doc.path = path.substring(0, path.lastIndexOf("/") + 1);
                     System.out.println("doc.name: " + doc.name);
                     System.out.println("doc.path: " + doc.path);
                     doc.updateTimestamp = udateTimestamp;
                     files.add(doc);
                 } else {
-                    // not a markdown file
+                    // binary file
+                    doc = new Document();
+                    doc.name = path;
+                    doc.path = path.substring(0, path.lastIndexOf("/") + 1);
+                    System.out.println("doc.name: " + doc.name);
+                    System.out.println("doc.path: " + doc.path);
+                    doc.updateTimestamp = udateTimestamp;
+                    doc.binaryFile = true;
+                    files.add(doc);
                 }
-
             }
         } else {
             // not a regular file nor a symbolic link

@@ -14,13 +14,13 @@ import jakarta.inject.Inject;
 public class DocumentLogic {
 
     @Inject
-    DocumentRepositoryPort repository;
+    DocumentRepositoryPort repositoryPort;
 
     @Inject
     DocumentRepositoryLoader loader;
 
     public List<Document> getDocuments(String path) {
-        return repository.getDocuments(path);
+        return repositoryPort.getDocuments(path);
         //return repository.getAllDocuments();
     }
 

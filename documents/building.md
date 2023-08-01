@@ -13,9 +13,10 @@ To build the distribution package run the following command:
 mvn clean package
 ```
 
-If you want to build the Docker you need to set Docker repository related properties in teh `application.properties` file.
-Then you can build the Docker image with command:
+If you want to build the Docker image you need to set Docker repository related properties in the `application.properties` file.
+Then use commands:
 
 ```shell
-mvn -Dquarkus.container-image.push=true clean package
+./mvnw versions:set -DnewVersion=1.0.0
+./mvn -Dquarkus.container-image.tag=1.0.0 -Dquarkus.container-image.push=true clean package
 ```

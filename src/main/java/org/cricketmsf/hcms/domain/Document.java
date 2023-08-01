@@ -9,7 +9,7 @@ public class Document {
     public String content="";
     public long updateTimestamp=0;
     public HashMap<String, String> metadata = new HashMap<>();
-
+    public boolean binaryFile=false;
     public Document() {
     } 
 
