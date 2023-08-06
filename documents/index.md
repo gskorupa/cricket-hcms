@@ -15,12 +15,12 @@ Both services can be run wit Docker Compose using docker-compose.yml file also a
 - [x] HTML support
 - [x] REST API for accessing content
 - [x] content versioning (provided by Git repository)
+- [x] reloading content database upon changes detected on disk
+- [ ] serving binary files
 - [ ] multilanguage support
-- [ ] reloading content database upon changes detected on disk
 - [ ] full text search
 - [ ] filtering content by tags
 - [ ] service authorization
-- [ ] content tags 
 
 ## Documentation
 

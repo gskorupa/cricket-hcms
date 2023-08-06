@@ -38,6 +38,7 @@ public class DocumentRepositoryLoader {
     
 
     public void loadDocuments(String path) {
+        logger.info("loading documents");
         logger.info("actual path: " + Paths.get(".").toAbsolutePath().normalize().toString());
         logger.info("getDocuments: " + path);
         logger.info("complete path: " + root+path);

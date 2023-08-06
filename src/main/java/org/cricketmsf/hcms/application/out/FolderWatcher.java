@@ -15,11 +15,13 @@ public class FolderWatcher implements Runnable{
     Logger logger = Logger.getLogger(FolderWatcher.class);
 
     private String root;
+    private String watchedFile;
     private DocumentRepositoryLoader loader;
 
-    public FolderWatcher(String root, DocumentRepositoryLoader loader) {
-        this.root = root;
+    public FolderWatcher(String root, String watchedFile, DocumentRepositoryLoader loader) {
         this.loader = loader;
+        this.watchedFile = watchedFile;
+        this.root = root;
     }
 
     @Override
@@ -35,14 +37,16 @@ public class FolderWatcher implements Runnable{
             WatchKey key;
             while ((key = service.take()) != null) {
                 for (WatchEvent<?> event : key.pollEvents()) {
-                    logger.info(event.kind() + " " + event.context());
+                    logger.debug(event.kind() + " -> " + event.context());
+                    if (event.context().toString().equals(watchedFile)) {
+                        loader.loadDocuments("");
+                    }
                 }
-                logger.info("reloading documents");
-                //loader.loadDocuments("");
                 key.reset();
             }
         } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
+            logger.error("Error accessing watched file or folder: "+e.getMessage());
+            logger.error("Watcher stopped");
         }
     }
 
