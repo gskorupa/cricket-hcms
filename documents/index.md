@@ -1,5 +1,8 @@
 # Cricket HCMS documentation
 
+![Logo](logo.svg)
+
+
 ## Introduction
 
 Cricket HCMS is a headless content management system for managing content for websites and mobile applications. It is built on top of [Quarkus Microservices Framework](https://quarkus.io/).

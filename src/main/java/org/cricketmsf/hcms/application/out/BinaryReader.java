@@ -1,0 +1,29 @@
+package org.cricketmsf.hcms.application.out;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.cricketmsf.hcms.domain.Document;
+
+public class BinaryReader {
+
+    Document doc = null;
+
+    public BinaryReader() {
+    }
+
+    public Document getDocument() {
+        return doc;
+    } 
+
+    public void parse(Path file) {
+        doc = new Document();
+        doc.binaryFile=true;
+        try {
+            doc.binaryContent = Files.readAllBytes(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}

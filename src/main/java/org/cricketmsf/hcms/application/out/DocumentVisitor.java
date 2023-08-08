@@ -3,6 +3,7 @@ package org.cricketmsf.hcms.application.out;
 import static java.nio.file.FileVisitResult.CONTINUE;
 
 import java.io.IOException;
+import java.net.URLConnection;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
@@ -28,6 +29,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
 
     GithubWikiReader githubWikiReader = new GithubWikiReader();
     HtmlReader htmlReader = new HtmlReader();
+    BinaryReader binaryReader = new BinaryReader();
 
     public void setRoot(String root) {
         this.root = root;
@@ -77,6 +79,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                     System.out.println("doc.name: " + doc.name);
                     System.out.println("doc.path: " + doc.path);
                     doc.updateTimestamp = udateTimestamp;
+                    doc.mediaType = "text/html";
                     files.add(doc);
                 } else if (name.endsWith(htmlFileExtension)) {
                     htmlReader.parse(file);
@@ -88,16 +91,19 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                     System.out.println("doc.name: " + doc.name);
                     System.out.println("doc.path: " + doc.path);
                     doc.updateTimestamp = udateTimestamp;
+                    doc.mediaType = "text/html";
                     files.add(doc);
                 } else {
                     // binary file
-                    doc = new Document();
+                    binaryReader.parse(file);
+                    doc = binaryReader.getDocument();
                     doc.name = path;
                     doc.path = path.substring(0, path.lastIndexOf("/") + 1);
                     System.out.println("doc.name: " + doc.name);
                     System.out.println("doc.path: " + doc.path);
                     doc.updateTimestamp = udateTimestamp;
                     doc.binaryFile = true;
+                    doc.mediaType = URLConnection.guessContentTypeFromName(doc.name);
                     files.add(doc);
                 }
             }
