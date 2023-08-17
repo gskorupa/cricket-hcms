@@ -19,11 +19,19 @@ public class DocumentRepository implements DocumentRepositoryIface {
     @Inject
     Logger logger;
 
+    /** In memory document database */
     public ConcurrentHashMap<String, Document> documents = null;
+    /** Docoment database under construction */
+    public ConcurrentHashMap<String, Document> underConstrDocs = null;
+
+    private boolean reloadInProgress = false;
 
     void onStart(@Observes StartupEvent ev) {
         if (documents == null) {
             documents = new ConcurrentHashMap<>();
+        }
+        if (underConstrDocs == null) {
+            underConstrDocs = new ConcurrentHashMap<>();
         }
     }
 
@@ -34,19 +42,26 @@ public class DocumentRepository implements DocumentRepositoryIface {
         return documents;
     }
 
+    private ConcurrentHashMap<String, Document> getUnderConstrDocs() {
+        if (underConstrDocs == null) {
+            underConstrDocs = new ConcurrentHashMap<>();
+        }
+        return underConstrDocs;
+    }
+
     @Override
     public List<Document> getDocuments(String path) {
         ArrayList<Document> docs = new ArrayList<>();
         logger.info("database size: " + documents.size());
-        String searchPath = "/"+path;
+        String searchPath = "/" + path;
         logger.info("searching: " + searchPath);
         getDocuments().forEach((k, v) -> {
-            if(isFolder(searchPath)){
-                if(k.startsWith(searchPath) && k.indexOf("/", searchPath.length() + 1) < 0){
+            if (isFolder(searchPath)) {
+                if (k.startsWith(searchPath) && k.indexOf("/", searchPath.length() + 1) < 0) {
                     docs.add(v);
                 }
-            }else{
-                if(k.equals(searchPath)){
+            } else {
+                if (k.equals(searchPath)) {
                     docs.add(v);
                 }
             }
@@ -71,8 +86,12 @@ public class DocumentRepository implements DocumentRepositoryIface {
 
     @Override
     public void addDocument(Document doc) {
+        if(!reloadInProgress){
+            //TODO: for real, not in memory database, this won't be needed
+            return;
+        }
         logger.info("addDocument: " + doc.path);
-        getDocuments().put(doc.name, doc);
+        getUnderConstrDocs().put(doc.name, doc);
     }
 
     @Override
@@ -83,6 +102,19 @@ public class DocumentRepository implements DocumentRepositoryIface {
     @Override
     public long getDocumentsCount() {
         return getDocuments().size();
+    }
+
+    @Override
+    public void startReload() {
+        reloadInProgress = true;
+        underConstrDocs = new ConcurrentHashMap<>();
+    }
+
+    @Override
+    public void stopReload() {
+        documents.clear();
+        documents.putAll(underConstrDocs);
+        reloadInProgress = false;
     }
 
 }

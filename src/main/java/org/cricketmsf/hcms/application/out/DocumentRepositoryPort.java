@@ -30,7 +30,6 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     @ConfigProperty(name = "document.extension.html")
     String htmlFileExtension;
     
-
     @Override
     public List<Document> getDocuments(String path) {
         return repository.getDocuments(path);
@@ -55,6 +54,16 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     @Override
     public List<Document> getAllDocuments() {
         return repository.getAllDocuments();
+    }
+
+    @Override
+    public void startReload() {
+        repository.startReload();
+    }
+
+    @Override
+    public void stopReload() {
+        repository.stopReload();
     }
     
 }

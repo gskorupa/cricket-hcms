@@ -10,4 +10,6 @@ public interface DocumentRepositoryIface {
     public void addDocument(Document doc);
     public void deleteDocument(String path);
     public long getDocumentsCount();
+    public void startReload();
+    public void stopReload();
 }
