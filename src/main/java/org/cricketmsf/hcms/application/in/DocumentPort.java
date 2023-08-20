@@ -23,5 +23,9 @@ public class DocumentPort {
     public void reload(){
         logic.reload();
     }
+
+    public void addDocument(Document document){
+        logic.addDocument(document);
+    }
     
 }

@@ -5,10 +5,13 @@ import java.util.List;
 
 import org.cricketmsf.hcms.application.in.DocumentPort;
 import org.cricketmsf.hcms.domain.Document;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
@@ -20,6 +23,9 @@ public class DocumentApi {
     DocumentPort documentPort;
     @Inject
     Logger logger;
+
+    @ConfigProperty(name = "app.token")
+    String appToken;
 
     @GET
     @Path("/docs/")
@@ -43,14 +49,24 @@ public class DocumentApi {
         }
     }
 
-    /*
-     * @GET
-     * 
-     * @Path("/reload")
-     * public Response reload() {
-     * documentPort.reload();
-     * return Response.ok().build();
-     * }
-     */
+    @GET
+    @Path("/reload")
+    public Response reload(@HeaderParam("X-app-token") String token) {
+        if (token == null || !token.equals(appToken)) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        documentPort.reload();
+        return Response.ok().build();
+    }
+
+    @POST
+    @Path("/docs/")
+    public Response saveDoc(@HeaderParam("X-app-token") String token, Document doc) {
+        if (token == null || !token.equals(appToken)) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        documentPort.addDocument(doc);
+        return Response.ok().build();
+    }
 
 }

@@ -49,4 +49,8 @@ public class DocumentLogic {
         loader.loadDocuments("");
     }
 
+    public void addDocument(Document document){
+        repositoryPort.addDocument(document);
+    }
+
 }
