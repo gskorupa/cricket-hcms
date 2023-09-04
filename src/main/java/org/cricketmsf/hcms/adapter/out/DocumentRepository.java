@@ -101,7 +101,11 @@ public class DocumentRepository implements DocumentRepositoryIface {
 
     @Override
     public long getDocumentsCount() {
-        return getDocuments().size();
+        if(reloadInProgress){
+            return getUnderConstrDocs().size();
+        }else{
+            return getDocuments().size();
+        }
     }
 
     @Override

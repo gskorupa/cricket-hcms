@@ -38,6 +38,7 @@ public class DocumentRepositoryLoader {
     
 
     public void loadDocuments(String path) {
+        repositoryPort.startReload();
         logger.info("loading documents");
         logger.info("actual path: " + Paths.get(".").toAbsolutePath().normalize().toString());
         logger.info("getDocuments: " + path);
@@ -71,6 +72,7 @@ public class DocumentRepositoryLoader {
         } */
         logger.info("loaded: " + files.size() + " documents");
         logger.info("repositoryPort database size: " + repositoryPort.getDocumentsCount());
+        repositoryPort.stopReload();
     }
     
 }

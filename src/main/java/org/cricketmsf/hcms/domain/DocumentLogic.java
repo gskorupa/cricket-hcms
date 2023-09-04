@@ -35,7 +35,7 @@ public class DocumentLogic {
         return repositoryPort.getDocuments(path);
     }
 
-    void onStart(@Observes StartupEvent ev) {               
+    void onStart(@Observes StartupEvent ev) {              
         loader.loadDocuments("");
         if (watcherActive) {
             logger.info("Watching for changes in "+root+"/"+watchedFile);
