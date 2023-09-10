@@ -116,7 +116,7 @@ public class DocumentRepository implements DocumentRepositoryIface {
 
     @Override
     public void stopReload() {
-        documents.clear();
+        getDocuments().clear();
         documents.putAll(underConstrDocs);
         reloadInProgress = false;
     }
