@@ -59,6 +59,16 @@ public class DocumentApi {
         return Response.ok().build();
     }
 
+/*     @POST
+    @Path("/pull")
+    public Response pullDocuments(@HeaderParam("X-app-token") String token) {
+        if (token == null || !token.equals(appToken)) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        documentPort.reload();
+        return Response.ok().build();
+    } */
+
     @POST
     @Path("/docs/")
     public Response saveDoc(@HeaderParam("X-app-token") String token, Document doc) {
