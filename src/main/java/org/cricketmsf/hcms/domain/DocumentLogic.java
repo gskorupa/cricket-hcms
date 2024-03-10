@@ -30,6 +30,10 @@ public class DocumentLogic {
     boolean watcherActive;
     @ConfigProperty(name = "document.watcher.file")
     String watchedFile;
+    @ConfigProperty(name = "github.token")
+    String githubToken;
+    @ConfigProperty(name = "github.repository")
+    String githubRepository;
 
     public List<Document> getDocuments(String path) {
         return repositoryPort.getDocuments(path);
@@ -46,7 +50,18 @@ public class DocumentLogic {
     }
 
     public void reload() {
-        loader.loadDocuments("");
+        //loader.loadDocuments("");
+        // executing system command to pull, the repository
+        String[] command = {"git", "pull", "https://"+githubToken+"@"+githubRepository};
+        try {
+            Process process = Runtime.getRuntime().exec(command);
+            process.waitFor();
+            logger.info("Repository updated");
+            loader.loadDocuments("");
+        } catch (Exception e) {
+            logger.error("Error updating repository: " + e.getMessage());
+        }
+
     }
 
     public void addDocument(Document document){

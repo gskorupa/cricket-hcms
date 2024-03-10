@@ -1,56 +1,31 @@
-# cricketcms Project
+# Cricket HCMS
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+Cricket HCMS is a headless content management system designed for website developers and content creators. It is a lightweight, file-based CMS that provides a REST API for content retrieval. 
 
-If you want to learn more about Quarkus, please visit its website: https://quarkus.io/ .
+## Features
 
-## Running the application in dev mode
+1. File Indexing:
+  - Cricket HCMS efficiently indexes files from a configured folder and its subdirectories.
+  - It ensures that your content is organized and accessible.
+2. Content Format Support:
+  - Cricket HCMS embraces both Markdown and HTML formats for content creation.
+  - Additionally, it handles binary files seamlessly.
+3. REST API Interface:
+  - The system provides a robust REST API, allowing seamless integration with any presentation layer.
+  - Developers can retrieve documents programmatically for dynamic rendering.
+4, Custom Document Parameters:
+  - Cricket HCMS recognizes additional parameters defined within Markdown or HTML files.
+  - These parameters enhance document metadata and allow for flexible customization.
+5. Automated Document Updates:
+  - The CMS monitors changes in source files and automatically updates the document database.
+  - This ensures that your content remains up-to-date without manual intervention.
+6. Forcing Indexing via API:
+  - Users can trigger indexing by invoking the CMS API.
+  - This feature is useful when immediate updates are necessary.
 
-You can run your application in dev mode that enables live coding using:
-```shell script
-./mvnw compile quarkus:dev
-```
+Note: Cricket HCMS does not offer a web-based interface for document creation or editing. Users must prepare their folder structure and files using tools of their choice (e.g., Git repositories for version control). Depending on the chosen approach, files on the CMS server can be synchronized with source files using `git pull` or other file transfer methods like FTP, rsync, or `scp` command.
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at http://localhost:8080/q/dev/.
+## Documentation
 
-## Packaging and running the application
-
-The application can be packaged using:
-```shell script
-./mvnw package
-```
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
-
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-```shell script
-./mvnw package -Dquarkus.package.type=uber-jar
-```
-
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using: 
-```shell script
-./mvnw package -Pnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
-```shell script
-./mvnw package -Pnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/cricketcms-0.0.1​-runner`
-
-If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.
-
-## Provided Code
-
-### RESTEasy Reactive
-
-Easily start your Reactive RESTful Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+- [Building](doc/building.md)
+- [Running](doc/running.md)
