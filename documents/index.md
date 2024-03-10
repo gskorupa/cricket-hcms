@@ -19,11 +19,8 @@ Both services can be run wit Docker Compose using docker-compose.yml file also a
 - [x] REST API for accessing content
 - [x] content versioning (provided by Git repository)
 - [x] reloading content database upon changes detected on disk
-- [ ] serving binary files
-- [ ] multilanguage support
-- [ ] full text search
-- [ ] filtering content by tags
-- [ ] service authorization
+- [x] serving binary files
+- [x] multilanguage support
 
 ## Documentation
 
