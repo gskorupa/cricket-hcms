@@ -16,7 +16,7 @@ java -Ddocument.folders.root=doc -jar target/quarkus-app/quarkus-run.jar
 ## Running local build with Docker
 
 ```shell
-docker run --volume=/home/greg/tests/img/documents:/home/jboss/documents -p 8080:8080 gskorupa/crickethcms:latest
+docker run --volume=/home/greg/tests/img/documents:/home/jboss/documents -p 8080:8080 gskorupa/cricket-hcms:latest
 ```
 
 ## Running with Docker Compose
