@@ -1,6 +1,6 @@
 services:
   hcms:
-    image: gskorupa/crickethcms:latest
+    image: gskorupa/cricket-hcms:latest
     expose:
       - "8080"
     ports:
