@@ -42,8 +42,19 @@ public class DocumentLogic {
     void onStart(@Observes StartupEvent ev) {              
         loader.loadDocuments("");
         if (watcherActive) {
-            logger.info("Watching for changes in "+root+"/"+watchedFile);
-            Executors.newSingleThreadExecutor().execute(new FolderWatcher(root, watchedFile, loader));
+            
+            String[] docRoots=root.split(";");
+            String[] filesToWatch = watchedFile.split(";");
+            logger.info("Watcher roots: " + root+" ("+docRoots.length+")");
+            logger.info("Watcher files: " + watchedFile+" ("+filesToWatch.length+")");
+            if(docRoots.length!=filesToWatch.length){
+                logger.error("Roots and files to watch do not match");
+                return;
+            }
+            for (int i=0; i<filesToWatch.length; i++) {
+                logger.info("Watching for changes in " + docRoots[i] + "/" + filesToWatch[i]);
+                Executors.newSingleThreadExecutor().execute(new FolderWatcher(docRoots[i], filesToWatch[i], loader));
+            }
         }else{
             logger.info("Watcher is not active");
         }
