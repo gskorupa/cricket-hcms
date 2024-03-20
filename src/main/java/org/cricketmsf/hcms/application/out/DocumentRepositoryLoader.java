@@ -53,10 +53,12 @@ public class DocumentRepositoryLoader {
         for (String exclude : excludeList) {
             visitor.exclude(exclude);
         }
+        //EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
         Path p;
         try {
             p=Paths.get(root+path);
             logger.info("absolute path: " + p.toAbsolutePath().toString());
+            //Files.walkFileTree(p, opts, 100, visitor);
             Files.walkFileTree(p, visitor);
         } catch (IOException e) {
             e.printStackTrace();

@@ -11,14 +11,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 
 import org.cricketmsf.hcms.domain.Document;
-import org.jboss.logging.Logger;
-
-import jakarta.inject.Inject;
 
 public class DocumentVisitor extends SimpleFileVisitor<Path> {
-
-    @Inject
-    Logger logger;
 
     ArrayList<Document> files = new ArrayList<>();
     String root;
@@ -64,8 +58,9 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
         long udateTimestamp = attr.lastModifiedTime().toMillis();
         if (attr.isSymbolicLink()) {
             // not supported
-        } else if (attr.isRegularFile()) {
-            path = getRelativePath(file);
+            return CONTINUE;
+        } else if (attr.isRegularFile() || attr.isSymbolicLink()) {
+            path = getRelativePath(file, attr);
             name = file.getFileName().toString();
             if (!isExcluded(path)) {
                 if (name.endsWith(markdownFileExtension)) {
@@ -127,8 +122,20 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
         return CONTINUE;
     }
 
-    private String getRelativePath(Path file) {
-        return file.toAbsolutePath().toString().substring(root.length());
+    private String getRelativePath(Path file, BasicFileAttributes attr) {
+        /* if(attr.isSymbolicLink()){
+            try {
+                String tmp=file.toRealPath(LinkOption.NOFOLLOW_LINKS).toString();
+                System.out.println("real path: " + tmp);
+                //return file.toRealPath().toString().substring(root.length());
+                return tmp;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return file.toAbsolutePath().toString().substring(root.length());
+            }
+        }else{ */
+            return file.toAbsolutePath().toString().substring(root.length());
+        //}
     }
 
     private boolean isExcluded(String path) {

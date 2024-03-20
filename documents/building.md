@@ -46,3 +46,12 @@ or
 ```shell
 docker pull gskorupa/cricket-hcms:latest
 ```
+
+## Build script
+
+Script `build-image.sh` could be used to build and publish the Cricket HCMS Docker image.
+
+```shell
+sh build-image.sh ./dev.cfg
+```
+
