@@ -140,7 +140,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
 
     private boolean isExcluded(String path) {
         for (String exclude : excludes) {
-            if (path.startsWith(exclude)) {
+            if (path.startsWith(exclude) || path.startsWith("/"+exclude)) {
                 return true;
             }
         }

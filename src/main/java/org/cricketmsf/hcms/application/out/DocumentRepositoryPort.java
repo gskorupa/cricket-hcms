@@ -19,10 +19,6 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     @Inject
     DocumentRepository repository;
     
-    @ConfigProperty(name = "document.folders.root")
-    String root;
-    @ConfigProperty(name = "document.folders.excluded")
-    String excludes;
     @ConfigProperty(name = "document.syntax")
     String syntax; /* "obsidian", "github" */
     @ConfigProperty(name = "document.extension.markdown")
