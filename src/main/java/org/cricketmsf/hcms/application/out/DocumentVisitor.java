@@ -55,7 +55,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
         String name;
         String path;
         Document doc;
-        long udateTimestamp = attr.lastModifiedTime().toMillis();
+        long updateTimestamp = attr.lastModifiedTime().toMillis();
         if (attr.isSymbolicLink()) {
             // not supported
             return CONTINUE;
@@ -73,7 +73,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                     doc.path = path.substring(0, path.lastIndexOf("/") + 1);
                     System.out.println("doc.name: " + doc.name);
                     System.out.println("doc.path: " + doc.path);
-                    doc.updateTimestamp = udateTimestamp;
+                    doc.updateTimestamp = updateTimestamp;
                     doc.mediaType = "text/html";
                     files.add(doc);
                 } else if (name.endsWith(htmlFileExtension)) {
@@ -85,7 +85,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                     doc.path = path.substring(0, path.lastIndexOf("/") + 1);
                     System.out.println("doc.name: " + doc.name);
                     System.out.println("doc.path: " + doc.path);
-                    doc.updateTimestamp = udateTimestamp;
+                    doc.updateTimestamp = updateTimestamp;
                     doc.mediaType = "text/html";
                     files.add(doc);
                 } else {
@@ -96,7 +96,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                     doc.path = path.substring(0, path.lastIndexOf("/") + 1);
                     System.out.println("doc.name: " + doc.name);
                     System.out.println("doc.path: " + doc.path);
-                    doc.updateTimestamp = udateTimestamp;
+                    doc.updateTimestamp = updateTimestamp;
                     doc.binaryFile = true;
                     doc.mediaType = URLConnection.guessContentTypeFromName(doc.name);
                     files.add(doc);

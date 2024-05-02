@@ -37,13 +37,17 @@ public class DocumentApi {
         logger.info("requesting: " + searchPath);
         List<Document> list = documentPort.getDocs(searchPath);
         if (list.size() == 1 && list.get(0).binaryFile == true) {
-            ByteArrayInputStream bis = null; // https://www.knowledgefactory.net/2021/10/quarkus-export-data-to-pdf-example.html
-            Document doc = list.get(0);
-            bis = new ByteArrayInputStream(doc.binaryContent);
-            return Response.ok(bis, doc.mediaType)
-                    .header("content-disposition",
-                            "attachment; filename = " + doc.getFileName())
-                    .build();
+            try {
+                ByteArrayInputStream bis = null; // https://www.knowledgefactory.net/2021/10/quarkus-export-data-to-pdf-example.html
+                Document doc = list.get(0);
+                bis = new ByteArrayInputStream(doc.binaryContent);
+                return Response.ok(bis, doc.mediaType)
+                        .header("content-disposition",
+                                "attachment; filename = " + doc.getFileName())
+                        .build();
+            } catch (Exception e) {
+                return Response.serverError().entity(e.getMessage()).build();
+            }
         } else {
             return Response.ok(list).build();
         }
@@ -59,15 +63,18 @@ public class DocumentApi {
         return Response.ok().build();
     }
 
-/*     @POST
-    @Path("/pull")
-    public Response pullDocuments(@HeaderParam("X-app-token") String token) {
-        if (token == null || !token.equals(appToken)) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
-        documentPort.reload();
-        return Response.ok().build();
-    } */
+    /*
+     * @POST
+     * 
+     * @Path("/pull")
+     * public Response pullDocuments(@HeaderParam("X-app-token") String token) {
+     * if (token == null || !token.equals(appToken)) {
+     * return Response.status(Response.Status.UNAUTHORIZED).build();
+     * }
+     * documentPort.reload();
+     * return Response.ok().build();
+     * }
+     */
 
     @POST
     @Path("/docs/")

@@ -26,6 +26,7 @@ public class FolderWatcher implements Runnable{
 
     @Override
     public void run() {
+        //logger.info("Starting watcher for " + watchedFile + " in " + root);
         Path path = Path.of(root);
         FileSystem fs = path.getFileSystem();
         try (WatchService service = fs.newWatchService();) {

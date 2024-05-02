@@ -43,15 +43,17 @@ public class DocumentLogic {
         loader.loadDocuments("");
         if (watcherActive) {
             String[] filesToWatch = watchedFile.split(";");
-            String docRoot="";
+            String docRoot;
             String docName;
             for (int i=0; i<filesToWatch.length; i++) {
+                docRoot = "";
                 if(filesToWatch[i].lastIndexOf("/")>0){
                     docName = filesToWatch[i].substring(filesToWatch[i].lastIndexOf("/")+1);
                     docRoot = filesToWatch[i].substring(0, filesToWatch[i].lastIndexOf("/"));
                 }else{
                     docName = filesToWatch[i];
                 }
+                docRoot = root + "/" + docRoot;
                 logger.info("Monitoring changes in " + docRoot + "/" + docName);
                 Executors.newSingleThreadExecutor().execute(new FolderWatcher(docRoot, docName, loader));
             }
