@@ -35,8 +35,8 @@ public class DocumentLogic {
     @ConfigProperty(name = "github.repository")
     String githubRepository;
 
-    public List<Document> getDocuments(String path) {
-        return repositoryPort.getDocuments(path);
+    public List<Document> getDocuments(String path, boolean noContent) {
+        return repositoryPort.getDocuments(path, noContent);
     }
 
     void onStart(@Observes StartupEvent ev) {              

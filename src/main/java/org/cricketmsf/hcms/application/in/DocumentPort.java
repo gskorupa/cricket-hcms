@@ -14,8 +14,8 @@ public class DocumentPort {
     @Inject
     DocumentLogic logic;
 
-    public List<Document> getDocs(String path){
-        return logic.getDocuments(path);
+    public List<Document> getDocs(String path, boolean noContent){
+        return logic.getDocuments(path, noContent);
     }
 
     

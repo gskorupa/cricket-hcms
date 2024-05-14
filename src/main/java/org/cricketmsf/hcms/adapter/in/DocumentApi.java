@@ -29,13 +29,18 @@ public class DocumentApi {
 
     @GET
     @Path("/docs/")
-    public Response getDocs(@QueryParam("path") String path) {
+    public Response getDocs(@QueryParam("content") boolean listOnly, @QueryParam("path") String path) {
         String searchPath = path;
         if (searchPath == null) {
             searchPath = "";
         }
         logger.info("requesting: " + searchPath);
-        List<Document> list = documentPort.getDocs(searchPath);
+        List<Document> list;
+        if (listOnly) {
+            list = documentPort.getDocs(searchPath, true);
+        } else {
+            list = documentPort.getDocs(searchPath, false);
+        }
         if (list.size() == 1 && list.get(0).binaryFile == true) {
             try {
                 ByteArrayInputStream bis = null; // https://www.knowledgefactory.net/2021/10/quarkus-export-data-to-pdf-example.html

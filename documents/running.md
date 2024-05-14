@@ -9,7 +9,7 @@ Both services can be run wit Docker Compose using docker-compose.yml file also a
 ## Running local build with Java
 
 ```shell
-java -jar target/quarkus-app/quarkus-run.jar
+    java -jar target/quarkus-app/quarkus-run.jar
 ```
 Content of the `documents` subfolder (default document root) will be loaded into the service repository.
 
@@ -18,6 +18,9 @@ environment variable.
 ```
 java -Ddocument.folders.root=doc -jar target/quarkus-app/quarkus-run.jar
 ```
+
+Once launched, you can download the API specification in JSON format from http://localhost:8080/q/openapi.
+Viewing the specification in interactive mode will be enabled by Swagger UI http://localhost:8080/q/swagger-ui 
 
 ## Running local build with Docker
 
@@ -33,9 +36,6 @@ docker compose up
 
 ## Using the service
 
+You can download the API specification in JSON format from http://localhost:8080/q/openapi.
 
-To get the list of documents in the repository you can use the following command:
-
-```shell
-curl -i "http://localhost:8080/api/docs?path=/"
-```
+Viewing the specification in interactive mode will be enabled by Swagger UI http://localhost:8080/q/swagger-ui

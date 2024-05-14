@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.cricketmsf.hcms.adapter.out.DocumentRepository;
 import org.cricketmsf.hcms.domain.Document;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -27,8 +26,8 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     String htmlFileExtension; */
     
     @Override
-    public List<Document> getDocuments(String path) {
-        return repository.getDocuments(path);
+    public List<Document> getDocuments(String path, boolean noContent) {
+        return repository.getDocuments(path, noContent);
     }
 
     @Override
@@ -48,8 +47,8 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     }
 
     @Override
-    public List<Document> getAllDocuments() {
-        return repository.getAllDocuments();
+    public List<Document> getAllDocuments(boolean noContent) {
+        return repository.getAllDocuments(noContent);
     }
 
     @Override

@@ -50,23 +50,23 @@ public class DocumentRepository implements DocumentRepositoryIface {
     }
 
     @Override
-    public List<Document> getDocuments(String path) {
+    public List<Document> getDocuments(String path, boolean withContent) {
         ArrayList<Document> docs = new ArrayList<>();
-        logger.info("database size: " + documents.size());
+        //logger.info("database size: " + documents.size());
         String searchPath = "/" + path;
-        logger.info("searching: " + searchPath);
+        logger.debug("searching: " + searchPath);
         getDocuments().forEach((k, v) -> {
             if (isFolder(searchPath)) {
                 if (k.startsWith(searchPath) && k.indexOf("/", searchPath.length() + 1) < 0) {
-                    docs.add(v);
+                    docs.add(v.clone(withContent));
                 }
             } else {
                 if (k.equals(searchPath)) {
-                    docs.add(v);
+                    docs.add(v.clone(withContent));
                 }
             }
         });
-        logger.info("found: " + docs.size());
+        logger.debug("found: " + docs.size() + " documents");
         return docs;
     }
 
@@ -75,11 +75,11 @@ public class DocumentRepository implements DocumentRepositoryIface {
     }
 
     @Override
-    public List<Document> getAllDocuments() {
+    public List<Document> getAllDocuments(boolean withContent) {
         ArrayList<Document> docs = new ArrayList<>();
         logger.info("database size: " + documents.size());
         getDocuments().forEach((k, v) -> {
-            docs.add(v);
+            docs.add(v.clone(withContent));
         });
         return docs;
     }
