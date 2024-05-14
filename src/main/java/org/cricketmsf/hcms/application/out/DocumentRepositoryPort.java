@@ -19,12 +19,12 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     @Inject
     DocumentRepository repository;
     
-    @ConfigProperty(name = "document.syntax")
-    String syntax; /* "obsidian", "github" */
+/*     @ConfigProperty(name = "document.syntax")
+    String syntax; // "obsidian", "github" 
     @ConfigProperty(name = "document.extension.markdown")
     String markdownFileExtension;
     @ConfigProperty(name = "document.extension.html")
-    String htmlFileExtension;
+    String htmlFileExtension; */
     
     @Override
     public List<Document> getDocuments(String path) {

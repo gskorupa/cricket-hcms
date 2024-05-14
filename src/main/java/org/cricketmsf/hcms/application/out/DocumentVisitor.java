@@ -17,7 +17,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     ArrayList<Document> files = new ArrayList<>();
     String root;
     ArrayList<String> excludes = new ArrayList<>();
-    String syntax = "github";
+    String syntax = "github"; // "obsidian", "github"
     String markdownFileExtension = ".md";
     String htmlFileExtension = ".html";
 

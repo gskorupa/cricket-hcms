@@ -1,10 +1,14 @@
 # Building Cricket HCMS
 
+THIS DOCUMENT IS A WORK IN PROGRESS
+
 ## Prerequisites
 
 - Java 17
 - Maven
 - Docker 
+
+ It is built on top of [Quarkus Microservices Framework](https://quarkus.io/).
 
 ## Building
 

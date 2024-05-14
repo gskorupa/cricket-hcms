@@ -1,5 +1,11 @@
 # Running
 
+THIS DOCUMENT IS A WORK IN PROGRESS
+
+In order to present how to use this site, I have prepared a related cricket-website-template project that allows you to view documents served by Cricket HCMS. The template is a SvelteKit application that can be built as a dynamic Node website or as a Docker image. The template is available at [https://github.com/gskorupa/cricket-website-template](https://github.com/gskorupa/cricket-website-template).
+
+Both services can be run wit Docker Compose using docker-compose.yml file also available in the Cricket HCMS repository.
+
 ## Running local build with Java
 
 ```shell

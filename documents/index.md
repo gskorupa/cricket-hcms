@@ -1,28 +1,34 @@
 # Cricket HCMS documentation
 
-![Logo](logo.svg)
+![Logo](logo.svg){ width=33% style="display: block; margin: 0 auto"}
 
 
 ## Introduction
 
-Cricket HCMS is a headless content management system for managing content for websites and mobile applications. It is built on top of [Quarkus Microservices Framework](https://quarkus.io/).
+Cricket HCMS is a headless content management system that can be used to manage content presented by other services (such as websites or mobile apps).
 
-In order to present how to use this site, I have prepared a related cricket-website-template project that allows you to view documents served by Cricket HCMS. The template is a SvelteKit application that can be built as a dynamic Node website or as a Docker image. The template is available at [https://githuc.com/gskorupa/cricket-website-template](https://githuc.com/gskorupa/cricket-website-template).
+Starting up, the service reads files from the configured disk folder and its subfolders and places them in its database. The database is continuously updated when changes are detected in the monitored file system.
 
-Both services can be run wit Docker Compose using docker-compose.yml file also available in the Cricket HCMS repository.
+The documents are made available via a REST API, with Markdown-formatted content auomatically translated into HTML.
 
 ## Features
 
-- [x] Git based content repository - code files (`*.md, *.html`) or Wiki pages
+- [x] Support for document sources from a Git repository or Wiki (e.g. GitHub wiki, Obsidian and others)
 - [x] Markdown support
 - [x] HTML support
+- [x] Automatic translation of Markdown content into HTML
 - [x] REST API for accessing content
-- [x] content versioning (provided by Git repository)
-- [x] reloading content database upon changes detected on disk
-- [x] serving binary files
-- [x] multilanguage support
+- [x] Reloading content database upon changes detected on disk
+- [x] Serving binary files
+
+## Repository dependent features
+
+- [x] content versioning provided by Git
+- [x] support for multiple languages possible by organizing the document structure
 
 ## Documentation
 
 - [Building](building.md)
 - [Running](running.md)
+- [Running with Docker Compose](running-with-docker-compose.md)
+- [Content publishing](publishing.md)
