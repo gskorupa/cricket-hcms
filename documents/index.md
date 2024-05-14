@@ -1,7 +1,8 @@
 # Cricket HCMS documentation
 
-![Logo](logo.svg){ width=33% style="display: block; margin: 0 auto"}
-
+<p align="center">
+    <img src="logo.svg" style="width: 33%" alt="Cricket HCMS logo" />
+</p>
 
 ## Introduction
 
