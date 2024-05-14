@@ -23,7 +23,7 @@ Commands syntax:
 
 ```shell
 ./mvnw versions:set -DnewVersion=VERSION
-./mvn -Dquarkus.container-image.group=GROUP -Dquarkus.container-image.tag=TAG \
+./mvnw -Dquarkus.container-image.group=GROUP -Dquarkus.container-image.tag=TAG \
 -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.push=PUSH \
 clean package
 ```
@@ -37,7 +37,7 @@ Example:
 
 ```shell
 ./mvnw versions:set -DnewVersion=1.0.0
-./mvn -Dquarkus.container-image.group=gskorupa -Dquarkus.container-image.tag=1.0.0 \
+./mvnw -Dquarkus.container-image.group=gskorupa -Dquarkus.container-image.tag=1.0.0 \
 -Dquarkus.container-image.additional-tags=latest -Dquarkus.container-image.push=true \
 clean package
 ```

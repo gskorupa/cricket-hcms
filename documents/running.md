@@ -19,16 +19,20 @@ environment variable.
 java -Ddocument.folders.root=doc -jar target/quarkus-app/quarkus-run.jar
 ```
 
-Once launched, you can download the API specification in JSON format from http://localhost:8080/q/openapi.
-Viewing the specification in interactive mode will be enabled by Swagger UI http://localhost:8080/q/swagger-ui 
+Once launched, the API specification in JSON format can be downloaded from http://localhost:8080/q/openapi.
+Viewing the specification in interactive mode is enabled by the Swagger UI http://localhost:8080/q/swagger-ui.
 
-## Running local build with Docker
+## Running the Docker image
+
+The docker image pushed to the docker repository can then be run with a command like the following example image `gskorupa/cricket-hcms:latest`.
 
 ```shell
-docker run --volume=/home/greg/tests/img/documents:/home/jboss/documents -p 8080:8080 gskorupa/cricket-hcms:latest
+docker run --volume=./documents:/home/jboss/documents -p 8080:8080 gskorupa/cricket-hcms:latest
 ```
 
 ## Running with Docker Compose
+
+THIS NEEDS TO BE COMPLETED
 
 ```shell
 docker compose up
