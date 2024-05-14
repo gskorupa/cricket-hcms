@@ -2,6 +2,7 @@
 
 Cricket HCMS is a headless content management system designed for website developers and content creators. It is a lightweight, file-based CMS that provides a REST API for content retrieval. 
 
+<!--
 ## Features
 
 1. File Indexing:
@@ -24,8 +25,11 @@ Cricket HCMS is a headless content management system designed for website develo
   - This feature is useful when immediate updates are necessary.
 
 Note: Cricket HCMS does not offer a web-based interface for document creation or editing. Users must prepare their folder structure and files using tools of their choice (e.g., Git repositories for version control). Depending on the chosen approach, files on the CMS server can be synchronized with source files using `git pull` or other file transfer methods like FTP, rsync, or `scp` command.
-
+-->
 ## Documentation
 
+- [Overview](doc/index.md)
 - [Building](doc/building.md)
 - [Running](doc/running.md)
+- [Running with Docker Compose](doc/running-with-docker-compose.md)
+- [Content publishing](doc/publishing.md)
