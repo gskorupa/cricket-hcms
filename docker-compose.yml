@@ -1,6 +1,11 @@
+name: cricket-hcms-demo
+
 services:
   hcms:
     image: gskorupa/cricket-hcms:latest
+    environment:
+      FOLDERS_ROOT: ./documents
+      FILE_TO_WATCH: version.txt
     expose:
       - "8080"
     ports:
@@ -11,14 +16,23 @@ services:
       - hcms
   
   website:
-    image: gskorupa/crickethcms-website-template:latest
+    image: gskorupa/cricket-demo-website:latest
     depends_on:
       - hcms
     ports:
       - "8000:3000"
     networks:
       - hcms
+  
+  gateway:
+    image: haproxy:2.4
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - 8080:8080
+    networks:
+      - hcms
 
 networks:
   hcms:
-    name: hcms-network
+    driver: bridge

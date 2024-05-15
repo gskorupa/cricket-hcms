@@ -13,6 +13,38 @@ THIS DOCUMENT IS A WORK IN PROGRESS
 
 ## Configuration
 
+Docker compose configuration is stored in the `docker-compose.yml` file in the root of the repository. The configuration includes the following services:
+
+- `hcms` - the Cricket HCMS service
+- `website` - the demo website
+- `gateway` - the HAProxy service working as an API gateway
+
+```yaml
+name: cricket-hcms-demo
+services:
+  hcms:
+    image: gskorupa/cricket-hcms:latest
+    volumes:
+      - ./documents:/home/jboss/documents
+    environment:
+      FOLDERS_ROOT: ./documents
+      FILE_TO_WATCH: version.txt
+    ports:
+      - 8080:8080
+
+  website:
+    image: gskorupa/cricket-demo-website:latest
+    ports:
+      - 8081:8080
+
+  gateway:
+    image: haproxy:2.4
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+    ports:
+      - 8080:8080
+```
+
 The service can be configured using environment variables. The following environment variables are available:
 
 - `FOLDERS_ROOT` - the root folder where the documents are stored
@@ -36,4 +68,6 @@ docker-compose up
 To stop the service, press `Ctrl+C` in the terminal where the service is running.
 
 ## Accessing the service
+
+Once the service is running, you can access the demo website at [http://localhost:8080](http://localhost:8080).
 

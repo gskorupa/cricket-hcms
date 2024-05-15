@@ -1,14 +1,12 @@
 # Building Cricket HCMS
 
-THIS DOCUMENT IS A WORK IN PROGRESS
-
 ## Prerequisites
 
-- Java 17
+- Java 17 or later
 - Maven
 - Docker 
 
- It is built on top of [Quarkus Microservices Framework](https://quarkus.io/).
+ Cricket HCMS is built on top of [Quarkus Microservices Framework](https://quarkus.io/).
 
 ## Building
 
@@ -17,7 +15,7 @@ To build the distribution package run the following command:
 mvn clean package
 ```
 
-If you want to build the Docker image you need to set Docker repository related properties in the `application.properties` or set envarioned variables as in the example below.
+If you want to build the Docker image you need to set Docker repository related properties in the `application.properties` or set environment variables as in the example below.
 
 Commands syntax:
 
@@ -53,7 +51,7 @@ docker pull gskorupa/cricket-hcms:latest
 
 ## Build script
 
-Script `build-image.sh` could be used to build and publish the Cricket HCMS Docker image.
+Script `build-image.sh` can be used to build and publish the Cricket HCMS Docker image.
 
 ```shell
 sh build-image.sh ./dev.cfg

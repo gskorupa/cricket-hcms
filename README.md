@@ -33,3 +33,4 @@ Note: Cricket HCMS does not offer a web-based interface for document creation or
 - [Running](documents/running.md)
 - [Running with Docker Compose](documents/running-with-docker-compose.md)
 - [Content publishing](documents/publishing.md)
+- [Project roadmap](https://github.com/users/gskorupa/projects/5)

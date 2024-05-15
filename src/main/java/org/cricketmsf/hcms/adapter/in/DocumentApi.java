@@ -6,6 +6,13 @@ import java.util.List;
 import org.cricketmsf.hcms.application.in.DocumentPort;
 import org.cricketmsf.hcms.domain.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponseSchema;
 import org.jboss.logging.Logger;
 
 import jakarta.inject.Inject;
@@ -17,6 +24,12 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 
 @Path("/api")
+/**
+ * DocumentApi is a REST API adapter for the DocumentPort. It provides a set of
+ * RESTful endpoints to manage documents
+ * stored in the system. The API is secured with a token that must be provided
+ * in the request header.
+ */
 public class DocumentApi {
 
     @Inject
@@ -26,10 +39,22 @@ public class DocumentApi {
 
     @ConfigProperty(name = "app.token")
     String appToken;
+    @ConfigProperty(name = "get.document.authorization.required")
+    boolean getDocumentAuthorizationRequired;
 
     @GET
     @Path("/docs/")
-    public Response getDocs(@QueryParam("content") boolean listOnly, @QueryParam("path") String path) {
+    @APIResponse(responseCode = "401", description = "Unauthorized")
+    @APIResponseSchema(value = List.class, responseDescription = "List of document objects.", responseCode = "200")
+    @Operation(summary = "List documents", description = "List documents with the specified path. If the result is a single document and it is a binary file, the file will be returned as a download.")
+    public Response getDocs(
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "If true, documents will be listed with their content.", required = false, example = "true", schema = @Schema(type = SchemaType.BOOLEAN)) @QueryParam("content") boolean listOnly,
+            @Parameter(description = "Path to the document or directory. If not provided, the root directory will be listed.", required = false, example = "docs", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path) {
+
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
         String searchPath = path;
         if (searchPath == null) {
             searchPath = "";
@@ -58,37 +83,37 @@ public class DocumentApi {
         }
     }
 
-    @GET
+    @POST
     @Path("/reload")
-    public Response reload(@HeaderParam("X-app-token") String token) {
+    @APIResponse(responseCode = "401", description = "Unauthorized")
+    @APIResponse(responseCode = "501", description = "Not implemented")
+    @APIResponseSchema(value = String.class, responseDescription = "Command executed successfully.", responseCode = "200")
+    @Operation(summary = "Command to reload the documents", description = "Forces the system service to reload the documents from the storage.")
+    public Response reload(
+            @Parameter(description = "Token to authorize the request.", required = true, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token) {
         if (token == null || !token.equals(appToken)) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        documentPort.reload();
-        return Response.ok().build();
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        // documentPort.reload();
+        // return Response.ok().build();
     }
-
-    /*
-     * @POST
-     * 
-     * @Path("/pull")
-     * public Response pullDocuments(@HeaderParam("X-app-token") String token) {
-     * if (token == null || !token.equals(appToken)) {
-     * return Response.status(Response.Status.UNAUTHORIZED).build();
-     * }
-     * documentPort.reload();
-     * return Response.ok().build();
-     * }
-     */
 
     @POST
     @Path("/docs/")
-    public Response saveDoc(@HeaderParam("X-app-token") String token, Document doc) {
+    @APIResponse(responseCode = "401", description = "Unauthorized")
+    @APIResponse(responseCode = "501", description = "Not implemented")
+    @APIResponseSchema(value = String.class, responseDescription = "Document saved." , responseCode = "200")
+    @Operation(summary = "Save document to the storage", description = "Save a document. The document must be provided in the request body.")
+    public Response saveDoc(
+            @Parameter(description = "Token to authorize the request.", required = true, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @RequestBody(description = "Document to save.", required = true) Document doc) {
         if (token == null || !token.equals(appToken)) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        documentPort.addDocument(doc);
-        return Response.ok().build();
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        //documentPort.addDocument(doc);
+        //return Response.ok().build();
     }
 
 }
