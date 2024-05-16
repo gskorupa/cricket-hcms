@@ -18,6 +18,9 @@ public class DocumentPort {
         return logic.getDocuments(path, noContent);
     }
 
+    public Document getDocument(String path){
+        return logic.getDocument(path);
+    }
     
 
     public void reload(){

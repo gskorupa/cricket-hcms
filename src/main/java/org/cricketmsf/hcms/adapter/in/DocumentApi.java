@@ -66,6 +66,7 @@ public class DocumentApi {
         } else {
             list = documentPort.getDocs(searchPath, false);
         }
+        try{
         if (list.size() == 1 && list.get(0).binaryFile == true) {
             try {
                 ByteArrayInputStream bis = null; // https://www.knowledgefactory.net/2021/10/quarkus-export-data-to-pdf-example.html
@@ -80,6 +81,70 @@ public class DocumentApi {
             }
         } else {
             return Response.ok(list).build();
+        }
+        }catch(Exception e){
+            e.printStackTrace();
+            return Response.serverError().entity(e.getMessage()).build();
+        }
+    }
+
+    @GET
+    @Path("/document/")
+    @APIResponse(responseCode = "401", description = "Unauthorized")
+    @APIResponseSchema(value = Document.class, responseDescription = "Document object.", responseCode = "200")
+    @Operation(summary = "Get document", description = "Get a document (JSON object) with the specified path. If the document is a binary file, the file will be returned as a download.")
+    public Response getDoc(
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Path to the document.", required = true, example = "docs/doc1", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        Document doc = documentPort.getDocument(path);
+        if (doc == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        if (doc.binaryFile == true) {
+            try {
+                ByteArrayInputStream bis = new ByteArrayInputStream(doc.binaryContent);
+                return Response.ok(bis, doc.mediaType)
+                        .header("content-disposition",
+                                "attachment; filename = " + doc.getFileName())
+                        .build();
+            } catch (Exception e) {
+                return Response.serverError().entity(e.getMessage()).build();
+            }
+        } else {
+            return Response.ok(doc).build();
+        }
+    }
+
+    @GET
+    @Path("/file/")
+    @APIResponse(responseCode = "401", description = "Unauthorized")
+    @APIResponse(responseCode = "200", description = "File content as binary/octet-stream MIME type.")
+    @Operation(summary = "Get file", description = "Get a file with the specified path. The file will be returned as a download.")
+    public Response getFile(
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Path to the document.", required = true, example = "docs/doc1", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        Document doc = documentPort.getDocument(path);
+        if (doc == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        if (doc.binaryFile == true) {
+            try {
+                ByteArrayInputStream bis = new ByteArrayInputStream(doc.binaryContent);
+                return Response.ok(bis, doc.mediaType)
+                        .header("content-disposition",
+                                "attachment; filename = " + doc.getFileName())
+                        .build();
+            } catch (Exception e) {
+                return Response.serverError().entity(e.getMessage()).build();
+            }
+        } else {
+            return Response.ok(doc.content).build();
         }
     }
 

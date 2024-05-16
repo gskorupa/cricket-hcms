@@ -27,7 +27,6 @@ services:
     volumes:
       - ./documents:/home/jboss/documents
     environment:
-      FOLDERS_ROOT: ./documents
       FILE_TO_WATCH: version.txt
     ports:
       - 8080:8080

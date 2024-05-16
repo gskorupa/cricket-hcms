@@ -11,8 +11,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 
 import org.cricketmsf.hcms.domain.Document;
+import org.jboss.logging.Logger;
 
 public class DocumentVisitor extends SimpleFileVisitor<Path> {
+
+    static Logger logger = Logger.getLogger(DocumentVisitor.class);
 
     ArrayList<Document> files = new ArrayList<>();
     String root;
@@ -54,6 +57,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
             BasicFileAttributes attr) {
         String name;
         String path;
+        String fileName;
         Document doc;
         long updateTimestamp = attr.lastModifiedTime().toMillis();
         if (attr.isSymbolicLink()) {
@@ -62,45 +66,34 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
         } else if (attr.isRegularFile() || attr.isSymbolicLink()) {
             path = getRelativePath(file, attr);
             name = file.getFileName().toString();
+            fileName = path.substring(path.lastIndexOf("/") + 1);
             if (!isExcluded(path)) {
                 if (name.endsWith(markdownFileExtension)) {
                     githubWikiReader.parse(file);
                     doc = githubWikiReader.getDocument();
-                    System.out.println("path: " + path);
-                    System.out.println("root: " + root);
-                    // doc.path = path.substring(path.indexOf(root)+root.length());
-                    doc.name = path;
-                    doc.path = path.substring(0, path.lastIndexOf("/") + 1);
-                    System.out.println("doc.name: " + doc.name);
-                    System.out.println("doc.path: " + doc.path);
-                    doc.updateTimestamp = updateTimestamp;
                     doc.mediaType = "text/html";
                     files.add(doc);
                 } else if (name.endsWith(htmlFileExtension)) {
                     htmlReader.parse(file);
                     doc = htmlReader.getDocument();
-                    System.out.println("path: " + path);
-                    System.out.println("root: " + root);
-                    doc.name = path;
-                    doc.path = path.substring(0, path.lastIndexOf("/") + 1);
-                    System.out.println("doc.name: " + doc.name);
-                    System.out.println("doc.path: " + doc.path);
-                    doc.updateTimestamp = updateTimestamp;
                     doc.mediaType = "text/html";
                     files.add(doc);
                 } else {
                     // binary file
                     binaryReader.parse(file);
                     doc = binaryReader.getDocument();
-                    doc.name = path;
-                    doc.path = path.substring(0, path.lastIndexOf("/") + 1);
-                    System.out.println("doc.name: " + doc.name);
-                    System.out.println("doc.path: " + doc.path);
-                    doc.updateTimestamp = updateTimestamp;
                     doc.binaryFile = true;
-                    doc.mediaType = URLConnection.guessContentTypeFromName(doc.name);
-                    files.add(doc);
+                    doc.mediaType = URLConnection.guessContentTypeFromName(fileName);
                 }
+                doc.name = path;
+                doc.path = path.substring(0, path.lastIndexOf("/") + 1);
+                //doc.fileName = path.substring(path.lastIndexOf("/") + 1);
+                doc.fileName = fileName;
+                logger.info("doc.name: " + doc.name);
+                logger.info("doc.path: " + doc.path);
+                doc.updateTimestamp = updateTimestamp;
+                files.add(doc);
+
             }
         } else {
             // not a regular file nor a symbolic link
@@ -123,24 +116,26 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     }
 
     private String getRelativePath(Path file, BasicFileAttributes attr) {
-        /* if(attr.isSymbolicLink()){
-            try {
-                String tmp=file.toRealPath(LinkOption.NOFOLLOW_LINKS).toString();
-                System.out.println("real path: " + tmp);
-                //return file.toRealPath().toString().substring(root.length());
-                return tmp;
-            } catch (IOException e) {
-                e.printStackTrace();
-                return file.toAbsolutePath().toString().substring(root.length());
-            }
-        }else{ */
-            return file.toAbsolutePath().toString().substring(root.length());
-        //}
+        /*
+         * if(attr.isSymbolicLink()){
+         * try {
+         * String tmp=file.toRealPath(LinkOption.NOFOLLOW_LINKS).toString();
+         * System.out.println("real path: " + tmp);
+         * //return file.toRealPath().toString().substring(root.length());
+         * return tmp;
+         * } catch (IOException e) {
+         * e.printStackTrace();
+         * return file.toAbsolutePath().toString().substring(root.length());
+         * }
+         * }else{
+         */
+        return file.toAbsolutePath().toString().substring(root.length());
+        // }
     }
 
     private boolean isExcluded(String path) {
         for (String exclude : excludes) {
-            if (path.startsWith(exclude) || path.startsWith("/"+exclude)) {
+            if (path.startsWith(exclude) || path.startsWith("/" + exclude)) {
                 return true;
             }
         }

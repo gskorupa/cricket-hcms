@@ -6,6 +6,7 @@ public class Document {
 
     public String path="";
     public String name="";
+    public String fileName="";
     public String content="";
     public byte[] binaryContent=null;
     public long updateTimestamp=0;

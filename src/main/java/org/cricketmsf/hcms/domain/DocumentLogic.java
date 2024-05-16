@@ -39,6 +39,10 @@ public class DocumentLogic {
         return repositoryPort.getDocuments(path, noContent);
     }
 
+    public Document getDocument(String path) {
+        return repositoryPort.getDocument(path);
+    }
+
     void onStart(@Observes StartupEvent ev) {              
         loader.loadDocuments("");
         if (watcherActive) {

@@ -31,6 +31,11 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     }
 
     @Override
+    public Document getDocument(String path) {
+        return repository.getDocument(path);
+    }
+
+    @Override
     public void addDocument(Document doc) {
         repository.addDocument(doc);
     }

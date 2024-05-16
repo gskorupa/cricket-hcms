@@ -53,7 +53,7 @@ public class DocumentRepository implements DocumentRepositoryIface {
     public List<Document> getDocuments(String path, boolean withContent) {
         ArrayList<Document> docs = new ArrayList<>();
         //logger.info("database size: " + documents.size());
-        String searchPath = "/" + path;
+        String searchPath = path.startsWith("/") ? path : "/"+path;
         logger.debug("searching: " + searchPath);
         getDocuments().forEach((k, v) -> {
             if (isFolder(searchPath)) {
@@ -68,6 +68,12 @@ public class DocumentRepository implements DocumentRepositoryIface {
         });
         logger.debug("found: " + docs.size() + " documents");
         return docs;
+    }
+
+    @Override
+    public Document getDocument(String path) {
+        Document doc = getDocuments().get(path);
+        return doc.clone(true);
     }
 
     private boolean isFolder(String path) {
@@ -90,7 +96,7 @@ public class DocumentRepository implements DocumentRepositoryIface {
             //TODO: for real, not in memory database, this won't be needed
             return;
         }
-        logger.info("addDocument: " + doc.path);
+        logger.info("addDocument: " + doc.name);
         getUnderConstrDocs().put(doc.name, doc);
     }
 
