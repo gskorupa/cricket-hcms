@@ -73,6 +73,9 @@ public class DocumentRepository implements DocumentRepositoryIface {
     @Override
     public Document getDocument(String path) {
         Document doc = getDocuments().get(path);
+        if (doc == null) {
+            return null;
+        }
         return doc.clone(true);
     }
 

@@ -103,7 +103,7 @@ public class DocumentApi {
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        if (doc.binaryFile == true) {
+        if (doc.binaryFile == true){
             try {
                 ByteArrayInputStream bis = new ByteArrayInputStream(doc.binaryContent);
                 return Response.ok(bis, doc.mediaType)
