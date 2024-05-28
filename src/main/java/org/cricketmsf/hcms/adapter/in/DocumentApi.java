@@ -90,6 +90,27 @@ public class DocumentApi {
     }
 
     @GET
+    @Path("/find/")
+    @APIResponse(responseCode = "401", description = "Unauthorized")
+    @APIResponseSchema(value = List.class, responseDescription = "List of document objects.", responseCode = "200")
+    @Operation(summary = "Find documents", description = "Find documents with the specified path and list of {property name,poperty value} pairs. Path is optional.")
+    public Response findDocs(
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Path to the document or directory. If not provided, the root directory will be listed.", required = false, example = "docs", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path,
+            @Parameter(description = "List of {property name,poperty value} pairs.", required = true, example = "type,article", schema = @Schema(type = SchemaType.STRING)) @QueryParam("properties") String properties) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        String[] pairs = properties.split(",");
+        if (pairs.length % 2 != 0) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid properties list").build();
+        }
+        List<Document> list = documentPort.findDocs(path, pairs);
+        return Response.ok(list).build();
+    }  
+
+
+    @GET
     @Path("/document/")
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponseSchema(value = Document.class, responseDescription = "Document object.", responseCode = "200")

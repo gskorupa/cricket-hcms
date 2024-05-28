@@ -130,4 +130,34 @@ public class DocumentRepository implements DocumentRepositoryIface {
         reloadInProgress = false;
     }
 
+    @Override
+    public List<Document> findDocuments(String path, String propertyName, String propertyValue, boolean withContent) {
+        ArrayList<Document> docs = new ArrayList<>();
+        if(path!=null){
+            getDocuments().forEach((k, v) -> {
+                if (k.startsWith(path) && v.hasProperty(propertyName) && v.getProperty(propertyName).equals(propertyValue)) {
+                    docs.add(v.clone(withContent));
+                }
+            });
+        }else{
+            getDocuments().forEach((k, v) -> {
+                if (v.hasProperty(propertyName) && v.getProperty(propertyName).equals(propertyValue)) {
+                    docs.add(v.clone(withContent));
+                }
+            });
+        }
+        return docs;
+    }
+
+    @Override
+    public List<Document> filter(List<Document> docs, String propertyName, String propertyValue) {
+        ArrayList<Document> filtered = new ArrayList<>();
+        docs.forEach((doc) -> {
+            if (doc.hasProperty(propertyName) && doc.getProperty(propertyName).equals(propertyValue)) {
+                filtered.add(doc);
+            }
+        });
+        return filtered;
+    }
+
 }

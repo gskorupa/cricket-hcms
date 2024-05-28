@@ -35,4 +35,12 @@ public class Document {
         return doc;
     }
 
+    public boolean hasProperty(String key){
+        return metadata.containsKey(key);
+    }
+
+    public String getProperty(String key){
+        return metadata.get(key);
+    }
+
 }

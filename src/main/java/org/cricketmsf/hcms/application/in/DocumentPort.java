@@ -30,5 +30,9 @@ public class DocumentPort {
     public void addDocument(Document document){
         logic.addDocument(document);
     }
+
+    public List<Document> findDocs(String path, String[] props){
+        return logic.findDocuments(path, props);
+    }
     
 }

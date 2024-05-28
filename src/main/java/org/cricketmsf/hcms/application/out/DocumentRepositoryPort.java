@@ -65,5 +65,15 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     public void stopReload() {
         repository.stopReload();
     }
+
+    @Override
+    public List<Document> findDocuments(String propertyName, String path, String propertyValue, boolean withContent) {
+        return repository.findDocuments(path, propertyName, propertyValue, withContent);
+    }
+
+    @Override
+    public List<Document> filter(List<Document> docs, String propertyName, String propertyValue) {
+        return repository.filter(docs, propertyName, propertyValue);
+    }
     
 }

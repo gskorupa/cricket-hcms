@@ -1,5 +1,6 @@
 package org.cricketmsf.hcms.domain;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -43,33 +44,33 @@ public class DocumentLogic {
         return repositoryPort.getDocument(path);
     }
 
-    void onStart(@Observes StartupEvent ev) {              
+    void onStart(@Observes StartupEvent ev) {
         loader.loadDocuments("");
         if (watcherActive) {
             String[] filesToWatch = watchedFile.split(";");
             String docRoot;
             String docName;
-            for (int i=0; i<filesToWatch.length; i++) {
+            for (int i = 0; i < filesToWatch.length; i++) {
                 docRoot = "";
-                if(filesToWatch[i].lastIndexOf("/")>0){
-                    docName = filesToWatch[i].substring(filesToWatch[i].lastIndexOf("/")+1);
+                if (filesToWatch[i].lastIndexOf("/") > 0) {
+                    docName = filesToWatch[i].substring(filesToWatch[i].lastIndexOf("/") + 1);
                     docRoot = filesToWatch[i].substring(0, filesToWatch[i].lastIndexOf("/"));
-                }else{
+                } else {
                     docName = filesToWatch[i];
                 }
                 docRoot = root + "/" + docRoot;
                 logger.info("Monitoring changes in " + docRoot + "/" + docName);
                 Executors.newSingleThreadExecutor().execute(new FolderWatcher(docRoot, docName, loader));
             }
-        }else{
+        } else {
             logger.info("Watcher is not active");
         }
     }
 
     public void reload() {
-        //loader.loadDocuments("");
+        // loader.loadDocuments("");
         // executing system command to pull, the repository
-        String[] command = {"git", "pull", "https://"+githubToken+"@"+githubRepository};
+        String[] command = { "git", "pull", "https://" + githubToken + "@" + githubRepository };
         try {
             Process process = Runtime.getRuntime().exec(command);
             process.waitFor();
@@ -81,8 +82,27 @@ public class DocumentLogic {
 
     }
 
-    public void addDocument(Document document){
+    public void addDocument(Document document) {
         repositoryPort.addDocument(document);
     }
 
+    public List<Document> findDocuments(String path, String[] props) {
+        List<Document> docs = new ArrayList<>();
+        String[] prop;
+        prop = props[0].split(":");
+        if (prop.length != 2) {
+            logger.error("Invalid property definition: " + props[0]);
+            return new ArrayList<>(); // TODO: throw exception
+        }
+        docs = repositoryPort.findDocuments(path, prop[0], prop[1], false);
+        for (int i = 1; i < props.length; i++) {
+            prop = props[i].split(":");
+            if (prop.length != 2) {
+                logger.error("Invalid property definition: " + props[i]);
+                return new ArrayList<>(); // TODO: throw exception
+            }
+            docs = repositoryPort.filter(docs, prop[0], prop[1]);
+        }
+        return docs;
+    }
 }
