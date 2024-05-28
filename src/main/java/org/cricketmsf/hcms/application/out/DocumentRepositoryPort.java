@@ -26,8 +26,8 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     String htmlFileExtension; */
     
     @Override
-    public List<Document> getDocuments(String path, boolean noContent) {
-        return repository.getDocuments(path, noContent);
+    public List<Document> getDocuments(String path, boolean withContent) {
+        return repository.getDocuments(path, withContent);
     }
 
     @Override

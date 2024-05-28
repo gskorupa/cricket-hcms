@@ -50,7 +50,7 @@ public class DocumentApi {
     @Operation(summary = "List documents", description = "List documents with the specified path. If the result is a single document and it is a binary file, the file will be returned as a download.")
     public Response getDocs(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
-            @Parameter(description = "If true, documents will be listed with their content.", required = false, example = "true", schema = @Schema(type = SchemaType.BOOLEAN)) @QueryParam("content") boolean listOnly,
+            @Parameter(description = "If true, documents will be listed with their content.", required = false, example = "true", schema = @Schema(type = SchemaType.BOOLEAN)) @QueryParam("content") boolean withContent,
             @Parameter(description = "Path to the document or directory. If not provided, the root directory will be listed.", required = false, example = "docs", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path) {
 
         if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
@@ -62,7 +62,7 @@ public class DocumentApi {
         }
         logger.info("requesting: " + searchPath);
         List<Document> list;
-        if (listOnly) {
+        if (withContent) {
             list = documentPort.getDocs(searchPath, true);
         } else {
             list = documentPort.getDocs(searchPath, false);
