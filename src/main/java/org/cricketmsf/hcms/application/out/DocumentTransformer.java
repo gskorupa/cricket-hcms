@@ -15,16 +15,20 @@ import com.vladsch.flexmark.util.data.MutableDataSet;
 public class DocumentTransformer {
     private static Logger logger = Logger.getLogger(DocumentTransformer.class);
 
-    //https://github.com/vsch/flexmark-java
+    // https://github.com/vsch/flexmark-java
 
     public static Document transform(Document doc, String markdownExtension) {
-
-        if (doc.name.endsWith(markdownExtension)) {
-            doc.content = getHtml(doc.content);
+        try {
+            if (doc.name.endsWith(markdownExtension)) {
+                doc.content = getHtml(doc.content);
+            }
+            logger.info("doc to save name: " + doc.name);
+            logger.info("doc to save path: " + doc.path);
+            return doc;
+        } catch (Exception e) {
+            logger.error("transformer error: " + e.getMessage());
+            return null;
         }
-        logger.info("doc to save name: " + doc.name);
-        logger.info("doc to save path: " + doc.path);
-        return doc;
     }
 
     private static String getHtml(String markdown) {
@@ -41,7 +45,7 @@ public class DocumentTransformer {
 
         // You can re-use parser and renderer instances
         Node document = parser.parse(markdown);
-        String html = renderer.render(document); 
+        String html = renderer.render(document);
         return html;
     }
 }

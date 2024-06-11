@@ -82,9 +82,9 @@ public class DocumentLogic {
 
     }
 
-    public void addDocument(Document document) {
-        repositoryPort.addDocument(document);
-    }
+    //public void addDocument(Document document) {
+    //    repositoryPort.addDocument(document);
+    //}
 
     public List<Document> findDocuments(String path, String[] props) {
         List<Document> docs = new ArrayList<>();

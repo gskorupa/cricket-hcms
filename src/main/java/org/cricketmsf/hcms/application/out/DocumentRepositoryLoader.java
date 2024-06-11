@@ -65,13 +65,17 @@ public class DocumentRepositoryLoader {
         }
         files = visitor.getList();
         logger.info("found: " + files.size() + " documents");
+        Document doc;
         for(int i=0; i<files.size(); i++) {
-            logger.info("  " + files.get(i).path);
-            repositoryPort.addDocument(DocumentTransformer.transform(files.get(i), markdownFileExtension));
+            //logger.info("  " + files.get(i).path);
+            doc=DocumentTransformer.transform(files.get(i), markdownFileExtension);
+            if(null!=doc){
+                repositoryPort.addDocument(doc);
+            }
         }
-        /* for (Document doc : files) {
-            repositoryPort.addDocument(DocumentTransformer.transform(doc, markdownFileExtension));
-        } */
+        // for (Document doc : files) {
+        //    repositoryPort.addDocument(DocumentTransformer.transform(doc, markdownFileExtension));
+        //}
         logger.info("loaded: " + files.size() + " documents");
         logger.info("repositoryPort database size: " + repositoryPort.getDocumentsCount());
         repositoryPort.stopReload();

@@ -1,0 +1,639 @@
+<h1>Receiver API</h1>
+<h2>Spis Treści</h2>
+<ul>
+<li><a href="#wprowadzenie">Wprowadzenie</a></li>
+<li><a href="#adresy">Adresy</a>
+<ul>
+<li><a href="#post-receiverio-json">POST /api/receiver/io (JSON)</a></li>
+<li><a href="#post-receiverio-text">POST /api/receiver/io (Text)</a></li>
+<li><a href="#post-receiverio-form">POST /api/receiver/io (Form)</a></li>
+<li><a href="#post-receiverin-json">POST /api/receiver/in (JSON)</a></li>
+<li><a href="#post-receiverin-text">POST /api/receiver/in (Text)</a></li>
+<li><a href="#post-receiverin-form">POST /api/receiver/in (Form)</a></li>
+<li><a href="#post-receiverbulk">POST /api/receiver/bulk</a></li>
+<li><a href="#post-receiverttn3">POST /api/receiver/ttn3/up</a></li>
+<li><a href="#post-receiverchirpstack">POST /api/receiver/chirpstack</a></li>
+</ul>
+</li>
+<li><a href="#przyklady-uzycia">Przykłady Użycia</a></li>
+</ul>
+<h2><a name="wprowadzenie"></a>Wprowadzenie</h2>
+<p>Niniejsza dokumentacja opisuje REST API dla odbiornika danych IoT. API umożliwia przesyłanie danych w formatach JSON, tekstowym oraz jako formularze, a także umożliwia przesyłanie danych w trybie wsadowym (bulk).</p>
+<p>Zobacz też: <a href="sending_data.md">Przesyłanie danych</a></p>
+<h2>Dokumentacja REST API Generic</h2>
+<h3><a name="adresy"></a>Adresy</h3>
+<h4><a name="post-receiverio-json"></a>POST /api/receiver/io (JSON)</h4>
+<p>Przetwarza dane w formacie JSON.</p>
+<p><strong>URL</strong>: <code>/api/receiver/io</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+</ul>
+<p><strong>Treść żądania</strong>:</p>
+<pre><code class="language-json">{
+    &quot;dev_eui&quot;: &quot;string&quot;,
+    &quot;gateway_eui&quot;: &quot;string&quot;,
+    &quot;timestamp&quot;: &quot;long&quot;,
+    &quot;clientname&quot;: &quot;string&quot;,
+    &quot;payload&quot;: &quot;string&quot;,
+    &quot;hex_payload&quot;: &quot;string&quot;,
+    &quot;payload_fields&quot;: [
+        {
+            &quot;name&quot;: &quot;string&quot;,
+            &quot;value&quot;: &quot;string&quot;
+        }
+    ]
+}
+</code></pre>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverio-text"></a>POST /api/receiver/io (Text)</h4>
+<p>Przetwarza dane w formacie tekstowym.</p>
+<p><strong>URL</strong>: <code>/api/receiver/io</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-data-separator</code>: Separator danych (opcjonalny)</li>
+</ul>
+<p><strong>Treść żądania</strong>: Tekst</p>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverio-form"></a>POST /api/receiver/io (Form)</h4>
+<p>Przetwarza dane przesłane jako formularz.</p>
+<p><strong>URL</strong>: <code>/api/receiver/io</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+</ul>
+<p><strong>Treść żądania</strong>: Formularz URL-encoded</p>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverin-json"></a>POST /api/receiver/in (JSON)</h4>
+<p>Przetwarza dane w formacie JSON.</p>
+<p><strong>URL</strong>: <code>/api/receiver/in</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+</ul>
+<p><strong>Treść żądania</strong>:</p>
+<pre><code class="language-json">{
+    &quot;dev_eui&quot;: &quot;string&quot;,
+    &quot;gateway_eui&quot;: &quot;string&quot;,
+    &quot;timestamp&quot;: &quot;long&quot;,
+    &quot;clientname&quot;: &quot;string&quot;,
+    &quot;payload&quot;: &quot;string&quot;,
+    &quot;hex_payload&quot;: &quot;string&quot;,
+    &quot;payload_fields&quot;: [
+        {
+            &quot;name&quot;: &quot;string&quot;,
+            &quot;value&quot;: &quot;string&quot;
+        }
+    ]
+}
+</code></pre>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverin-text"></a>POST /api/receiver/in (Text)</h4>
+<p>Przetwarza dane w formacie tekstowym.</p>
+<p><strong>URL</strong>: <code>/api/receiver/in</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-data-separator</code>: Separator danych (opcjonalny)</li>
+</ul>
+<p><strong>Treść żądania</strong>: Tekst</p>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverin-form"></a>POST /api/receiver/in (Form)</h4>
+<p>Przetwarza dane przesłane jako formularz.</p>
+<p><strong>URL</strong>: <code>/api/receiver/in</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+</ul>
+<p><strong>Treść żądania</strong>: Formularz URL-encoded</p>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverbulk"></a>POST /api/receiver/bulk</h4>
+<p>Przetwarza wsadowe przesyłanie danych w formacie CSV.</p>
+<p><strong>URL</strong>: <code>/api/receiver/bulk</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia</li>
+</ul>
+<p><strong>Treść żądania</strong>: Dane multipart/form-data</p>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h2>Dokumentacja REST API TTN</h2>
+<p>The <code>ReceiverResourceTtn</code> class provides REST API endpoints for receiving and processing IoT data from The Things Network (TTN). This API supports options and POST requests for handling data and authorization.</p>
+<h3>Adresy</h3>
+<h4><a name="post-receiverttn3"></a>POST /api/receiver/ttn3/up</h4>
+<p>Receives IoT data in JSON format, decodes it, transforms it into an internal format, and processes it. If authorization is required, the request must include an Authorization header.</p>
+<p><strong>URL</strong> <code>/api/receiver/ttn3/up</code></p>
+<p><strong>Metoda</strong> <code>POST</code></p>
+<p><strong>Nagłówki żądania</strong></p>
+<ul>
+<li><code>Authorization</code> (optional if <code>device.authorization.required</code> is <code>false</code>): Authorization token.</li>
+</ul>
+<p><strong>Treść żadania</strong> - <code>application/json</code></p>
+<p><strong>Wynik</strong> <code>text/plain</code></p>
+<p><strong>Odpowiedzi</strong></p>
+<ul>
+<li>Status: <code>200 OK</code>
+<ul>
+<li>Body: <code>&quot;OK&quot;</code> if data processing is successful.</li>
+</ul>
+</li>
+<li>Status: <code>400 Bad Request</code>
+<ul>
+<li>Body: <code>&quot;error while reading the data&quot;</code> if the data cannot be read.</li>
+</ul>
+</li>
+<li>Status: <code>401 Unauthorized</code>
+<ul>
+<li>Body: <code>&quot;no authorization header found&quot;</code> if authorization is required but the header is missing or blank.</li>
+</ul>
+</li>
+<li>Status: <code>500 Internal Server Error</code>
+<ul>
+<li>Body: <code>&quot;error while processing the data&quot;</code> if an error occurs during data processing.</li>
+</ul>
+</li>
+</ul>
+<h2>Dokumentacja REST API Chirpstack</h2>
+<h3>Adresy</h3>
+<h4><a name="post-receiverchirpstack"></a>POST /api/receiver/chirpstack</h4>
+<p><strong>URL</strong>: <code>/api/receiver/chirpstack</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong></p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+</ul>
+<p><strong>Parametry zapytania</strong></p>
+<ul>
+<li><code>event</code>: (Required) Specifies the type of event. Supported values are <code>up</code> and <code>join</code>.</li>
+</ul>
+<p><strong>Treść żądania</strong></p>
+<ul>
+<li>The body should contain the event data in JSON format.</li>
+</ul>
+<p><strong>Kod odpowiedzi</strong></p>
+<ul>
+<li><code>200 OK</code> - Indicates that the request was successfully processed.</li>
+<li><code>400 Bad Request</code><br><br />
+Returned if the <code>event</code> parameter is missing or if there is an error while reading the data.<br><br />
+Example response: <code>{&quot;message&quot;: &quot;event parameter missing&quot;}</code></li>
+<li><code>401 Unauthorized</code><br><br />
+Returned if authorization is required and the <code>Authorization</code> header is missing or blank.<br><br />
+Example response: <code>{&quot;message&quot;: &quot;no authorization header found&quot;}</code></li>
+<li><code>500 Internal Server Error</code>- Returned if there is an error while processing the data.</li>
+</ul>
+<h2><a name="przyklady_uzycia"></a>Przykłady Użycia</h2>
+<h3>Rest API Generic</h3>
+<h4>Przykład 1: Przesyłanie danych w formacie JSON</h4>
+<p><strong>Żądanie</strong>:</p>
+<pre><code class="language-bash">curl -X POST &quot;http://example.com/api/receiver/io&quot; \
+    -H &quot;Authorization: 0102030405&quot; \
+    -H &quot;X-device-eui: ABC123&quot; \
+    -H &quot;Content-Type: application/json&quot; \
+    -d '{
+        &quot;dev_eui&quot;: &quot;ABC123&quot;,
+        &quot;timestamp&quot;: 1627890123,
+        &quot;clientname&quot;: &quot;ExampleClient&quot;,
+        &quot;payload&quot;: &quot;example_payload&quot;,
+        &quot;hex_payload&quot;: &quot;6865785f7061796c6f6164&quot;,
+        &quot;payload_fields&quot;: [
+            {&quot;name&quot;: &quot;temperature&quot;, &quot;value&quot;: &quot;22.5&quot;},
+            {&quot;name&quot;: &quot;humidity&quot;, &quot;value&quot;: &quot;60&quot;}
+        ]
+    }'
+</code></pre>
+<p><strong>Odpowiedź</strong>:</p>
+<pre><code>200 OK
+</code></pre>
+<h4>Przykład 2: Przesyłanie danych w formacie tekstowym</h4>
+<p><strong>Żądanie</strong>:</p>
+<pre><code class="language-bash">curl -X POST &quot;http://example.com/api/receiver/io&quot; \
+    -H &quot;Authorization: 0102030405&quot; \
+    -H &quot;X-device-eui: ABC123&quot; \
+    -H &quot;X-data-separator: ;&quot; \
+    -H &quot;Content-Type: text/plain&quot; \
+    -d &quot;temperature=22.5;humidity=60&quot;
+</code></pre>
+<p><strong>Odpowiedź</strong>:</p>
+<pre><code>200 OK
+</code></pre>
+<h4>Przykład 3: Przesyłanie danych jako formularz</h4>
+<p><strong>Żądanie</strong>:</p>
+<pre><code class="language-bash">curl -X POST &quot;http://example.com/api/receiver/io&quot; \
+    -H &quot;Authorization: 0102030405&quot; \
+    -H &quot;X-device-eui: ABC123&quot; \
+    -H &quot;Content-Type: application/x-www-form-urlencoded&quot; \
+    -d &quot;temperature=22.5&amp;humidity=60&quot;
+</code></pre>
+<p><strong>Odpowiedź</strong>:</p>
+<pre><code>200 OK
+</code></pre>
+<h4>Przykład 4: Przesyłanie danych wsadowych</h4>
+<p><strong>Żądanie</strong>:</p>
+<pre><code class="language-bash">curl -X POST &quot;http://example.com/api/receiver/bulk&quot; \
+    -H &quot;Authorization: 0102030405&quot; \
+    -H &quot;X-device-eui: ABC123&quot; \
+    -F &quot;file=@data.csv&quot;
+</code></pre>
+<p><strong>Odpowiedź</strong>:</p>
+<pre><code>200 OK
+</code></pre>
+<p><strong>Przykładowa zawartość <code>data.csv</code></strong>:</p>
+<pre><code class="language-csv">dev_eui,gateway_eui,timestamp,clientname,payload,hex_payload,payload_fields
+ABC123,DEF456,1627890123,ExampleClient,example_payload,6865785f7061796c6f6164,&quot;[{&quot;&quot;name&quot;&quot;: &quot;&quot;temperature&quot;&quot;, &quot;&quot;value&quot;&quot;: &quot;&quot;22.5&quot;&quot;}, {&quot;&quot;name&quot;&quot;: &quot;&quot;humidity&quot;&quot;, &quot;&quot;value&quot;&quot;: &quot;&quot;60&quot;&quot;}]&quot;
+</code></pre>
+<h3>Rest API TTN</h3>
+<h4>Przykład 1</h4>
+<p><strong>Żądanie</strong></p>
+<pre><code class="language-bash">curl -X POST `http://example.com/api/receiver/ttn3/up` \
+    -H `Authorization: 0102030405` \
+    -H `Content-Type: application/json` \
+    -d '{
+        &quot;deviceEui&quot;: &quot;0004A30B002C3A9D&quot;,
+        &quot;timestamp&quot;: 1627382993,
+        &quot;payloadFields&quot;: {
+            &quot;temperature&quot;: 23.5,
+            &quot;humidity&quot;: 56
+        }
+    }
+</code></pre>
+<p><strong>Odpowiedź</strong></p>
+<pre><code>OK
+</code></pre>
+
+2024-06-08 09:43:29,995 INFO  [org.cri.hcm.app.out.DocumentTransformer] (main) doc to save name: /signomix-documentation/api/receiver_api.md
+2024-06-08 09:43:29,995 INFO  [org.cri.hcm.app.out.DocumentTransformer] (main) doc to save path: /signomix-documentation/api/
+2024-06-08 09:43:29,995 INFO  [org.cri.hcm.ada.out.DocumentRepository] (main) addDocument: /signomix-documentation/api/receiver_api.md
+2024-06-08 09:43:29,995 INFO  [org.cri.hcm.ada.out.DocumentRepository] (main) receiver_api.md contemt:
+2024-06-08 09:43:29,995 INFO  [org.cri.hcm.ada.out.DocumentRepository] (main) <h1>Receiver API</h1>
+<h2>Spis Treści</h2>
+<ul>
+<li><a href="#wprowadzenie">Wprowadzenie</a></li>
+<li><a href="#adresy">Adresy</a>
+<ul>
+<li><a href="#post-receiverio-json">POST /api/receiver/io (JSON)</a></li>
+<li><a href="#post-receiverio-text">POST /api/receiver/io (Text)</a></li>
+<li><a href="#post-receiverio-form">POST /api/receiver/io (Form)</a></li>
+<li><a href="#post-receiverin-json">POST /api/receiver/in (JSON)</a></li>
+<li><a href="#post-receiverin-text">POST /api/receiver/in (Text)</a></li>
+<li><a href="#post-receiverin-form">POST /api/receiver/in (Form)</a></li>
+<li><a href="#post-receiverbulk">POST /api/receiver/bulk</a></li>
+<li><a href="#post-receiverttn3">POST /api/receiver/ttn3/up</a></li>
+<li><a href="#post-receiverchirpstack">POST /api/receiver/chirpstack</a></li>
+</ul>
+</li>
+<li><a href="#przyklady-uzycia">Przykłady Użycia</a></li>
+</ul>
+<h2><a name="wprowadzenie"></a>Wprowadzenie</h2>
+<p>Niniejsza dokumentacja opisuje REST API dla odbiornika danych IoT. API umożliwia przesyłanie danych w formatach JSON, tekstowym oraz jako formularze, a także umożliwia przesyłanie danych w trybie wsadowym (bulk).</p>
+<p>Zobacz też: <a href="sending_data.md">Przesyłanie danych</a></p>
+<h2>Dokumentacja REST API Generic</h2>
+<h3><a name="adresy"></a>Adresy</h3>
+<h4><a name="post-receiverio-json"></a>POST /api/receiver/io (JSON)</h4>
+<p>Przetwarza dane w formacie JSON.</p>
+<p><strong>URL</strong>: <code>/api/receiver/io</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+</ul>
+<p><strong>Treść żądania</strong>:</p>
+<pre><code class="language-json">{
+    &quot;dev_eui&quot;: &quot;string&quot;,
+    &quot;gateway_eui&quot;: &quot;string&quot;,
+    &quot;timestamp&quot;: &quot;long&quot;,
+    &quot;clientname&quot;: &quot;string&quot;,
+    &quot;payload&quot;: &quot;string&quot;,
+    &quot;hex_payload&quot;: &quot;string&quot;,
+    &quot;payload_fields&quot;: [
+        {
+            &quot;name&quot;: &quot;string&quot;,
+            &quot;value&quot;: &quot;string&quot;
+        }
+    ]
+}
+</code></pre>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverio-text"></a>POST /api/receiver/io (Text)</h4>
+<p>Przetwarza dane w formacie tekstowym.</p>
+<p><strong>URL</strong>: <code>/api/receiver/io</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-data-separator</code>: Separator danych (opcjonalny)</li>
+</ul>
+<p><strong>Treść żądania</strong>: Tekst</p>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverio-form"></a>POST /api/receiver/io (Form)</h4>
+<p>Przetwarza dane przesłane jako formularz.</p>
+<p><strong>URL</strong>: <code>/api/receiver/io</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+</ul>
+<p><strong>Treść żądania</strong>: Formularz URL-encoded</p>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverin-json"></a>POST /api/receiver/in (JSON)</h4>
+<p>Przetwarza dane w formacie JSON.</p>
+<p><strong>URL</strong>: <code>/api/receiver/in</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+</ul>
+<p><strong>Treść żądania</strong>:</p>
+<pre><code class="language-json">{
+    &quot;dev_eui&quot;: &quot;string&quot;,
+    &quot;gateway_eui&quot;: &quot;string&quot;,
+    &quot;timestamp&quot;: &quot;long&quot;,
+    &quot;clientname&quot;: &quot;string&quot;,
+    &quot;payload&quot;: &quot;string&quot;,
+    &quot;hex_payload&quot;: &quot;string&quot;,
+    &quot;payload_fields&quot;: [
+        {
+            &quot;name&quot;: &quot;string&quot;,
+            &quot;value&quot;: &quot;string&quot;
+        }
+    ]
+}
+</code></pre>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverin-text"></a>POST /api/receiver/in (Text)</h4>
+<p>Przetwarza dane w formacie tekstowym.</p>
+<p><strong>URL</strong>: <code>/api/receiver/in</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-data-separator</code>: Separator danych (opcjonalny)</li>
+</ul>
+<p><strong>Treść żądania</strong>: Tekst</p>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverin-form"></a>POST /api/receiver/in (Form)</h4>
+<p>Przetwarza dane przesłane jako formularz.</p>
+<p><strong>URL</strong>: <code>/api/receiver/in</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia (opcjonalny w zależności od konfiguracji)</li>
+</ul>
+<p><strong>Treść żądania</strong>: Formularz URL-encoded</p>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h4><a name="post-receiverbulk"></a>POST /api/receiver/bulk</h4>
+<p>Przetwarza wsadowe przesyłanie danych w formacie CSV.</p>
+<p><strong>URL</strong>: <code>/api/receiver/bulk</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong>:</p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+<li><code>X-device-eui</code>: EUI urządzenia</li>
+</ul>
+<p><strong>Treść żądania</strong>: Dane multipart/form-data</p>
+<p><strong>Treść odpowiedzi</strong>:</p>
+<ul>
+<li><code>200 OK</code> – Sukces</li>
+<li><code>401 Unauthorized</code> – Brak nagłówka autoryzacyjnego</li>
+<li><code>404 Not Found</code> – Urządzenie nieznane lub nieaktywne</li>
+<li><code>400 Bad Request</code> – Błąd w przetwarzaniu danych</li>
+</ul>
+<h2>Dokumentacja REST API TTN</h2>
+<p>The <code>ReceiverResourceTtn</code> class provides REST API endpoints for receiving and processing IoT data from The Things Network (TTN). This API supports options and POST requests for handling data and authorization.</p>
+<h3>Adresy</h3>
+<h4><a name="post-receiverttn3"></a>POST /api/receiver/ttn3/up</h4>
+<p>Receives IoT data in JSON format, decodes it, transforms it into an internal format, and processes it. If authorization is required, the request must include an Authorization header.</p>
+<p><strong>URL</strong> <code>/api/receiver/ttn3/up</code></p>
+<p><strong>Metoda</strong> <code>POST</code></p>
+<p><strong>Nagłówki żądania</strong></p>
+<ul>
+<li><code>Authorization</code> (optional if <code>device.authorization.required</code> is <code>false</code>): Authorization token.</li>
+</ul>
+<p><strong>Treść żadania</strong> - <code>application/json</code></p>
+<p><strong>Wynik</strong> <code>text/plain</code></p>
+<p><strong>Odpowiedzi</strong></p>
+<ul>
+<li>Status: <code>200 OK</code>
+<ul>
+<li>Body: <code>&quot;OK&quot;</code> if data processing is successful.</li>
+</ul>
+</li>
+<li>Status: <code>400 Bad Request</code>
+<ul>
+<li>Body: <code>&quot;error while reading the data&quot;</code> if the data cannot be read.</li>
+</ul>
+</li>
+<li>Status: <code>401 Unauthorized</code>
+<ul>
+<li>Body: <code>&quot;no authorization header found&quot;</code> if authorization is required but the header is missing or blank.</li>
+</ul>
+</li>
+<li>Status: <code>500 Internal Server Error</code>
+<ul>
+<li>Body: <code>&quot;error while processing the data&quot;</code> if an error occurs during data processing.</li>
+</ul>
+</li>
+</ul>
+<h2>Dokumentacja REST API Chirpstack</h2>
+<h3>Adresy</h3>
+<h4><a name="post-receiverchirpstack"></a>POST /api/receiver/chirpstack</h4>
+<p><strong>URL</strong>: <code>/api/receiver/chirpstack</code></p>
+<p><strong>Metoda HTTP</strong>: <code>POST</code></p>
+<p><strong>Nagłówki</strong></p>
+<ul>
+<li><code>Authorization</code>: Klucz autoryzacyjny (opcjonalny w zależności od konfiguracji)</li>
+</ul>
+<p><strong>Parametry zapytania</strong></p>
+<ul>
+<li><code>event</code>: (Required) Specifies the type of event. Supported values are <code>up</code> and <code>join</code>.</li>
+</ul>
+<p><strong>Treść żądania</strong></p>
+<ul>
+<li>The body should contain the event data in JSON format.</li>
+</ul>
+<p><strong>Kod odpowiedzi</strong></p>
+<ul>
+<li><code>200 OK</code> - Indicates that the request was successfully processed.</li>
+<li><code>400 Bad Request</code><br><br />
+Returned if the <code>event</code> parameter is missing or if there is an error while reading the data.<br><br />
+Example response: <code>{&quot;message&quot;: &quot;event parameter missing&quot;}</code></li>
+<li><code>401 Unauthorized</code><br><br />
+Returned if authorization is required and the <code>Authorization</code> header is missing or blank.<br><br />
+Example response: <code>{&quot;message&quot;: &quot;no authorization header found&quot;}</code></li>
+<li><code>500 Internal Server Error</code>- Returned if there is an error while processing the data.</li>
+</ul>
+<h2><a name="przyklady_uzycia"></a>Przykłady Użycia</h2>
+<h3>Rest API Generic</h3>
+<h4>Przykład 1: Przesyłanie danych w formacie JSON</h4>
+<p><strong>Żądanie</strong>:</p>
+<pre><code class="language-bash">curl -X POST &quot;http://example.com/api/receiver/io&quot; \
+    -H &quot;Authorization: 0102030405&quot; \
+    -H &quot;X-device-eui: ABC123&quot; \
+    -H &quot;Content-Type: application/json&quot; \
+    -d '{
+        &quot;dev_eui&quot;: &quot;ABC123&quot;,
+        &quot;timestamp&quot;: 1627890123,
+        &quot;clientname&quot;: &quot;ExampleClient&quot;,
+        &quot;payload&quot;: &quot;example_payload&quot;,
+        &quot;hex_payload&quot;: &quot;6865785f7061796c6f6164&quot;,
+        &quot;payload_fields&quot;: [
+            {&quot;name&quot;: &quot;temperature&quot;, &quot;value&quot;: &quot;22.5&quot;},
+            {&quot;name&quot;: &quot;humidity&quot;, &quot;value&quot;: &quot;60&quot;}
+        ]
+    }'
+</code></pre>
+<p><strong>Odpowiedź</strong>:</p>
+<pre><code>200 OK
+</code></pre>
+<h4>Przykład 2: Przesyłanie danych w formacie tekstowym</h4>
+<p><strong>Żądanie</strong>:</p>
+<pre><code class="language-bash">curl -X POST &quot;http://example.com/api/receiver/io&quot; \
+    -H &quot;Authorization: 0102030405&quot; \
+    -H &quot;X-device-eui: ABC123&quot; \
+    -H &quot;X-data-separator: ;&quot; \
+    -H &quot;Content-Type: text/plain&quot; \
+    -d &quot;temperature=22.5;humidity=60&quot;
+</code></pre>
+<p><strong>Odpowiedź</strong>:</p>
+<pre><code>200 OK
+</code></pre>
+<h4>Przykład 3: Przesyłanie danych jako formularz</h4>
+<p><strong>Żądanie</strong>:</p>
+<pre><code class="language-bash">curl -X POST &quot;http://example.com/api/receiver/io&quot; \
+    -H &quot;Authorization: 0102030405&quot; \
+    -H &quot;X-device-eui: ABC123&quot; \
+    -H &quot;Content-Type: application/x-www-form-urlencoded&quot; \
+    -d &quot;temperature=22.5&amp;humidity=60&quot;
+</code></pre>
+<p><strong>Odpowiedź</strong>:</p>
+<pre><code>200 OK
+</code></pre>
+<h4>Przykład 4: Przesyłanie danych wsadowych</h4>
+<p><strong>Żądanie</strong>:</p>
+<pre><code class="language-bash">curl -X POST &quot;http://example.com/api/receiver/bulk&quot; \
+    -H &quot;Authorization: 0102030405&quot; \
+    -H &quot;X-device-eui: ABC123&quot; \
+    -F &quot;file=@data.csv&quot;
+</code></pre>
+<p><strong>Odpowiedź</strong>:</p>
+<pre><code>200 OK
+</code></pre>
+<p><strong>Przykładowa zawartość <code>data.csv</code></strong>:</p>
+<pre><code class="language-csv">dev_eui,gateway_eui,timestamp,clientname,payload,hex_payload,payload_fields
+ABC123,DEF456,1627890123,ExampleClient,example_payload,6865785f7061796c6f6164,&quot;[{&quot;&quot;name&quot;&quot;: &quot;&quot;temperature&quot;&quot;, &quot;&quot;value&quot;&quot;: &quot;&quot;22.5&quot;&quot;}, {&quot;&quot;name&quot;&quot;: &quot;&quot;humidity&quot;&quot;, &quot;&quot;value&quot;&quot;: &quot;&quot;60&quot;&quot;}]&quot;
+</code></pre>
+<h3>Rest API TTN</h3>
+<h4>Przykład 1</h4>
+<p><strong>Żądanie</strong></p>
+<pre><code class="language-bash">curl -X POST `http://example.com/api/receiver/ttn3/up` \
+    -H `Authorization: 0102030405` \
+    -H `Content-Type: application/json` \
+    -d '{
+        &quot;deviceEui&quot;: &quot;0004A30B002C3A9D&quot;,
+        &quot;timestamp&quot;: 1627382993,
+        &quot;payloadFields&quot;: {
+            &quot;temperature&quot;: 23.5,
+            &quot;humidity&quot;: 56
+        }
+    }
+</code></pre>
+<p><strong>Odpowiedź</strong></p>
+<pre><code>OK
+</code></pre>
