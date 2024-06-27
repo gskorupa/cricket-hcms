@@ -30,14 +30,6 @@ The docker image pushed to the docker repository can then be run with a command 
 docker run --volume=./documents:/home/jboss/documents -p 8080:8080 gskorupa/cricket-hcms:latest
 ```
 
-## Running with Docker Compose
-
-THIS NEEDS TO BE COMPLETED
-
-```shell
-docker compose up
-```
-
 ## Using the service
 
 You can download the API specification in JSON format from http://localhost:8080/q/openapi.

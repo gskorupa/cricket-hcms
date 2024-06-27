@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.cricketmsf.cms</groupId>
   <artifactId>cricket-hcms</artifactId>
-  <version>0.12.1</version>
+  <version>0.13.1</version>
   <properties>
     <compiler-plugin.version>3.11.0</compiler-plugin.version>
     <maven.compiler.release>17</maven.compiler.release>

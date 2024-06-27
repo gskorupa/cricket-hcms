@@ -72,7 +72,8 @@ public class DocumentRepository implements DocumentRepositoryIface {
 
     @Override
     public Document getDocument(String path) {
-        Document doc = getDocuments().get(path);
+        String searchPath=path.startsWith("/")?path:"/"+path;
+        Document doc = getDocuments().get(searchPath);
         if (doc == null) {
             return null;
         }

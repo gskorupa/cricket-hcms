@@ -39,10 +39,10 @@ public class DocumentRepositoryLoader {
 
     public void loadDocuments(String path) {
         repositoryPort.startReload();
-        logger.info("loading documents");
-        logger.info("actual path: " + Paths.get(".").toAbsolutePath().normalize().toString());
-        logger.info("getDocuments: " + path);
-        logger.info("complete path: " + root+path);
+        logger.debug("loading documents");
+        logger.debug("actual path: " + Paths.get(".").toAbsolutePath().normalize().toString());
+        logger.debug("getDocuments: " + path);
+        logger.debug("complete path: " + root+path);
         ArrayList<Document> files = new ArrayList<>();
         DocumentVisitor visitor = new DocumentVisitor();
         visitor.setRoot(Paths.get(root+path).toAbsolutePath().toString());

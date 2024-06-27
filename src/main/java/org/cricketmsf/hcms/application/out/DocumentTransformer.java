@@ -22,8 +22,8 @@ public class DocumentTransformer {
             if (doc.name.endsWith(markdownExtension)) {
                 doc.content = getHtml(doc.content);
             }
-            logger.info("doc to save name: " + doc.name);
-            logger.info("doc to save path: " + doc.path);
+            logger.debug("doc to save name: " + doc.name);
+            logger.debug("doc to save path: " + doc.path);
             return doc;
         } catch (Exception e) {
             logger.error("transformer error: " + e.getMessage());

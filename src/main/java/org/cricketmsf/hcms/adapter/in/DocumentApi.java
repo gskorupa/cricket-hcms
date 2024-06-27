@@ -181,6 +181,7 @@ public class DocumentApi {
         if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
+        logger.info("requesting file: " + path);
         Document doc = documentPort.getDocument(path);
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
