@@ -18,7 +18,7 @@ public class HtmlReader {
 
     public Document getDocument() {
         return doc;
-    } 
+    }
 
     public void parse(Path file) {
         doc = new Document();
@@ -30,29 +30,38 @@ public class HtmlReader {
         try (InputStream in = Files.newInputStream(file);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
             String line = null;
+            String lineTrimmed = null;
             while ((line = reader.readLine()) != null) {
-                if(line.trim().startsWith("<!-- metadata")){
-                    comment=true;
-                    metadata=true;
+                lineTrimmed = line.trim().toLowerCase();
+                if (lineTrimmed.startsWith("<!--")) {
+                    comment = true;
+                    if (lineTrimmed.contains("metadata")) {
+                        metadata = true;
+                        summary = false;
+                    }else if(lineTrimmed.contains("summary")){
+                        metadata = false;
+                        summary = true;
+                    }
+                    if(lineTrimmed.endsWith("-->")){
+                        comment = false;
+                        metadata = false;
+                        summary = false;
+                    }
                     continue;
-                }else if(line.trim().startsWith("<!-- summary")){
-                    comment=true;
-                    summary=true;
-                    continue;
-                }else if(line.trim().startsWith("-->")){
-                    comment=false;
-                    summary=false;
-                    metadata=false;
+                } else if (lineTrimmed.endsWith("-->")) {
+                    comment = false;
+                    summary = false;
+                    metadata = false;
                     continue;
                 }
-                if(!comment){
+                if (!comment) {
                     sbContent.append(line).append("\r\n");
-                }else if(metadata){
+                } else if (metadata) {
                     String[] parts = line.split(":");
-                    if(parts.length>1){
+                    if (parts.length > 1) {
                         doc.metadata.put(parts[0].trim(), parts[1].trim());
                     }
-                } else if(summary){
+                } else if (summary) {
                     sbSummary.append(line).append("\r\n");
                 }
             }

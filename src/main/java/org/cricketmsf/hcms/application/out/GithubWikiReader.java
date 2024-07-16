@@ -30,19 +30,28 @@ public class GithubWikiReader {
         try (InputStream in = Files.newInputStream(file);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
             String line = null;
+            String lineTrimmed = null;
             while ((line = reader.readLine()) != null) {
-                if(line.trim().startsWith("<!-- metadata")){
-                    comment=true;
-                    metadata=true;
+                lineTrimmed = line.trim().toLowerCase();
+                if (lineTrimmed.startsWith("<!--")) {
+                    comment = true;
+                    if (lineTrimmed.contains("metadata")) {
+                        metadata = true;
+                        summary = false;
+                    }else if(lineTrimmed.contains("summary")){
+                        metadata = false;
+                        summary = true;
+                    }
+                    if(lineTrimmed.endsWith("-->")){
+                        comment = false;
+                        metadata = false;
+                        summary = false;
+                    }
                     continue;
-                }else if(line.trim().startsWith("<!-- summary")){
-                    comment=true;
-                    summary=true;
-                    continue;
-                }else if(line.trim().startsWith("-->")){
-                    comment=false;
-                    summary=false;
-                    metadata=false;
+                } else if (lineTrimmed.endsWith("-->")) {
+                    comment = false;
+                    summary = false;
+                    metadata = false;
                     continue;
                 }
                 if(!comment){
