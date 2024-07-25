@@ -1,7 +1,7 @@
 # Cricket HCMS documentation
 
 <p align="center">
-    <img src="logo.svg" style="width: 33%" alt="Cricket HCMS logo" />
+    <img  width="30%" src="/api/file?path=examples/cricket-logo.svg">
 </p>
 
 ## Introduction
@@ -13,25 +13,28 @@ Starting up, the service reads files from the configured disk folder and its sub
 
 The documents are made available via a REST API, with Markdown-formatted content auomatically translated into HTML.
 
-## Features
+## About this demo
 
-- [x] Support for document sources from a Git repository or Wiki (e.g. GitHub wiki, Obsidian and others)
-- [x] Markdown support
-- [x] HTML support
-- [x] Reading document metadata from document content (e.g. title, description, keywords)
-- [x] Automatic translation of Markdown content into HTML
-- [x] REST API for accessing content
-- [x] Reloading content database upon changes detected on disk or on user request
-- [x] Serving binary files
+This demo web application is a simple example of a website that uses Cricket HCMS as a content provider. The website is build using the Svelte framework and is served by a Node.js server. The source code for the website can be found in Git repository [cricket-website](https://github.com/gskorupa/cricket-website).
 
-## Repository dependent features
+## HCMS features
 
-- [x] versioning content using Git functionality
-- [x] support for multiple languages possible by organizing the document structure
+- Support for document sources from a Git repository or Wiki (e.g. GitHub wiki, Obsidian and others)
+- Markdown support
+- HTML support
+- Reading document metadata from document content (e.g. title, description, keywords)
+- Automatic translation of Markdown content into HTML
+- REST API for accessing content
+- Reloading content database upon changes detected on disk or on user request
+- Serving binary files
+- Content versioning
 
-## Documentation
+## Developer documentation
 
 - [Building](building.md)
 - [Running](running.md)
 - [Running with Docker Compose](running-with-docker-compose.md)
 - [Content publishing](publishing.md)
+- [Accessing binary files](binary-files.md)
+- [Multi-language support](multi-language.md)
+

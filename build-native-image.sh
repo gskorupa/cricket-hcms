@@ -67,6 +67,7 @@ if [ -z "$dockerRegistry" ]
 then
     echo
     ./mvnw \
+    -Dnative \
     -Dquarkus.container-image.name=$imageNameHcms \
     -Dquarkus.container-image.tag=$versionHcms \
     -Dquarkus.container-image.additional-tags=latest \
@@ -76,6 +77,7 @@ else
     if [ $dockerHubType = "true" ]
     then
     ./mvnw \
+    -Dnative \
     -Dquarkus.container-image.group=$dockerGroup \
     -Dquarkus.container-image.name=$imageNameHcms \
     -Dquarkus.container-image.tag=$versionHcms \
@@ -84,6 +86,7 @@ else
     clean package
     else
     ./mvnw \
+    -Dnative \
     -Dquarkus.container-image.registry=$dockerRegistry \
     -Dquarkus.container-image.group=$dockerGroup \
     -Dquarkus.container-image.username=$dockerUser \
