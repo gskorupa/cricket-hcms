@@ -1,7 +1,7 @@
 # Cricket HCMS documentation
 
 <p align="center">
-    <img  width="30%" src="/api/file?path=examples/cricket-logo.svg">
+    <img src="assets/cricket-logo.svg" width="30%">
 </p>
 
 ## Introduction

@@ -8,41 +8,47 @@ THIS DOCUMENT IS A WORK IN PROGRESS
 
 ## Prerequisites
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
+Docker Compose must be installed on your system. You can download Docker Compose from the official Docker website: [https://docs.docker.com/get-docker/](https://docs.docker.com/get-docker/)
 
 ## Configuration
 
-Docker compose configuration is stored in the `docker-compose.yml` file in the root of the repository. The configuration includes the following services:
+Docker compose configuration is stored in the `docker-compose.yml` file. It defines two services:
 
 - `hcms` - the Cricket HCMS service
 - `website` - the demo website
-- `gateway` - the HAProxy service working as an API gateway
 
-```yaml
+<pre  class="boredr shadow p-2  bg-secondary-subtle">
 name: cricket-hcms-demo
+
 services:
   hcms:
-    image: gskorupa/cricket-hcms:latest
+    image: cricket-hcms:latest
+    environment:
+      FOLDERS_ROOT: ./documents
+      FILE_TO_WATCH: version.txt
+      HCMS_SERVICE_URL: http://localhost:8081
+    expose:
+      - "8080"
+    ports:
+      - "8081:8080"
     volumes:
       - ./documents:/home/jboss/documents
-    environment:
-      FILE_TO_WATCH: version.txt
-    ports:
-      - 8080:8080
-
+    networks:
+      - hcms
+  
   website:
-    image: gskorupa/cricket-demo-website:latest
+    image: cricket-website:latest
+    depends_on:
+      - hcms
     ports:
-      - 8081:8080
+      - "8080:3000"
+    networks:
+      - hcms
 
-  gateway:
-    image: haproxy:2.4
-    volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-    ports:
-      - 8080:8080
-```
+networks:
+  hcms:
+    driver: bridge
+</pre>
 
 The service can be configured using environment variables. The following environment variables are available:
 

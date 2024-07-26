@@ -35,6 +35,10 @@ public class DocumentRepositoryLoader {
     String markdownFileExtension;
     @ConfigProperty(name = "document.extension.html")
     String htmlFileExtension;
+    @ConfigProperty(name = "assets.folder.name")
+    String assetsFolderName;
+    @ConfigProperty(name = "hcms.sevice.url")
+    String hcmsServiceUrl;
     
 
     public void loadDocuments(String path) {
@@ -68,7 +72,7 @@ public class DocumentRepositoryLoader {
         Document doc;
         for(int i=0; i<files.size(); i++) {
             //logger.info("  " + files.get(i).path);
-            doc=DocumentTransformer.transform(files.get(i), markdownFileExtension);
+            doc=DocumentTransformer.transform(files.get(i), markdownFileExtension, assetsFolderName, hcmsServiceUrl);
             if(null!=doc){
                 repositoryPort.addDocument(doc);
             }

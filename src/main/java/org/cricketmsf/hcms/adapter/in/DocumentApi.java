@@ -1,6 +1,7 @@
 package org.cricketmsf.hcms.adapter.in;
 
 import java.io.ByteArrayInputStream;
+import java.util.Base64;
 import java.util.List;
 
 import org.cricketmsf.hcms.application.in.DocumentPort;
@@ -20,7 +21,6 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 
@@ -69,7 +69,7 @@ public class DocumentApi {
         }
         try{
         if (list.size() == 1 && list.get(0).binaryFile == true) {
-            try {
+/*             try {
                 ByteArrayInputStream bis = null; // https://www.knowledgefactory.net/2021/10/quarkus-export-data-to-pdf-example.html
                 Document doc = list.get(0);
                 bis = new ByteArrayInputStream(doc.binaryContent);
@@ -79,7 +79,12 @@ public class DocumentApi {
                         .build();
             } catch (Exception e) {
                 return Response.serverError().entity(e.getMessage()).build();
-            }
+            } */
+            //Document doc = list.get(0);
+            //String binaryContent=Base64.getEncoder().encodeToString(doc.binaryContent);
+            //doc.binaryContent=binaryContent.getBytes();
+            //list.set(0, doc);
+            return Response.ok(list).build();
         } else {
             return Response.ok(list).build();
         }
