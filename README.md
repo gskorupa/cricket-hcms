@@ -26,11 +26,8 @@ Cricket HCMS is a headless content management system designed for website develo
 
 Note: Cricket HCMS does not offer a web-based interface for document creation or editing. Users must prepare their folder structure and files using tools of their choice (e.g., Git repositories for version control). Depending on the chosen approach, files on the CMS server can be synchronized with source files using `git pull` or other file transfer methods like FTP, rsync, or `scp` command.
 -->
-## Documentation
+## How to use Cricket HCMS
 
-- [Overview](documents/index.md)
-- [Building](documents/building.md)
-- [Running](documents/running.md)
-- [Running with Docker Compose](documents/running-with-docker-compose.md)
-- [Content publishing](documents/publishing.md)
-- [Project roadmap](https://github.com/users/gskorupa/projects/5)
+Documentation is available in `documents` folder - look at [index file](documents/index.md) to read.
+
+To read the same documentation on the live demo follow [Running with Docker Compose](documents/running-with-docker-compose.md) and then open [http://localhost:8080](http://localhost:8080) in your browser.

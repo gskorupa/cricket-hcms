@@ -12,14 +12,13 @@ Docker Compose must be installed on your system. You can download Docker Compose
 
 ## Configuration
 
-Docker compose configuration is stored in the `docker-compose.yml` file. It defines two services:
+Docker compose configuration file `docker-compose.yml` defines two services:
 
 - `hcms` - the Cricket HCMS service
 - `website` - the demo website
 
-<pre  class="boredr shadow p-2  bg-secondary-subtle">
+<pre  class="border shadow p-2 m-2 mb-3 bg-light">
 name: cricket-hcms-demo
-
 services:
   hcms:
     image: cricket-hcms:latest
@@ -35,7 +34,6 @@ services:
       - ./documents:/home/jboss/documents
     networks:
       - hcms
-  
   website:
     image: cricket-website:latest
     depends_on:
@@ -44,20 +42,20 @@ services:
       - "8080:3000"
     networks:
       - hcms
-
 networks:
   hcms:
     driver: bridge
 </pre>
 
-The service can be configured using environment variables. The following environment variables are available:
+The `hcms` service can be configured using environment variables. The following environment variables are available:
 
 - `FOLDERS_ROOT` - the root folder where the documents are stored
-- `FOLDERS_EXCLUDED` - a semi-colon separated list of folders to exclude from monitoring
+- `FOLDERS_EXCLUDED` - a semi-colon separated list of folders to exclude from monitoring (default: `/.git;/attic`)
 - `MARKDOWN_EXTENSION` - the file extension for Markdown files (default: `.md`)
 - `HTML_EXTENSION` - the file extension for HTML files (default: `.html`)
 - `FILE_TO_WATCH` - the file to watch for changes (default: `version.txt`)
-
+- `HCMS_SERVICE_URL` - the URL of the HCMS service (default: `none`)
+- `ASSETS_FOLDER` - the folder where the assets are stored (default: `assets`)
 
 ## Running the service
 
