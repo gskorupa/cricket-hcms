@@ -4,7 +4,7 @@ Binary files can be accessed using HCMS API. The following example demonstrates 
 
 
 ```
-<img src="assets/cricket-logo.svg" class="border rounded shadow mt-1 mb-3 p-2" width="30%" >
+<img src="../assets/cricket-logo.svg" class="border rounded shadow mt-1 mb-3 p-2" width="30%" >
 ```
 <!-- 
 <img class="border rounded shadow mt-1 mb-3 p-2" width="30%" src="/api/file?path=assets/cricket-logo.svg">
@@ -13,14 +13,14 @@ Binary files can be accessed using HCMS API. The following example demonstrates 
 -->
 
 <!-- links below should be transformed by HCMS on load -->
-<img src="./assets/cricket-logo.svg" class="border rounded shadow mt-1 mb-3 p-2" width="30%" >
+<img src="../assets/cricket-logo.svg" class="border rounded shadow mt-1 mb-3 p-2" width="30%" >
 
-<a href="assets/cricket-logo.svg">download file</a>
+<a href="../assets/cricket-logo.svg">download file</a>
 
 The markdown image syntax can be used as well but the image size cannot be specified with this syntax. Use the HTML `<img>` tag if you need to specify the image size.
 
 <code class="text-secondary">
-![cricket-logo](assets/cricket-logo.svg)
+![cricket-logo](../assets/cricket-logo.svg)
 </code>
 
-![cricket-logo](assets/cricket-logo.svg)
+![cricket-logo](../assets/cricket-logo.svg)
