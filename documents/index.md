@@ -28,6 +28,8 @@ The demo hcms service is configured to read documents from the `documents` folde
 - Reload content database when changes are detected on disk or on user request
 - Serving binary files (e.g. images, PDFs, etc.)
 
+Planned features are listed on [the project roadmap](https://github.com/users/gskorupa/projects/5).
+
 ## Developer documentation
 
 - [Building](development/building.md)
