@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Script to build and publish Cricket HCMS image
+# WORK IN PROGRESS - NOT YET WORKING
 
 ################################
 ## CONFIGURATION

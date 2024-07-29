@@ -1,4 +1,4 @@
-name: cricket-hcms-demo
+name: cricket-hcms-demo-dev
 
 services:
   hcms:

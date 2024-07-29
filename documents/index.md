@@ -6,14 +6,16 @@
 
 ## Introduction
 
+Cricket HCMS is a headless content management system designed for developers looking for an easy and quick to implement HCMS solution. It is a lightweight, file-based CMS that provides a REST API for content retrieval. 
+
 Cricket HCMS is a headless content management system that can be used to provide content for presentation services (e.g. websites or mobile applications).
 At startup, the service reads files from the configured disk folder and its subfolders and stores them in its database. The database is continuously updated as changes are detected in the monitored file system.
 Documents are made available via a REST API, with Markdown formatted content automatically translated into HTML.
 
 ## About this demo
 
-This demo is an example of a website using Cricket HCMS. The website is built using the Svelte framework and is served by a Node.js server. The website code is deliberately simple to focus on the integration with the Cricket HCMS service.
-The source code in Git repository [cricket-website](https://github.com/gskorupa/cricket-website) can be used as a starting point for building a more complex website using the Cricket HCMS service.
+This demo is an example of a website using Cricket HCMS. It is built using the Svelte framework and is served by a Node.js server. The website code is kept simple to focus on the integration with the Cricket HCMS service.
+The [source code](https://github.com/gskorupa/cricket-website) can be used as a starting point for building a more complex website using the Cricket HCMS service.
 
 The demo hcms service is configured to read documents from the `documents` folder in the root of the repository. See [Running with Docker Compose](running-with-docker-compose.md) for more information on how the demo is configured.
 

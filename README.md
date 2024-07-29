@@ -1,6 +1,6 @@
 # Cricket HCMS
 
-Cricket HCMS is a headless content management system designed for website developers and content creators. It is a lightweight, file-based CMS that provides a REST API for content retrieval. 
+Cricket HCMS is a headless content management system designed for developers looking for an easy and quick to implement HCMS solution. It is a lightweight, file-based CMS that provides a REST API for content retrieval. 
 
 <!--
 ## Features

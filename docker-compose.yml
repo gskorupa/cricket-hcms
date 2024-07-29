@@ -2,30 +2,30 @@ name: cricket-hcms-demo
 
 services:
   hcms:
-    image: cricket-hcms:latest
+    image: gskorupa/cricket-hcms:latest
+    container_name: hcms
+    hostname: hcms
     environment:
       FOLDERS_ROOT: ./documents
       FILE_TO_WATCH: version.txt
+      HCMS_SERVICE_URL: http://localhost:8081
     expose:
       - "8080"
+    ports:
+      - "8081:8080"
     volumes:
       - ./documents:/home/jboss/documents
     networks:
       - hcms
   
   website:
-    image: cricket-website:latest
+    image: gskorupa/cricket-website:latest
+    container_name: website
+    hostname: website
     depends_on:
       - hcms
-    networks:
-      - hcms
-  
-  gateway:
-    image: haproxy:2.4
-    volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
     ports:
-      - 80:80
+      - "8080:3000"
     networks:
       - hcms
 
