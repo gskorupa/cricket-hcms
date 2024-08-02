@@ -35,14 +35,19 @@ public class DocumentRepositoryLoader {
     String markdownFileExtension;
     @ConfigProperty(name = "document.extension.html")
     String htmlFileExtension;
-    @ConfigProperty(name = "assets.folder.name")
-    String assetsFolderName;
     @ConfigProperty(name = "hcms.sevice.url")
     String hcmsServiceUrl;
+    @ConfigProperty(name = "document.folders.sites")
+    String sites;
+    @ConfigProperty(name = "document.folders.assets")
+    String assets;
     
 
     public void loadDocuments(String path) {
         repositoryPort.startReload();
+        String[] sitesList = sites.split(";");
+        String[] assetsList = assets.split(";");
+        String[] hcmsServiceList = hcmsServiceUrl.split(";");
         logger.debug("loading documents");
         logger.debug("actual path: " + Paths.get(".").toAbsolutePath().normalize().toString());
         logger.debug("getDocuments: " + path);
@@ -72,7 +77,7 @@ public class DocumentRepositoryLoader {
         Document doc;
         for(int i=0; i<files.size(); i++) {
             //logger.info("  " + files.get(i).path);
-            doc=DocumentTransformer.transform(files.get(i), markdownFileExtension, assetsFolderName, hcmsServiceUrl);
+            doc=DocumentTransformer.transform(files.get(i), markdownFileExtension, sitesList[0], assetsList[0], hcmsServiceList[0]);
             if(null!=doc){
                 repositoryPort.addDocument(doc);
             }

@@ -20,14 +20,18 @@ public class DocumentTransformer {
     public static Document transform(
             Document doc,
             String markdownExtension,
+            String siteRootFolder,
             String assetsFolderName,
             String hcmsServiceUrl) {
+
         try {
             if (doc.name.endsWith(markdownExtension)) {
                 doc.content = getHtml(doc.content);
             }
-            if (assetsFolderName != null && !assetsFolderName.isEmpty()) {
-                doc.content = transformImageLinks4(doc.content,"<img src=\"", "XYZ", assetsFolderName, hcmsServiceUrl);
+            if (assetsFolderName != null && !assetsFolderName.isEmpty()
+                    && hcmsServiceUrl != null && !hcmsServiceUrl.isEmpty()
+                    && !hcmsServiceUrl.equalsIgnoreCase("none")) {
+                doc.content = transformImageLinks(doc.content, siteRootFolder, assetsFolderName, hcmsServiceUrl);
             }
             logger.debug("doc to save name: " + doc.name);
             logger.debug("doc to save path: " + doc.path);
@@ -56,14 +60,15 @@ public class DocumentTransformer {
         return html;
     }
 
-
     /**
      * Finds all fragments in the input string starting with '<img src="' and ending
      * with '>'
      * then replaces them with the parameter param1.
      */
-    private static String transformImageLinks4(String content, String tag, String param1, String assetsFolderName,
+    private static String transformImageLinks(String content, String siteRootFolder, String assetsFolderName,
             String hcmsServiceUrl) {
+
+        String tag = "<img src=\"";
         String fragment;
         String result = "";
         try {
@@ -78,7 +83,7 @@ public class DocumentTransformer {
                 int end = content.indexOf("\"");
                 fragment = content.substring(0, end);
                 content = content.substring(end);
-                result+=tag+replaceFragment(fragment,param1, assetsFolderName,hcmsServiceUrl);
+                result += tag + replaceFragment(fragment, siteRootFolder, assetsFolderName, hcmsServiceUrl);
             } while (content.length() > 0);
         } catch (Exception e) {
             logger.error("transformImageLinks4 error: " + e.getMessage());
@@ -88,28 +93,37 @@ public class DocumentTransformer {
         return result;
     }
 
-    private static String replaceFragment(String fragment, String param1, String assetsFolderName,
-    String hcmsServiceUrl) {
-        logger.info("REPLACE FRAGMENT: "+fragment + " => " + param1);
-        String[] parts=fragment.split("/");
-        String fragmentToReplace="";
+    private static String replaceFragment(String fragment, String siteRootFolder, String assetsFolderName,
+            String hcmsServiceUrl) {
+        String[] parts = fragment.split("/");
+        String fragmentToReplace = "";
+        String siteRootFolderName = "";
+        if (siteRootFolder != null && !siteRootFolder.isEmpty()) {
+            siteRootFolderName = siteRootFolder + "/";
+        }
         String result;
-        for(int i=0; i<parts.length; i++){
-            if(parts[i].equals(".") || parts[i].equals("..")){
+        // remove "." and ".." from the path
+        for (int i = 0; i < parts.length; i++) {
+            if (parts[i].equals(".") || parts[i].equals("..")) {
                 continue;
             }
-            fragmentToReplace+=parts[i];
-            if(i<parts.length-1){
-                fragmentToReplace+="/";
+            fragmentToReplace += parts[i];
+            if (i < parts.length - 1) {
+                fragmentToReplace += "/";
             }
         }
-        logger.info("REPLACE FRAGMENT: "+fragmentToReplace);
-        if(fragmentToReplace.startsWith(assetsFolderName) && hcmsServiceUrl!=null && !hcmsServiceUrl.isEmpty()){
-            result=hcmsServiceUrl+"/api/file?path="+fragmentToReplace;
-        }else{
-            result=fragmentToReplace;
+        logger.info("REPLACE FRAGMENT: " + fragmentToReplace);
+        logger.info("hcmsServiceUrl: " + hcmsServiceUrl);
+        logger.info("assetsFolderName: " + assetsFolderName);
+        // if the fragment starts with the assetsFolderName
+        // and the hcmsServiceUrl is set
+        // then replace the fragment with equivalent API call
+        if (fragmentToReplace.startsWith(assetsFolderName) && hcmsServiceUrl != null && !hcmsServiceUrl.isEmpty()) {
+            result = hcmsServiceUrl + "/api/file?path=" + siteRootFolderName + fragmentToReplace;
+        } else {
+            result = fragmentToReplace;
         }
-        logger.info("REPLACE FRAGMENT: "+result);
+        logger.info("REPLACE FRAGMENT: " + result);
         return result;
     }
 

@@ -36,6 +36,13 @@ public class DocumentLogic {
     @ConfigProperty(name = "github.repository")
     String githubRepository;
 
+    @ConfigProperty(name = "document.folders.sites")
+    String sites;
+    @ConfigProperty(name = "document.folders.assets")
+    String assets;
+    @ConfigProperty(name = "hcms.sevice.url")
+    String hcmsServiceUrl;
+
     public List<Document> getDocuments(String path, boolean withContent) {
         return repositoryPort.getDocuments(path, withContent);
     }
@@ -45,6 +52,9 @@ public class DocumentLogic {
     }
 
     void onStart(@Observes StartupEvent ev) {
+        String[] sitesList = sites.split(";");
+        String[] assetsList = assets.split(";");
+        String[] hcmsServiceList = hcmsServiceUrl.split(";");
         loader.loadDocuments("");
         if (watcherActive) {
             String[] filesToWatch = watchedFile.split(";");
