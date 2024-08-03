@@ -25,6 +25,22 @@ public class DocumentTransformer {
             String hcmsServiceUrl) {
 
         try {
+            logger.info("pre doc.name: " + doc.name);
+            logger.info("pre doc.path: " + doc.path);
+            if(!(doc.path.startsWith(siteRootFolder)||doc.path.startsWith("/"+siteRootFolder))){
+                doc.path = siteRootFolder + doc.path;
+            }
+            if(!(doc.name.startsWith(siteRootFolder)||doc.name.startsWith("/"+siteRootFolder))){
+                doc.name = siteRootFolder + doc.name;
+            }
+            if(!(doc.path.startsWith("/"))){
+                doc.path = "/" + doc.path;
+            }
+            if(!(doc.name.startsWith("/"))){
+                doc.name = "/" + doc.name;
+            }
+            logger.info("post doc.name: " + doc.name);
+            logger.info("post doc.path: " + doc.path);
             if (doc.name.endsWith(markdownExtension)) {
                 doc.content = getHtml(doc.content);
             }
@@ -33,8 +49,8 @@ public class DocumentTransformer {
                     && !hcmsServiceUrl.equalsIgnoreCase("none")) {
                 doc.content = transformImageLinks(doc.content, siteRootFolder, assetsFolderName, hcmsServiceUrl);
             }
-            logger.debug("doc to save name: " + doc.name);
-            logger.debug("doc to save path: " + doc.path);
+            logger.info("doc to save name: " + doc.name);
+            logger.info("doc to save path: " + doc.path);
             return doc;
         } catch (Exception e) {
             logger.error("transformer error: " + e.getMessage());
@@ -98,7 +114,7 @@ public class DocumentTransformer {
         String[] parts = fragment.split("/");
         String fragmentToReplace = "";
         String siteRootFolderName = "";
-        if (siteRootFolder != null && !siteRootFolder.isEmpty()) {
+        if (siteRootFolder != null && !siteRootFolder.isEmpty() && !siteRootFolder.equalsIgnoreCase("none")) {
             siteRootFolderName = siteRootFolder + "/";
         }
         String result;

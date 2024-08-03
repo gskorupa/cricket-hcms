@@ -3,9 +3,12 @@ package org.cricketmsf.hcms.application.out;
 import java.util.List;
 
 import org.cricketmsf.hcms.adapter.out.DocumentRepository;
+import org.cricketmsf.hcms.adapter.out.DocumentRepositoryH2;
 import org.cricketmsf.hcms.domain.Document;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
+import io.agroal.api.AgroalDataSource;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -16,7 +19,19 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     Logger logger;
 
     @Inject
-    DocumentRepository repository;
+    AgroalDataSource dataSource;
+
+   //@Inject
+    //DocumentRepository repositoryMem;
+
+    //@Inject
+    //DocumentRepositoryH2 repository;
+
+    private static DocumentRepositoryIface repository=null;
+
+    @ConfigProperty(name = "hcms.database.type")
+    String databaseType;
+    
     
 /*     @ConfigProperty(name = "document.syntax")
     String syntax; // "obsidian", "github" 
@@ -27,53 +42,73 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     
     @Override
     public List<Document> getDocuments(String path, boolean withContent) {
-        return repository.getDocuments(path, withContent);
+        return getRepository().getDocuments(path, withContent);
     }
 
     @Override
     public Document getDocument(String path) {
-        return repository.getDocument(path);
+        return getRepository().getDocument(path);
     }
 
     @Override
     public void addDocument(Document doc) {
-        repository.addDocument(doc);
+        getRepository().addDocument(doc);
     }
 
 
     @Override
     public void deleteDocument(String path) {
-        repository.deleteDocument(path);
+        getRepository().deleteDocument(path);
     }
 
     @Override
     public long getDocumentsCount() {
-        return repository.getDocumentsCount();
+        return getRepository().getDocumentsCount();
     }
 
     @Override
     public List<Document> getAllDocuments(boolean noContent) {
-        return repository.getAllDocuments(noContent);
+        return getRepository().getAllDocuments(noContent);
     }
 
     @Override
     public void startReload() {
-        repository.startReload();
+        getRepository().startReload();
     }
 
     @Override
-    public void stopReload() {
-        repository.stopReload();
+    public void stopReload(long timestamp) {
+        getRepository().stopReload(timestamp);
     }
 
     @Override
     public List<Document> findDocuments(String propertyName, String path, String propertyValue, boolean withContent) {
-        return repository.findDocuments(path, propertyName, propertyValue, withContent);
+        return getRepository().findDocuments(path, propertyName, propertyValue, withContent);
     }
 
     @Override
     public List<Document> filter(List<Document> docs, String propertyName, String propertyValue) {
-        return repository.filter(docs, propertyName, propertyValue);
+        return getRepository().filter(docs, propertyName, propertyValue);
+    }
+
+
+
+    @Override
+    public void init(AgroalDataSource dataSource) {
+        getRepository().init(dataSource);
+    }
+
+    private DocumentRepositoryIface getRepository(){
+        if(repository==null){
+            logger.info("database type: " + databaseType);
+            if(databaseType.equals("h2")){
+                repository = new DocumentRepositoryH2();
+            }else{
+                repository = new DocumentRepository();
+            }
+            repository.init(dataSource);
+        }
+        return repository;
     }
     
 }

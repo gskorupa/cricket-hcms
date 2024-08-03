@@ -3,25 +3,53 @@ name: cricket-hcms-demo-dev
 services:
   hcms:
     image: cricket-hcms:latest
+    container_name: hcms
+    hostname: hcms
     environment:
-      FOLDERS_ROOT: ./documents
-      FILE_TO_WATCH: version.txt
-      HCMS_SERVICE_URL: http://localhost:8081
+      FOLDERS_ROOT: documents
+      FILE_TO_WATCH: version.txt;version.txt
+      HCMS_SERVICE_URL: http://localhost:8082
+      FOLDERS_ASSETS: assets;assets
+      FOLDERS_SITES: documentation;demo
+      FOLDERS_INDEXES: index.md;index.md
+      FOLDERS_EXCLUDED: .git,excluded_folder;none
+      DATABASE_TYPE: map
     expose:
       - "8080"
     ports:
-      - "8081:8080"
+      - "8082:8080"
     volumes:
-      - ./documents:/home/jboss/documents
+      - $PWD:/home/jboss/documents
     networks:
       - hcms
   
   website:
     image: cricket-website:latest
+    container_name: website
+    hostname: website
+    environment:
+      PUBLIC_HCMS_URL: http://hcms:8080/api/docs
+      PUBLIC_HCMS_INDEX: index.md
+      PUBLIC_HCMS_ROOT: documentation
     depends_on:
       - hcms
     ports:
       - "8080:3000"
+    networks:
+      - hcms
+
+  website2:
+    image: cricket-website:latest
+    container_name: website2
+    hostname: website2
+    environment:
+      PUBLIC_HCMS_URL: http://hcms:8080/api/docs
+      PUBLIC_HCMS_INDEX: index.md
+      PUBLIC_HCMS_ROOT: demo
+    depends_on:
+      - hcms
+    ports:
+      - "8081:3000"
     networks:
       - hcms
 

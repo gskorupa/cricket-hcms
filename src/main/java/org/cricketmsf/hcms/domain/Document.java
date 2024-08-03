@@ -10,6 +10,7 @@ public class Document {
     public String content="";
     public byte[] binaryContent=null;
     public long updateTimestamp=0;
+    public long refreshTimestamp=0;
     public HashMap<String, String> metadata = new HashMap<>();
     public boolean binaryFile=false;
     public String mediaType="";
@@ -24,6 +25,7 @@ public class Document {
         Document doc = new Document();
         doc.path = path;
         doc.name = name;
+        doc.fileName = fileName.trim();
         doc.updateTimestamp = updateTimestamp;
         doc.metadata = metadata;
         doc.binaryFile = binaryFile;

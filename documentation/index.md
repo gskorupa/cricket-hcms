@@ -29,6 +29,9 @@ The demo hcms service is configured to read documents from the `documents` folde
 - REST API to access content
 - Reload content database when changes are detected on disk or on user request
 - Serving binary files (e.g. images, PDFs, etc.)
+- Multi-site support
+
+Release history is available in the [history](history.md) document.
 
 Planned features are listed on [the project roadmap](https://github.com/users/gskorupa/projects/5).
 
@@ -40,4 +43,5 @@ Planned features are listed on [the project roadmap](https://github.com/users/gs
 - [Content publishing](development/publishing.md)
 - [Accessing binary files](development/binary-files.md)
 - [Multi-language support](development/multi-language.md)
+- [HCMS API documentation](development/rest-api.md)
 

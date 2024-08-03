@@ -8,16 +8,14 @@ import org.cricketmsf.hcms.application.out.DocumentRepositoryIface;
 import org.cricketmsf.hcms.domain.Document;
 import org.jboss.logging.Logger;
 
-import io.quarkus.runtime.StartupEvent;
+import io.agroal.api.AgroalDataSource;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
 
-@ApplicationScoped
+//@ApplicationScoped
 public class DocumentRepository implements DocumentRepositoryIface {
 
-    @Inject
-    Logger logger;
+    private static Logger logger = Logger.getLogger(DocumentRepository.class);
+
 
     /** In memory document database */
     public ConcurrentHashMap<String, Document> documents = null;
@@ -26,7 +24,9 @@ public class DocumentRepository implements DocumentRepositoryIface {
 
     private boolean reloadInProgress = false;
 
-    void onStart(@Observes StartupEvent ev) {
+    public void init(AgroalDataSource dataSource) {
+
+        logger.info("DocumentRepository initializing ...");
         if (documents == null) {
             documents = new ConcurrentHashMap<>();
         }
@@ -125,7 +125,7 @@ public class DocumentRepository implements DocumentRepositoryIface {
     }
 
     @Override
-    public void stopReload() {
+    public void stopReload(long timestamp) {
         getDocuments().clear();
         documents.putAll(underConstrDocs);
         reloadInProgress = false;

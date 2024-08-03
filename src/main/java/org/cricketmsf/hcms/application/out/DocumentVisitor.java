@@ -101,6 +101,8 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                 doc.updateTimestamp = updateTimestamp;
                 files.add(doc);
 
+            }else{
+                logger.info("excluded: " + path);
             }
         } else {
             // not a regular file nor a symbolic link

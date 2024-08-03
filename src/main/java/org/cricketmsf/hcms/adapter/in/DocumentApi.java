@@ -1,6 +1,8 @@
 package org.cricketmsf.hcms.adapter.in;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -16,6 +18,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponseSchema;
 import org.jboss.logging.Logger;
 
+import io.vertx.codegen.doc.Doc;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -42,6 +45,8 @@ public class DocumentApi {
     String appToken;
     @ConfigProperty(name = "get.document.authorization.required")
     boolean getDocumentAuthorizationRequired;
+    @ConfigProperty(name = "document.folders.indexes")
+    String indexes;
 
     @GET
     @Path("/docs/")
@@ -60,35 +65,52 @@ public class DocumentApi {
         if (searchPath == null) {
             searchPath = "";
         }
-        logger.info("requesting: " + searchPath);
-        List<Document> list;
-        if (withContent) {
-            list = documentPort.getDocs(searchPath, true);
+
+        List<Document> list=new ArrayList<>();
+        logger.info("checking: " + searchPath);
+        Document doc = documentPort.getDocument(searchPath);
+        if (doc != null) {
+            //searchPath = searchPath.substring(0, searchPath.lastIndexOf("/"));
+            list.add(doc);
         } else {
-            list = documentPort.getDocs(searchPath, false);
+            logger.info("requesting: " + searchPath);
+            if (withContent) {
+                list = documentPort.getDocs(searchPath, true);
+            } else {
+                list = documentPort.getDocs(searchPath, false);
+            }
         }
-        try{
-        if (list.size() == 1 && list.get(0).binaryFile == true) {
-/*             try {
-                ByteArrayInputStream bis = null; // https://www.knowledgefactory.net/2021/10/quarkus-export-data-to-pdf-example.html
-                Document doc = list.get(0);
-                bis = new ByteArrayInputStream(doc.binaryContent);
-                return Response.ok(bis, doc.mediaType)
-                        .header("content-disposition",
-                                "attachment; filename = " + doc.getFileName())
-                        .build();
-            } catch (Exception e) {
-                return Response.serverError().entity(e.getMessage()).build();
-            } */
-            //Document doc = list.get(0);
-            //String binaryContent=Base64.getEncoder().encodeToString(doc.binaryContent);
-            //doc.binaryContent=binaryContent.getBytes();
-            //list.set(0, doc);
-            return Response.ok(list).build();
-        } else {
-            return Response.ok(list).build();
+        list = sort(list);
+        logger.info("found: " + list.size() + " documents");
+        for (Document d : list) {
+            logger.info(d.fileName);
         }
-        }catch(Exception e){
+        try {
+            if (list.size() == 1 && list.get(0).binaryFile == true) {
+                /*
+                 * try {
+                 * ByteArrayInputStream bis = null; //
+                 * https://www.knowledgefactory.net/2021/10/quarkus-export-data-to-pdf-example.
+                 * html
+                 * Document doc = list.get(0);
+                 * bis = new ByteArrayInputStream(doc.binaryContent);
+                 * return Response.ok(bis, doc.mediaType)
+                 * .header("content-disposition",
+                 * "attachment; filename = " + doc.getFileName())
+                 * .build();
+                 * } catch (Exception e) {
+                 * return Response.serverError().entity(e.getMessage()).build();
+                 * }
+                 */
+                // Document doc = list.get(0);
+                // String binaryContent=Base64.getEncoder().encodeToString(doc.binaryContent);
+                // doc.binaryContent=binaryContent.getBytes();
+                // list.set(0, doc);
+                return Response.ok(list).build();
+            } else {
+                return Response.ok(list).build();
+            }
+        } catch (Exception e) {
             e.printStackTrace();
             return Response.serverError().entity(e.getMessage()).build();
         }
@@ -112,8 +134,7 @@ public class DocumentApi {
         }
         List<Document> list = documentPort.findDocs(path, pairs);
         return Response.ok(list).build();
-    }  
-
+    }
 
     @GET
     @Path("/document/")
@@ -126,37 +147,8 @@ public class DocumentApi {
         if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
+        logger.info("requesting document: " + path);
         Document doc = documentPort.getDocument(path);
-        if (doc == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        if (doc.binaryFile == true){
-            try {
-                ByteArrayInputStream bis = new ByteArrayInputStream(doc.binaryContent);
-                return Response.ok(bis, doc.mediaType)
-                        .header("content-disposition",
-                                "attachment; filename = " + doc.getFileName())
-                        .build();
-            } catch (Exception e) {
-                return Response.serverError().entity(e.getMessage()).build();
-            }
-        } else {
-            return Response.ok(doc).build();
-        }
-    }
-
-/*     @GET
-    @Path("/file/{path}")
-    @APIResponse(responseCode = "401", description = "Unauthorized")
-    @APIResponse(responseCode = "200", description = "File content as binary/octet-stream MIME type.")
-    @Operation(summary = "Get file", description = "Get a file with the specified path. The file will be returned as a download.")
-    public Response getFile(
-            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
-            @Parameter(description = "Path to the document.", required = true, example = "docs/doc1", schema = @Schema(type = SchemaType.STRING)) @PathParam("path") String path) {
-        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
-        Document doc = documentPort.getDocument("/"+path);
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -171,9 +163,55 @@ public class DocumentApi {
                 return Response.serverError().entity(e.getMessage()).build();
             }
         } else {
-            return Response.ok(doc.content).build();
+            return Response.ok(doc).build();
         }
-    } */
+    }
+
+    /*
+     * @GET
+     * 
+     * @Path("/file/{path}")
+     * 
+     * @APIResponse(responseCode = "401", description = "Unauthorized")
+     * 
+     * @APIResponse(responseCode = "200", description =
+     * "File content as binary/octet-stream MIME type.")
+     * 
+     * @Operation(summary = "Get file", description =
+     * "Get a file with the specified path. The file will be returned as a download."
+     * )
+     * public Response getFile(
+     * 
+     * @Parameter(description = "Token to authorize the request.", required = false,
+     * example = "app-token", schema = @Schema(type =
+     * SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+     * 
+     * @Parameter(description = "Path to the document.", required = true, example =
+     * "docs/doc1", schema = @Schema(type = SchemaType.STRING)) @PathParam("path")
+     * String path) {
+     * if (getDocumentAuthorizationRequired && (token == null ||
+     * !token.equals(appToken))) {
+     * return Response.status(Response.Status.UNAUTHORIZED).build();
+     * }
+     * Document doc = documentPort.getDocument("/"+path);
+     * if (doc == null) {
+     * return Response.status(Response.Status.NOT_FOUND).build();
+     * }
+     * if (doc.binaryFile == true) {
+     * try {
+     * ByteArrayInputStream bis = new ByteArrayInputStream(doc.binaryContent);
+     * return Response.ok(bis, doc.mediaType)
+     * .header("content-disposition",
+     * "attachment; filename = " + doc.getFileName())
+     * .build();
+     * } catch (Exception e) {
+     * return Response.serverError().entity(e.getMessage()).build();
+     * }
+     * } else {
+     * return Response.ok(doc.content).build();
+     * }
+     * }
+     */
 
     @GET
     @Path("/file/")
@@ -206,7 +244,6 @@ public class DocumentApi {
         }
     }
 
-
     @POST
     @Path("/reload")
     @APIResponse(responseCode = "401", description = "Unauthorized")
@@ -227,7 +264,7 @@ public class DocumentApi {
     @Path("/docs/")
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "501", description = "Not implemented")
-    @APIResponseSchema(value = String.class, responseDescription = "Document saved." , responseCode = "200")
+    @APIResponseSchema(value = String.class, responseDescription = "Document saved.", responseCode = "200")
     @Operation(summary = "Save document to the storage", description = "Save a document. The document must be provided in the request body.")
     public Response saveDoc(
             @Parameter(description = "Token to authorize the request.", required = true, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
@@ -236,8 +273,22 @@ public class DocumentApi {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         return Response.status(Response.Status.NOT_IMPLEMENTED).build();
-        //documentPort.addDocument(doc);
-        //return Response.ok().build();
+        // documentPort.addDocument(doc);
+        // return Response.ok().build();
+    }
+
+    private List<Document> sort(List<Document> list) {
+        ArrayList<Document> sorted = new ArrayList<>();
+        String[] indexes = this.indexes.split(";");
+        logger.info("sorting documents - " + indexes[0]);
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i).fileName.equals(indexes[0])) {
+                sorted.add(0, list.get(i));
+            } else {
+                sorted.add(list.get(i));
+            }
+        }
+        return sorted;
     }
 
 }

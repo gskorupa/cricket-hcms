@@ -17,11 +17,13 @@ public class FolderWatcher implements Runnable{
     private String root;
     private String watchedFile;
     private DocumentRepositoryLoader loader;
+    private String site;
 
-    public FolderWatcher(String root, String watchedFile, DocumentRepositoryLoader loader) {
+    public FolderWatcher(String root, String watchedFile, DocumentRepositoryLoader loader, String site) {
         this.loader = loader;
         this.watchedFile = watchedFile;
         this.root = root;
+        this.site = site;
     }
 
     @Override
@@ -40,7 +42,7 @@ public class FolderWatcher implements Runnable{
                 for (WatchEvent<?> event : key.pollEvents()) {
                     logger.debug(event.kind() + " -> " + event.context());
                     if (event.context().toString().equals(watchedFile)) {
-                        loader.loadDocuments("");
+                        loader.loadDocuments(site, false, false, System.currentTimeMillis());
                     }
                 }
                 key.reset();

@@ -65,6 +65,14 @@ https://maven.apache.org/xsd/maven-4.0.0.xsd">
       <artifactId>flexmark-all</artifactId>
       <version>0.64.8</version>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jdbc-h2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-agroal</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

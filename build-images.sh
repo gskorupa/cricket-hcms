@@ -112,9 +112,9 @@ fi
 
 if [ -z "$2" ] || [ "$2" = "website" ]; then
 cd ../cricket-website
-echo "PUBLIC_HCMS_URL = 'http://hcms:8080/api/docs'" > .env
-echo "PUBLIC_HCMS_INDEX = 'index.md'" >> .env
-echo "PUBLIC_HCMS_ROOT = ''" >> .env
+#echo "PUBLIC_HCMS_URL = 'http://hcms:8080/api/docs'" > .env
+#echo "PUBLIC_HCMS_INDEX = 'index.md'" >> .env
+#echo "PUBLIC_HCMS_ROOT = 'documentation'" >> .env
 if [ -z "$dockerRegistry" ]
 then
     docker build -t $imageNameWebsite:$versionWebsite -t $imageNameWebsite:latest .
