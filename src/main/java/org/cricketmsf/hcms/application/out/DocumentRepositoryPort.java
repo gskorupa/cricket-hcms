@@ -1,5 +1,6 @@
 package org.cricketmsf.hcms.application.out;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.cricketmsf.hcms.adapter.out.DocumentRepository;
@@ -46,18 +47,22 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     }
 
     @Override
-    public Document getDocument(String path) {
-        return getRepository().getDocument(path);
+    public Document getDocument(String name) {
+        Document doc = getRepository().getDocument(name);
+        return doc;
     }
 
     @Override
     public void addDocument(Document doc) {
+        getRepository().deleteMetadata(doc.name);
         getRepository().addDocument(doc);
+        getRepository().addMetadata(doc.name, doc.metadata);
     }
 
 
     @Override
     public void deleteDocument(String path) {
+        getRepository().deleteMetadata(path);
         getRepository().deleteDocument(path);
     }
 
@@ -91,8 +96,6 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
         return getRepository().filter(docs, propertyName, propertyValue);
     }
 
-
-
     @Override
     public void init(AgroalDataSource dataSource) {
         getRepository().init(dataSource);
@@ -109,6 +112,21 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
             repository.init(dataSource);
         }
         return repository;
+    }
+
+    @Override
+    public HashMap<String, String> getMetadata(String name) {
+        return getRepository().getMetadata(name);
+    }
+
+    @Override
+    public void addMetadata(String name, HashMap<String, String> metadata) {
+        getRepository().addMetadata(name, metadata);
+    }
+
+    @Override
+    public void deleteMetadata(String name) {
+        getRepository().deleteMetadata(name);
     }
     
 }

@@ -27,12 +27,14 @@ public class Document {
         doc.name = name;
         doc.fileName = fileName.trim();
         doc.updateTimestamp = updateTimestamp;
-        doc.metadata = metadata;
         doc.binaryFile = binaryFile;
         doc.mediaType = mediaType;
         if(withContent){
             doc.content = content;
             doc.binaryContent = binaryContent;
+        }
+        for(String key:metadata.keySet()){
+            doc.metadata.put(key, metadata.get(key));
         }
         return doc;
     }

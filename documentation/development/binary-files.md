@@ -1,6 +1,9 @@
 # Accessing binary files
+<!-- metadata
+title: Accessing binary files
+-->
 
-Binary files can be accessed using HCMS API. The following example demonstrates how to access a binary file using the API.
+Binary files can be accessed using HCMS API. The following example shows how to create a link to an image in an html document.
 
 
 ```
@@ -17,7 +20,7 @@ Binary files can be accessed using HCMS API. The following example demonstrates 
 
 <a href="../assets/cricket-logo.svg">download file</a>
 
-The markdown image syntax can be used as well but the image size cannot be specified with this syntax. Use the HTML `<img>` tag if you need to specify the image size.
+If the document is in markdown format, then its syntax can also be used, but in this case the image size cannot be declared. Use the HTML `<img>` tag if you need to specify the image size.
 
 <code class="text-secondary">
 ![cricket-logo](../assets/cricket-logo.svg)

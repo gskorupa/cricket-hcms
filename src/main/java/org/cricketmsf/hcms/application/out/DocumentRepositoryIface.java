@@ -1,5 +1,6 @@
 package org.cricketmsf.hcms.application.out;
 
+import java.util.HashMap;
 import java.util.List;
 
 import org.cricketmsf.hcms.domain.Document;
@@ -18,4 +19,7 @@ public interface DocumentRepositoryIface {
     public void startReload();
     public void stopReload(long timestamp);
     public void init(AgroalDataSource dataSource);
+    public HashMap<String, String> getMetadata(String name);
+    public void addMetadata(String name, HashMap<String, String> metadata);
+    public void deleteMetadata(String name);
 }

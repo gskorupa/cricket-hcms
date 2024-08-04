@@ -1,6 +1,7 @@
 package org.cricketmsf.hcms.adapter.out;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -159,6 +160,21 @@ public class DocumentRepository implements DocumentRepositoryIface {
             }
         });
         return filtered;
+    }
+
+    @Override
+    public HashMap<String, String> getMetadata(String name) {
+        return null;
+    }
+
+    @Override
+    public void addMetadata(String name, HashMap<String, String> metadata) {
+        //
+    }
+
+    @Override
+    public void deleteMetadata(String name) {
+        //
     }
 
 }
