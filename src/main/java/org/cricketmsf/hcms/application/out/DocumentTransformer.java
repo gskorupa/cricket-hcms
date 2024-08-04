@@ -25,8 +25,8 @@ public class DocumentTransformer {
             String hcmsServiceUrl) {
 
         try {
-            logger.info("pre doc.name: " + doc.name);
-            logger.info("pre doc.path: " + doc.path);
+            logger.debug("pre doc.name: " + doc.name);
+            logger.debug("pre doc.path: " + doc.path);
             if(!(doc.path.startsWith(siteRootFolder)||doc.path.startsWith("/"+siteRootFolder))){
                 doc.path = siteRootFolder + doc.path;
             }
@@ -39,8 +39,8 @@ public class DocumentTransformer {
             if(!(doc.name.startsWith("/"))){
                 doc.name = "/" + doc.name;
             }
-            logger.info("post doc.name: " + doc.name);
-            logger.info("post doc.path: " + doc.path);
+            logger.debug("post doc.name: " + doc.name);
+            logger.debug("post doc.path: " + doc.path);
             if (doc.name.endsWith(markdownExtension)) {
                 doc.content = getHtml(doc.content);
             }
@@ -49,8 +49,8 @@ public class DocumentTransformer {
                     && !hcmsServiceUrl.equalsIgnoreCase("none")) {
                 doc.content = transformImageLinks(doc.content, siteRootFolder, assetsFolderName, hcmsServiceUrl);
             }
-            logger.info("doc to save name: " + doc.name);
-            logger.info("doc to save path: " + doc.path);
+            logger.debug("doc to save name: " + doc.name);
+            logger.debug("doc to save path: " + doc.path);
             return doc;
         } catch (Exception e) {
             logger.error("transformer error: " + e.getMessage());
@@ -128,9 +128,9 @@ public class DocumentTransformer {
                 fragmentToReplace += "/";
             }
         }
-        logger.info("REPLACE FRAGMENT: " + fragmentToReplace);
-        logger.info("hcmsServiceUrl: " + hcmsServiceUrl);
-        logger.info("assetsFolderName: " + assetsFolderName);
+        logger.debug("REPLACE FRAGMENT: " + fragmentToReplace);
+        logger.debug("hcmsServiceUrl: " + hcmsServiceUrl);
+        logger.debug("assetsFolderName: " + assetsFolderName);
         // if the fragment starts with the assetsFolderName
         // and the hcmsServiceUrl is set
         // then replace the fragment with equivalent API call
@@ -139,7 +139,7 @@ public class DocumentTransformer {
         } else {
             result = fragmentToReplace;
         }
-        logger.info("REPLACE FRAGMENT: " + result);
+        logger.debug("REPLACE FRAGMENT: " + result);
         return result;
     }
 

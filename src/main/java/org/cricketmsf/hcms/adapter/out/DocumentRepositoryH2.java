@@ -22,7 +22,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
     public void init(AgroalDataSource dataSource) {
         defaultDataSource = dataSource;
         // create database tables
-        logger.info("Document repository initializing (H2) ...");
+        logger.debug("Document repository initializing (H2) ...");
 
         // create table documents
         String sql = "CREATE TABLE IF NOT EXISTS documents ("
@@ -59,7 +59,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        logger.info("Document repository started");
+        logger.debug("Document repository started");
 
     }
 
@@ -68,7 +68,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
         ArrayList<Document> docs = new java.util.ArrayList<Document>();
         String pathToSearch = path.startsWith("/") ? path : "/" + path;
         pathToSearch = pathToSearch.endsWith("/") ? pathToSearch : pathToSearch + "/";
-        logger.info("getDocuments: " + pathToSearch);
+        logger.debug("getDocuments: " + pathToSearch);
         String sql = "SELECT * FROM documents WHERE path = ?";
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(sql)) {
@@ -163,7 +163,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
     public Document getDocument(String name) {
         Document doc = null;
         String nameToSearch = name.startsWith("/") ? name : "/" + name;
-        logger.info("getDocument: " + nameToSearch);
+        logger.debug("getDocument: " + nameToSearch);
         String sql = "SELECT * FROM documents WHERE name = ?";
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(sql)) {
@@ -180,7 +180,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
                     doc.binaryContent = resultSet.getBytes("binary_content");
                     doc.updateTimestamp = resultSet.getTimestamp("modified").getTime();
                     doc.refreshTimestamp = resultSet.getTimestamp("refreshed").getTime();
-                    logger.info("binary content size: " + doc.binaryContent.length);
+                    logger.debug("binary content size: " + doc.binaryContent.length);
                 }
                 resultSet.close();
             }
@@ -212,7 +212,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
             if (doc.binaryContent == null) {
                 doc.binaryContent = new byte[0];
             }
-            logger.info("binary content size: " + doc.binaryContent.length);
+            logger.debug("binary content size: " + doc.binaryContent.length);
             statement.setBytes(6, doc.binaryContent);
             statement.setTimestamp(7, new java.sql.Timestamp(doc.updateTimestamp));
             statement.setTimestamp(8, new java.sql.Timestamp(doc.updateTimestamp));
@@ -291,7 +291,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
     }
 
     public HashMap<String, String> getMetadata(String name) {
-        logger.info(getExtendedLogMessage(3, "getMetadata: " + name));
+        logger.debug(getExtendedLogMessage(3, "getMetadata: " + name));
         String sql = "SELECT * FROM metadata WHERE d_name = ?";
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(sql);) {
@@ -304,10 +304,10 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
                     key = resultSet.getString("m_name");
                     value = resultSet.getString("m_value");
                     metadata.put(key, value);
-                    logger.info("metadata: " + key + ":" + value);
+                    logger.debug("metadata: " + key + ":" + value);
                 }
                 resultSet.close();
-                logger.info("metadata size: " + metadata.size());
+                logger.debug("metadata size: " + metadata.size());
                 return metadata;
             }
         } catch (Exception e) {

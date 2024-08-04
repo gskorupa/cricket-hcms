@@ -97,7 +97,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                 //doc.fileName = path.substring(path.lastIndexOf("/") + 1);
                 doc.fileName = fileName;
                 logger.info("doc.name: " + doc.name);
-                logger.info("doc.path: " + doc.path);
+                logger.debug("doc.path: " + doc.path);
                 doc.updateTimestamp = updateTimestamp;
                 files.add(doc);
 

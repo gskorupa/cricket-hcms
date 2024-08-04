@@ -67,13 +67,13 @@ public class DocumentApi {
         }
 
         List<Document> list=new ArrayList<>();
-        logger.info("checking: " + searchPath);
+        logger.debug("checking: " + searchPath);
         Document doc = documentPort.getDocument(searchPath);
         if (doc != null) {
             //searchPath = searchPath.substring(0, searchPath.lastIndexOf("/"));
             list.add(doc);
         } else {
-            logger.info("requesting: " + searchPath);
+            logger.debug("requesting: " + searchPath);
             if (withContent) {
                 list = documentPort.getDocs(searchPath, true);
             } else {
@@ -81,9 +81,9 @@ public class DocumentApi {
             }
         }
         list = sort(list);
-        logger.info("found: " + list.size() + " documents");
+        logger.debug("found: " + list.size() + " documents");
         for (Document d : list) {
-            logger.info(d.fileName);
+            logger.debug(d.fileName);
         }
         try {
             if (list.size() == 1 && list.get(0).binaryFile == true) {
@@ -147,7 +147,7 @@ public class DocumentApi {
         if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        logger.info("requesting document: " + path);
+        logger.debug("requesting document: " + path);
         Document doc = documentPort.getDocument(path);
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -224,7 +224,7 @@ public class DocumentApi {
         if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        logger.info("requesting file: " + path);
+        logger.debug("requesting file: " + path);
         Document doc = documentPort.getDocument(path);
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -280,7 +280,7 @@ public class DocumentApi {
     private List<Document> sort(List<Document> list) {
         ArrayList<Document> sorted = new ArrayList<>();
         String[] indexes = this.indexes.split(";");
-        logger.info("sorting documents - " + indexes[0]);
+        logger.debug("sorting documents - " + indexes[0]);
         for (int i = 0; i < list.size(); i++) {
             if (list.get(i).fileName.equals(indexes[0])) {
                 sorted.add(0, list.get(i));
