@@ -12,7 +12,7 @@ export const hcms = {
      * @returns {object} - documents
      */
     getDocuments: async function (devMode, serviceUrl, pathObject, rootFolder, indexFileName) {
-        console.log("hcms.getDocuments: devMode=" + devMode)
+        //console.log("hcms.getDocuments: devMode=" + devMode +" serviceUrl=" + serviceUrl)
         if (devMode) {
             let docs = [
                 { content: "<b>test</b> doc", path: "/doc1" },
@@ -57,7 +57,7 @@ export const hcms = {
     */
     getPaths: function (docpath) {
         let paths = docpath.split("/")
-        console.log("hcms.getPaths: paths=" + paths)
+        //console.log("hcms.getPaths: paths=" + paths)
         // insert "home" path if not present
         if (paths.length > 0 && paths[0].length > 0) {
             paths.splice(0, 0, "")
@@ -76,7 +76,7 @@ export const hcms = {
             }
             result[i].path = tmp
         }
-        console.log(result)
+        //console.log(result)
         return result
     },
     getElementPath: function (index, paths) {
@@ -108,6 +108,7 @@ export const hcms = {
 }
 
 const getHcmsDocument = async function (devMode, serviceUrl, path, indexFile, token, type) {
+    //console.log("hcms.getDocument: devMode=" + devMode +" serviceUrl=" + serviceUrl)
     if (devMode) {
         if (type != undefined && type == "navigation") {
             return {
@@ -153,7 +154,12 @@ const getHcmsDocument = async function (devMode, serviceUrl, path, indexFile, to
         //console.log("res:", res.type)
         //console.log("res:", res.status)
         if (res.status == 200) {
-            return await res.json();
+            //if(type.toLowerCase() !== "file") {
+                return await res.json();
+            //}else{
+            //    data = { content: "binary content" }
+            //    return data
+            //}
         } else {
             data = { content: "No content" }
             return data

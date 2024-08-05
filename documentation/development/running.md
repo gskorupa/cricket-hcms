@@ -1,3 +1,6 @@
+<!-- metadata
+keyword:running
+-->
 # Running
 
 THIS DOCUMENT IS A WORK IN PROGRESS

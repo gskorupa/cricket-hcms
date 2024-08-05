@@ -10,8 +10,6 @@ import org.cricketmsf.hcms.domain.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import com.arjuna.ats.internal.jdbc.drivers.modifiers.list;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -43,6 +41,8 @@ public class DocumentRepositoryLoader {
     String sites;
     @ConfigProperty(name = "document.folders.assets")
     String assets;
+    @ConfigProperty(name = "hcms.database.type")
+    String databaseType;
     
 
     public void loadDocuments(String siteRoot, boolean start, boolean stop, long timestamp) {
@@ -75,12 +75,10 @@ public class DocumentRepositoryLoader {
                 visitor.exclude(exclude);
             }
         }
-        //EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
         Path p;
         try {
             p=Paths.get(root+docPath);
             logger.info("absolute path: " + p.toAbsolutePath().toString());
-            //Files.walkFileTree(p, opts, 100, visitor);
             Files.walkFileTree(p, visitor);
         } catch (IOException e) {
             e.printStackTrace();
@@ -96,13 +94,10 @@ public class DocumentRepositoryLoader {
                 repositoryPort.addDocument(doc);
             }
         }
-        // for (Document doc : files) {
-        //    repositoryPort.addDocument(DocumentTransformer.transform(doc, markdownFileExtension));
-        //}
         logger.info("loaded: " + files.size() + " documents");
         logger.info("repositoryPort database size: " + repositoryPort.getDocumentsCount());
         if(stop){
-            repositoryPort.stopReload(timestamp);
+            repositoryPort.stopReload(timestamp,docPath);
             listAll();
         }
     }

@@ -28,7 +28,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     GithubWikiReader githubWikiReader = new GithubWikiReader();
     HtmlReader htmlReader = new HtmlReader();
     BinaryReader binaryReader = new BinaryReader();
-    JsonReader jsonReader = new JsonReader();
+    //JsonReader jsonReader = new JsonReader();
 
     public void setRoot(String root) {
         this.root = root;
@@ -80,11 +80,11 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                     doc = htmlReader.getDocument();
                     doc.mediaType = "text/html";
                     files.add(doc);
-                } else if (name.toLowerCase().endsWith(jsonFileExtension)) {
+                /* } else if (name.toLowerCase().endsWith(jsonFileExtension)) {
                     jsonReader.parse(file);
                     doc = jsonReader.getDocument();
                     doc.mediaType = "application/json";
-                    files.add(doc);
+                    files.add(doc); */
                 } else {
                     // binary file
                     binaryReader.parse(file);
@@ -94,7 +94,6 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                 }
                 doc.name = path;
                 doc.path = path.substring(0, path.lastIndexOf("/") + 1);
-                //doc.fileName = path.substring(path.lastIndexOf("/") + 1);
                 doc.fileName = fileName;
                 logger.info("doc.name: " + doc.name);
                 logger.debug("doc.path: " + doc.path);
@@ -125,21 +124,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     }
 
     private String getRelativePath(Path file, BasicFileAttributes attr) {
-        /*
-         * if(attr.isSymbolicLink()){
-         * try {
-         * String tmp=file.toRealPath(LinkOption.NOFOLLOW_LINKS).toString();
-         * System.out.println("real path: " + tmp);
-         * //return file.toRealPath().toString().substring(root.length());
-         * return tmp;
-         * } catch (IOException e) {
-         * e.printStackTrace();
-         * return file.toAbsolutePath().toString().substring(root.length());
-         * }
-         * }else{
-         */
         return file.toAbsolutePath().toString().substring(root.length());
-        // }
     }
 
     private boolean isExcluded(String path) {

@@ -1,3 +1,6 @@
+<!-- metadata
+keyword:running
+-->
 # Running demo website with Docker Compose
 
 This document describes how to run the demo website using Docker Compose. The demo website is a simple website that displays the documents stored in the Cricket HCMS service. Additionally, HAProxy is used to provide a reverse proxy for both the Cricket HCMS service and the demo website.

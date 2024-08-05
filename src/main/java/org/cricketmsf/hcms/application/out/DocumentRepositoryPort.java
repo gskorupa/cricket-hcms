@@ -22,24 +22,11 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     @Inject
     AgroalDataSource dataSource;
 
-   //@Inject
-    //DocumentRepository repositoryMem;
-
-    //@Inject
-    //DocumentRepositoryH2 repository;
-
     private static DocumentRepositoryIface repository=null;
 
     @ConfigProperty(name = "hcms.database.type")
     String databaseType;
-    
-    
-/*     @ConfigProperty(name = "document.syntax")
-    String syntax; // "obsidian", "github" 
-    @ConfigProperty(name = "document.extension.markdown")
-    String markdownFileExtension;
-    @ConfigProperty(name = "document.extension.html")
-    String htmlFileExtension; */
+
     
     @Override
     public List<Document> getDocuments(String path, boolean withContent) {
@@ -82,12 +69,12 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     }
 
     @Override
-    public void stopReload(long timestamp) {
-        getRepository().stopReload(timestamp);
+    public void stopReload(long timestamp, String siteName) {
+        getRepository().stopReload(timestamp, siteName);
     }
 
     @Override
-    public List<Document> findDocuments(String propertyName, String path, String propertyValue, boolean withContent) {
+    public List<Document> findDocuments(String path, String propertyName, String propertyValue, boolean withContent) {
         return getRepository().findDocuments(path, propertyName, propertyValue, withContent);
     }
 

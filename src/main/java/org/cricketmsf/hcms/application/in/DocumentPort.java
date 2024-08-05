@@ -27,8 +27,8 @@ public class DocumentPort {
         logic.reload();
     }
 
-    public List<Document> findDocs(String path, String[] props){
-        return logic.findDocuments(path, props);
+    public List<Document> findDocs(String path, String tagName, String tagValue){
+        return logic.findDocuments(path, tagName, tagValue);
     }
     
 }

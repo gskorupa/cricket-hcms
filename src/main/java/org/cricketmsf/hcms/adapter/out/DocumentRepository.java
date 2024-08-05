@@ -10,7 +10,6 @@ import org.cricketmsf.hcms.domain.Document;
 import org.jboss.logging.Logger;
 
 import io.agroal.api.AgroalDataSource;
-import jakarta.enterprise.context.ApplicationScoped;
 
 //@ApplicationScoped
 public class DocumentRepository implements DocumentRepositoryIface {
@@ -53,7 +52,6 @@ public class DocumentRepository implements DocumentRepositoryIface {
     @Override
     public List<Document> getDocuments(String path, boolean withContent) {
         ArrayList<Document> docs = new ArrayList<>();
-        //logger.info("database size: " + documents.size());
         String searchPath = path.startsWith("/") ? path : "/"+path;
         logger.debug("searching: " + searchPath);
         getDocuments().forEach((k, v) -> {
@@ -126,7 +124,7 @@ public class DocumentRepository implements DocumentRepositoryIface {
     }
 
     @Override
-    public void stopReload(long timestamp) {
+    public void stopReload(long timestamp, String siteName) {
         getDocuments().clear();
         documents.putAll(underConstrDocs);
         reloadInProgress = false;

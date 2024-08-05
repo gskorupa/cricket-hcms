@@ -1,6 +1,7 @@
 # Accessing binary files
 <!-- metadata
 title: Accessing binary files
+keyword:binary
 -->
 
 Binary files can be accessed using HCMS API. The following example shows how to create a link to an image in an html document.

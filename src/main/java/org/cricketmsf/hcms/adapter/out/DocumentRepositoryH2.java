@@ -11,10 +11,8 @@ import org.jboss.logging.Logger;
 
 import io.agroal.api.AgroalDataSource;
 
-//@ApplicationScoped
 public class DocumentRepositoryH2 implements DocumentRepositoryIface {
 
-    // @Inject
     private static Logger logger = Logger.getLogger(DocumentRepositoryH2.class);
 
     private static AgroalDataSource defaultDataSource;
@@ -143,8 +141,44 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
 
     @Override
     public List<Document> findDocuments(String path, String metadataName, String metadataValue, boolean withContent) {
+        logger.info("findDocuments: " + path + " " + metadataName + ":" + metadataValue);
         ArrayList<Document> docs = new java.util.ArrayList<Document>();
-        // TODO
+        String sql = "SELECT d.* FROM documents d, metadata m WHERE d.name = m.d_name AND d.path = ? AND m.m_name = ? AND m.m_value = ?";
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.prepareStatement(sql)) {
+            statement.setString(1, path);
+            statement.setString(2, metadataName);
+            statement.setString(3, metadataValue);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    var doc = new Document();
+                    doc.path = resultSet.getString("path");
+                    doc.name = resultSet.getString("name");
+                    doc.fileName = resultSet.getString("file_name");
+                    doc.binaryFile = resultSet.getBoolean("binary");
+                    if (withContent) {
+                        doc.content = resultSet.getString("content");
+                        doc.binaryContent = resultSet.getBytes("binary_content");
+                    } else {
+                        doc.content = "";
+                        doc.binaryContent = new byte[0];
+                    }
+                    doc.mediaType = resultSet.getString("media_type");
+                    doc.updateTimestamp = resultSet.getTimestamp("modified").getTime();
+                    doc.refreshTimestamp = resultSet.getTimestamp("refreshed").getTime();
+                    docs.add(doc);
+                }
+                resultSet.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
+        for (int i = 0; i < docs.size(); i++) {
+            Document doc = docs.get(i);
+            doc.metadata = getMetadata(doc.name);
+            docs.set(i, doc);
+        }
         return docs;
     }
 
@@ -261,16 +295,18 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
     }
 
     @Override
-    public void stopReload(long timestamp) {
+    public void stopReload(long timestamp, String siteName) {
         // remove all documents from the repository which were refreshed before the
         // timestamp -
         // it means that they were not been read from file system during the last reload
         // (they were deleted)
-        String sql = "DELETE FROM documents WHERE refreshed < ?";
+        String sql = "DELETE FROM documents WHERE name LIKE ? AND refreshed < ?";
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(sql)) {
-            statement.setTimestamp(1, new java.sql.Timestamp(timestamp));
-            statement.executeUpdate();
+            statement.setString(1, "/"+siteName + "/%");
+            statement.setTimestamp(2, new java.sql.Timestamp(timestamp));
+            int rows=statement.executeUpdate();
+            logger.info("Documents removed: "+rows);
         } catch (Exception e) {
             e.printStackTrace();
         }

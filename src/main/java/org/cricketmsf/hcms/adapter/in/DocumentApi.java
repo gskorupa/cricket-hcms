@@ -1,9 +1,7 @@
 package org.cricketmsf.hcms.adapter.in;
 
 import java.io.ByteArrayInputStream;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 import org.cricketmsf.hcms.application.in.DocumentPort;
@@ -18,7 +16,6 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponseSchema;
 import org.jboss.logging.Logger;
 
-import io.vertx.codegen.doc.Doc;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -56,7 +53,7 @@ public class DocumentApi {
     public Response getDocs(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
             @Parameter(description = "If true, documents will be listed with their content.", required = false, example = "true", schema = @Schema(type = SchemaType.BOOLEAN)) @QueryParam("content") boolean withContent,
-            @Parameter(description = "Path to the document or directory. If not provided, the root directory will be listed.", required = false, example = "docs", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path) {
+            @Parameter(description = "Path to the document or directory. If not provided, the root directory will be listed.", required = false, example = "/documentation/", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path) {
 
         if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -70,7 +67,6 @@ public class DocumentApi {
         logger.debug("checking: " + searchPath);
         Document doc = documentPort.getDocument(searchPath);
         if (doc != null) {
-            //searchPath = searchPath.substring(0, searchPath.lastIndexOf("/"));
             list.add(doc);
         } else {
             logger.debug("requesting: " + searchPath);
@@ -87,25 +83,6 @@ public class DocumentApi {
         }
         try {
             if (list.size() == 1 && list.get(0).binaryFile == true) {
-                /*
-                 * try {
-                 * ByteArrayInputStream bis = null; //
-                 * https://www.knowledgefactory.net/2021/10/quarkus-export-data-to-pdf-example.
-                 * html
-                 * Document doc = list.get(0);
-                 * bis = new ByteArrayInputStream(doc.binaryContent);
-                 * return Response.ok(bis, doc.mediaType)
-                 * .header("content-disposition",
-                 * "attachment; filename = " + doc.getFileName())
-                 * .build();
-                 * } catch (Exception e) {
-                 * return Response.serverError().entity(e.getMessage()).build();
-                 * }
-                 */
-                // Document doc = list.get(0);
-                // String binaryContent=Base64.getEncoder().encodeToString(doc.binaryContent);
-                // doc.binaryContent=binaryContent.getBytes();
-                // list.set(0, doc);
                 return Response.ok(list).build();
             } else {
                 return Response.ok(list).build();
@@ -120,19 +97,23 @@ public class DocumentApi {
     @Path("/find/")
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponseSchema(value = List.class, responseDescription = "List of document objects.", responseCode = "200")
-    @Operation(summary = "Find documents", description = "Find documents with the specified path and list of {property name,poperty value} pairs. Path is optional.")
+    @Operation(summary = "Find documents", description = "Find documents with the specified path and tag (name:value). Path is optional.")
     public Response findDocs(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
-            @Parameter(description = "Path to the document or directory. If not provided, the root directory will be listed.", required = false, example = "docs", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path,
-            @Parameter(description = "List of {property name,poperty value} pairs.", required = true, example = "type,article", schema = @Schema(type = SchemaType.STRING)) @QueryParam("properties") String properties) {
+            @Parameter(description = "Path to the document or directory. Default \"/\"", required = false, example = "/documentation/", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path,
+            @Parameter(description = "Tag (name:value}.", required = true, example = "type:article", schema = @Schema(type = SchemaType.STRING)) @QueryParam("tag") String tag) {
         if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        String[] pairs = properties.split(",");
-        if (pairs.length % 2 != 0) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid properties list").build();
+        //properties param should be like "type:article,author:John Doe"
+        String[] pair = tag.split(":");
+        if (pair.length != 2) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid tag definition (expecting name:value)").build();
         }
-        List<Document> list = documentPort.findDocs(path, pairs);
+        if(path==null || path.equals("")){
+            path="/";
+        }
+        List<Document> list = documentPort.findDocs(path, pair[0], pair[1]);
         return Response.ok(list).build();
     }
 
@@ -143,12 +124,12 @@ public class DocumentApi {
     @Operation(summary = "Get document", description = "Get a document (JSON object) with the specified path. If the document is a binary file, the file will be returned as a download.")
     public Response getDoc(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
-            @Parameter(description = "Path to the document.", required = true, example = "docs/doc1", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path) {
+            @Parameter(description = "Document name.", required = true, example = "/docs/doc1.md", schema = @Schema(type = SchemaType.STRING)) @QueryParam("name") String name) {
         if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        logger.debug("requesting document: " + path);
-        Document doc = documentPort.getDocument(path);
+        logger.debug("requesting document: " + name);
+        Document doc = documentPort.getDocument(name);
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -220,12 +201,12 @@ public class DocumentApi {
     @Operation(summary = "Get file", description = "Get a file with the specified path. The file will be returned as a download.")
     public Response getBinary(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
-            @Parameter(description = "Path to the document.", required = true, example = "docs/doc1", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path) {
+            @Parameter(description = "Document name.", required = true, example = "/docs/doc1.png", schema = @Schema(type = SchemaType.STRING)) @QueryParam("name") String name) {
         if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        logger.debug("requesting file: " + path);
-        Document doc = documentPort.getDocument(path);
+        logger.debug("requesting file: " + name);
+        Document doc = documentPort.getDocument(name);
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
