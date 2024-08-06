@@ -7,7 +7,7 @@
 ##
 
 # versions
-versionHcms=0.13.4
+versionHcms=0.14.1
 versionWebsite=0.3.0
 
 # names
@@ -16,12 +16,12 @@ imageNameWebsite=cricket-website
 
 # repository
 dockerHubType=true
-dockerRegistry=docker.io
-dockerGroup=gskorupa
-dockerUser=gskorupa
-#dockerRegistry=
-#dockerGroup=
-#dockerUser=
+#dockerRegistry=docker.io
+#dockerGroup=gskorupa
+#dockerUser=gskorupa
+dockerRegistry=
+dockerGroup=
+dockerUser=
 
 
 # the above variables can be overridden by local configuration

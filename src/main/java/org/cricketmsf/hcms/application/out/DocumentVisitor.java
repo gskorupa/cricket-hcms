@@ -28,7 +28,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     GithubWikiReader githubWikiReader = new GithubWikiReader();
     HtmlReader htmlReader = new HtmlReader();
     BinaryReader binaryReader = new BinaryReader();
-    //JsonReader jsonReader = new JsonReader();
+    JsonReader jsonReader = new JsonReader();
 
     public void setRoot(String root) {
         this.root = root;
@@ -80,11 +80,11 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                     doc = htmlReader.getDocument();
                     doc.mediaType = "text/html";
                     files.add(doc);
-                /* } else if (name.toLowerCase().endsWith(jsonFileExtension)) {
+                } else if (name.toLowerCase().endsWith(jsonFileExtension)) {
                     jsonReader.parse(file);
                     doc = jsonReader.getDocument();
                     doc.mediaType = "application/json";
-                    files.add(doc); */
+                    files.add(doc);
                 } else {
                     // binary file
                     binaryReader.parse(file);
@@ -100,7 +100,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                 doc.updateTimestamp = updateTimestamp;
                 files.add(doc);
 
-            }else{
+            } else {
                 logger.info("excluded: " + path);
             }
         } else {

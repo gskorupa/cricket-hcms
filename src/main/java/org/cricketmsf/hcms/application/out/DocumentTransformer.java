@@ -135,7 +135,7 @@ public class DocumentTransformer {
         // and the hcmsServiceUrl is set
         // then replace the fragment with equivalent API call
         if (fragmentToReplace.startsWith(assetsFolderName) && hcmsServiceUrl != null && !hcmsServiceUrl.isEmpty()) {
-            result = hcmsServiceUrl + "/api/file?path=" + siteRootFolderName + fragmentToReplace;
+            result = hcmsServiceUrl + "/api/file?name=" + siteRootFolderName + fragmentToReplace;
         } else {
             result = fragmentToReplace;
         }
