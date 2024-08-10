@@ -27,8 +27,12 @@ public class DocumentPort {
         logic.reload();
     }
 
-    public List<Document> findDocs(String path, String tagName, String tagValue){
-        return logic.findDocuments(path, tagName, tagValue);
+    public List<Document> findDocs(String path, String tagName, String tagValue, String sortBy, String sortOrder, boolean withContent){
+        return logic.findDocumentsSorted(path, tagName, tagValue, sortBy, sortOrder);
+    }
+
+    public Document findFirstDocument(String path, String tagName, String tagValue, String sortBy, String sortOrder){
+        return logic.findFirstDocument(path, tagName, tagValue, sortBy, sortOrder);
     }
     
 }

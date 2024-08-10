@@ -101,7 +101,10 @@ public class DocumentApi {
     public Response findDocs(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
             @Parameter(description = "Path to the document or directory. Default \"/\"", required = false, example = "/documentation/", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path,
-            @Parameter(description = "Tag (name:value}.", required = true, example = "type:article", schema = @Schema(type = SchemaType.STRING)) @QueryParam("tag") String tag) {
+            @Parameter(description = "Tag (name:value}.", required = true, example = "type:article", schema = @Schema(type = SchemaType.STRING)) @QueryParam("tag") String tag,
+            @Parameter(description = "Tag name to sort by.", required = false, example = "date", schema = @Schema(type = SchemaType.STRING)) @QueryParam("sort") String sort,
+            @Parameter(description = "Sort direction.", required = false, example = "asc", schema = @Schema(type = SchemaType.STRING)) @QueryParam("direction") String direction,
+            @Parameter(description = "If true, documents will be listed with their content.", required = false, example = "true", schema = @Schema(type = SchemaType.BOOLEAN)) @QueryParam("content") boolean withContent) {
         if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -113,9 +116,36 @@ public class DocumentApi {
         if(path==null || path.equals("")){
             path="/";
         }
-        List<Document> list = documentPort.findDocs(path, pair[0], pair[1]);
+        List<Document> list = documentPort.findDocs(path, pair[0], pair[1], sort, direction, withContent);
         return Response.ok(list).build();
     }
+
+    @GET
+    @Path("/findfirst/")
+    @APIResponse(responseCode = "401", description = "Unauthorized")
+    @APIResponseSchema(value = Document.class, responseDescription = "First document matching rules", responseCode = "200")
+    @Operation(summary = "Find first document", description = "Find documents with the specified path and tag (name:value). Path is optional.")
+    public Response findFirst(
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Path to the document or directory. Default \"/\"", required = false, example = "/documentation/", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path,
+            @Parameter(description = "Tag (name:value}.", required = true, example = "type:article", schema = @Schema(type = SchemaType.STRING)) @QueryParam("tag") String tag,
+            @Parameter(description = "Tag name to sort by.", required = false, example = "date", schema = @Schema(type = SchemaType.STRING)) @QueryParam("sort") String sort,
+            @Parameter(description = "Sort direction.", required = false, example = "asc", schema = @Schema(type = SchemaType.STRING)) @QueryParam("direction") String direction) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        //properties param should be like "type:article,author:John Doe"
+        String[] pair = tag.split(":");
+        if (pair.length != 2) {
+            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid tag definition (expecting name:value)").build();
+        }
+        if(path==null || path.equals("")){
+            path="/";
+        }
+        Document doc = documentPort.findFirstDocument(path, pair[0], pair[1], sort, direction);
+        return Response.ok(doc).build();
+    }
+
 
     @GET
     @Path("/document/")

@@ -143,7 +143,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
     public List<Document> findDocuments(String path, String metadataName, String metadataValue, boolean withContent) {
         logger.info("findDocuments: " + path + " " + metadataName + ":" + metadataValue);
         ArrayList<Document> docs = new java.util.ArrayList<Document>();
-        String sql = "SELECT d.* FROM documents d, metadata m WHERE d.name = m.d_name AND d.path = ? AND m.m_name = ? AND m.m_value = ?";
+        String sql = "SELECT * FROM documents WHERE path = ? AND name IN (SELECT d_name FROM metadata WHERE m_name = ? AND m_value = ?)";
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(sql)) {
             statement.setString(1, path);
@@ -381,5 +381,68 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public List<Document> findDocumentsSorted(String path, String metadataName, String metadataValue, boolean withContent,
+            String sortBy, String sortOrder) {
+        // Find document names by metadata and use it to get document list sorted by document's
+        // metadata 'published' value
+        // Then get the first document from the list
+        List<Document> docs = findDocuments(path, metadataName, metadataValue, withContent);
+        if (docs.size() == 0) {
+            return List.of();
+        }
+        return sort(docs, sortBy, sortOrder);
+    }
+
+    @Override
+    public Document findFirstDocument(String path, String metadataName, String metadataValue, boolean withContent,
+            String sortBy, String sortOrder) {
+        // Find document names by metadata and use it to get document list sorted by document's
+        // metadata 'published' value
+        // Then get the first document from the list
+        List<Document> docs = findDocuments(path, metadataName, metadataValue, withContent);
+        if (docs.size() == 0) {
+            return null;
+        }
+        return sort(docs, sortBy, sortOrder).get(0);
+    }
+
+    /**
+     * Sort the list of documents by the given metadata field value.
+     * @param docs
+     * @param sortBy
+     * @param sortOrder
+     * @return
+     */
+    private List<Document> sort(List<Document> docs, String sortBy, String sortOrder) {
+        if (sortBy == null || sortBy.isEmpty()) {
+            return docs;
+        }
+        if (sortOrder == null || sortOrder.isEmpty()) {
+            sortOrder = "asc";
+        }
+        if (sortOrder.equals("asc")) {
+            docs.sort((Document d1, Document d2) -> {
+                try{
+                return d1.metadata.get(sortBy).compareTo(d2.metadata.get(sortBy));
+                }catch(NullPointerException e){
+                    //In this case the document will go to the end of the list regardless of the sorting direction
+                    return 1;
+                }
+            });
+        } else {
+            docs.sort((Document d1, Document d2) -> {
+                try{
+                return d2.metadata.get(sortBy).compareTo(d1.metadata.get(sortBy));
+                }catch(NullPointerException e){
+                    //In this case the document will go to the end of the list regardless of the sorting direction
+                    return 1;
+                }
+            });
+        }
+        return docs;
+    }
+
 
 }

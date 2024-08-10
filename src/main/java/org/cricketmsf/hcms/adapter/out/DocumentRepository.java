@@ -175,4 +175,18 @@ public class DocumentRepository implements DocumentRepositoryIface {
         //
     }
 
+    @Override
+    public Document findFirstDocument(String path, String metadataName, String metadataValue, boolean withContent,
+            String sortBy, String sortOrder) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'findFirstDocument'");
+    }
+
+    @Override
+    public List<Document> findDocumentsSorted(String path, String metadataName, String metadataValue,
+            boolean withContent, String sortBy, String sortOrder) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'findDocumentsSorted'");
+    }
+
 }

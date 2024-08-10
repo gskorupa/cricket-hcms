@@ -79,6 +79,11 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     }
 
     @Override
+    public List<Document> findDocumentsSorted(String path, String propertyName, String propertyValue, boolean withContent, String sortBy, String sortOrder) {
+        return getRepository().findDocumentsSorted(path, propertyName, propertyValue, withContent, sortBy, sortOrder);
+    }
+
+    @Override
     public List<Document> filter(List<Document> docs, String propertyName, String propertyValue) {
         return getRepository().filter(docs, propertyName, propertyValue);
     }
@@ -114,6 +119,12 @@ public class DocumentRepositoryPort implements DocumentRepositoryIface {
     @Override
     public void deleteMetadata(String name) {
         getRepository().deleteMetadata(name);
+    }
+
+    @Override
+    public Document findFirstDocument(String path, String metadataName, String metadataValue, boolean withContent,
+            String sortBy, String sortOrder) {
+        return getRepository().findFirstDocument(path, metadataName, metadataValue, withContent, sortBy, sortOrder);
     }
     
 }

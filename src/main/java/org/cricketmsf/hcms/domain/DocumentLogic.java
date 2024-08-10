@@ -112,22 +112,17 @@ public class DocumentLogic {
     public List<Document> findDocuments(String path, String tagName, String tagValue) {
         List<Document> docs = new ArrayList<>();
         docs = repositoryPort.findDocuments(path, tagName, tagValue, false);
-        //TODO: implement
-/*         String[] prop;
-        prop = props[0].split(":");
-        if (prop.length != 2) {
-            logger.error("Invalid property definition: " + props[0]);
-            return new ArrayList<>(); // TODO: throw exception
-        }
-        docs = repositoryPort.findDocuments(path, prop[0], prop[1], false);
-        for (int i = 1; i < props.length; i++) {
-            prop = props[i].split(":");
-            if (prop.length != 2) {
-                logger.error("Invalid property definition: " + props[i]);
-                return new ArrayList<>(); // TODO: throw exception
-            }
-            docs = repositoryPort.filter(docs, prop[0], prop[1]);
-        } */
         return docs;
+    }
+
+    public List<Document> findDocumentsSorted(String path, String tagName, String tagValue, String sortBy, String sortOrder) {
+        List<Document> docs = new ArrayList<>();
+        docs = repositoryPort.findDocumentsSorted(path, tagName, tagValue, false, sortBy, sortOrder);
+        return docs;
+    }
+
+    public Document findFirstDocument(String path, String tagName, String tagValue, String sortBy, String sortOrder) {
+        Document doc = repositoryPort.findFirstDocument(path, tagName, tagValue, true, sortBy, sortOrder);
+        return doc;
     }
 }
