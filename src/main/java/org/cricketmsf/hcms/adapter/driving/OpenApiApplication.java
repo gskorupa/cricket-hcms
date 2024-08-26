@@ -1,4 +1,4 @@
-package org.cricketmsf.hcms.adapter.in;
+package org.cricketmsf.hcms.adapter.driving;
 
 import org.eclipse.microprofile.openapi.annotations.OpenAPIDefinition;
 import org.eclipse.microprofile.openapi.annotations.info.Contact;

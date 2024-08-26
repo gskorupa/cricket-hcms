@@ -1,4 +1,4 @@
-package org.cricketmsf.hcms.application.out;
+package org.cricketmsf.hcms.adapter.driven.loader;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,18 +7,18 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.cricketmsf.hcms.domain.Document;
+import org.cricketmsf.hcms.app.logic.Document;
 
-public class GithubWikiReader {
+public class HtmlReader {
 
     Document doc = null;
 
-    public GithubWikiReader() {
+    public HtmlReader() {
     }
 
     public Document getDocument() {
         return doc;
-    } 
+    }
 
     public void parse(Path file) {
         doc = new Document();
@@ -54,14 +54,14 @@ public class GithubWikiReader {
                     metadata = false;
                     continue;
                 }
-                if(!comment){
+                if (!comment) {
                     sbContent.append(line).append("\r\n");
-                }else if(metadata){
+                } else if (metadata) {
                     String[] parts = line.split(":");
-                    if(parts.length>1){
+                    if (parts.length > 1) {
                         doc.metadata.put(parts[0].trim(), parts[1].trim());
                     }
-                } else if(summary){
+                } else if (summary) {
                     sbSummary.append(line).append("\r\n");
                 }
             }

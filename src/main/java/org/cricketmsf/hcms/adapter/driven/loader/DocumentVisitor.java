@@ -1,4 +1,4 @@
-package org.cricketmsf.hcms.application.out;
+package org.cricketmsf.hcms.adapter.driven.loader;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 
@@ -10,7 +10,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 
-import org.cricketmsf.hcms.domain.Document;
+import org.cricketmsf.hcms.app.logic.Document;
 import org.jboss.logging.Logger;
 
 public class DocumentVisitor extends SimpleFileVisitor<Path> {
@@ -95,6 +95,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                 doc.name = path;
                 doc.path = path.substring(0, path.lastIndexOf("/") + 1);
                 doc.fileName = fileName;
+                doc.siteName=doc.getSiteName();
                 logger.info("doc.name: " + doc.name);
                 logger.debug("doc.path: " + doc.path);
                 doc.updateTimestamp = updateTimestamp;

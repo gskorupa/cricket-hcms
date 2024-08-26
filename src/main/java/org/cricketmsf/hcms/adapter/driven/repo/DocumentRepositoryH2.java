@@ -1,17 +1,17 @@
-package org.cricketmsf.hcms.adapter.out;
+package org.cricketmsf.hcms.adapter.driven.repo;
 
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.cricketmsf.hcms.application.out.DocumentRepositoryIface;
-import org.cricketmsf.hcms.domain.Document;
+import org.cricketmsf.hcms.app.driven_ports.ForDocumentRepositoryIface;
+import org.cricketmsf.hcms.app.logic.Document;
 import org.jboss.logging.Logger;
 
 import io.agroal.api.AgroalDataSource;
 
-public class DocumentRepositoryH2 implements DocumentRepositoryIface {
+public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
 
     private static Logger logger = Logger.getLogger(DocumentRepositoryH2.class);
 
@@ -22,8 +22,17 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
         // create database tables
         logger.debug("Document repository initializing (H2) ...");
 
+        // drop to update structure if needed
+        String sql = "DROP TABLE IF EXISTS documents; DROP TABLE IF EXISTS metadata";
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.createStatement()) {
+            statement.execute(sql);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         // create table documents
-        String sql = "CREATE TABLE IF NOT EXISTS documents ("
+        sql = "CREATE TABLE IF NOT EXISTS documents ("
                 + "path VARCHAR(255) NOT NULL, "
                 + "name VARCHAR(255) PRIMARY KEY, "
                 + "file_name VARCHAR(255), "
@@ -33,7 +42,8 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
                 + "media_type VARCHAR(100),"
                 + "created TIMESTAMP, "
                 + "modified TIMESTAMP,"
-                + "refreshed TIMESTAMP"
+                + "refreshed TIMESTAMP,"
+                + "site VARCHAR(255)"
                 + ")";
 
         try (var connection = defaultDataSource.getConnection();
@@ -88,6 +98,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
                     doc.mediaType = resultSet.getString("media_type");
                     doc.updateTimestamp = resultSet.getTimestamp("modified").getTime();
                     doc.refreshTimestamp = resultSet.getTimestamp("refreshed").getTime();
+                    doc.siteName=resultSet.getString("site");
                     docs.add(doc);
                 }
                 resultSet.close();
@@ -124,6 +135,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
                 doc.mediaType = resultSet.getString("media_type");
                 doc.updateTimestamp = resultSet.getTimestamp("modified").getTime();
                 doc.refreshTimestamp = resultSet.getTimestamp("refreshed").getTime();
+                doc.siteName=resultSet.getString("site");
                 docs.add(doc);
             }
             resultSet.close();
@@ -166,6 +178,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
                     doc.mediaType = resultSet.getString("media_type");
                     doc.updateTimestamp = resultSet.getTimestamp("modified").getTime();
                     doc.refreshTimestamp = resultSet.getTimestamp("refreshed").getTime();
+                    doc.siteName=resultSet.getString("site");
                     docs.add(doc);
                 }
                 resultSet.close();
@@ -214,6 +227,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
                     doc.binaryContent = resultSet.getBytes("binary_content");
                     doc.updateTimestamp = resultSet.getTimestamp("modified").getTime();
                     doc.refreshTimestamp = resultSet.getTimestamp("refreshed").getTime();
+                    doc.siteName=resultSet.getString("site");
                     logger.debug("binary content size: " + doc.binaryContent.length);
                 }
                 resultSet.close();
@@ -232,9 +246,9 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
     public void addDocument(Document doc) {
         deleteMetadata(doc.name);
         String sql = """
-                MERGE INTO documents (path, name, file_name, content, binary, binary_content, created, modified, refreshed, media_type)
+                MERGE INTO documents (path, name, file_name, content, binary, binary_content, created, modified, refreshed, media_type, site)
                 KEY (NAME)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(sql)) {
@@ -252,6 +266,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
             statement.setTimestamp(8, new java.sql.Timestamp(doc.updateTimestamp));
             statement.setTimestamp(9, new java.sql.Timestamp(doc.refreshTimestamp));
             statement.setString(10, doc.mediaType);
+            statement.setString(11, doc.siteName);
             statement.executeUpdate();
         } catch (Exception e) {
             logger.error("Error adding document: " + doc.path);
@@ -262,6 +277,7 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
 
     @Override
     public void deleteDocument(String name) {
+        deleteMetadata(name);
         String sql = "DELETE FROM documents WHERE name = ?";
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(sql)) {
@@ -442,6 +458,45 @@ public class DocumentRepositoryH2 implements DocumentRepositoryIface {
             });
         }
         return docs;
+    }
+
+    @Override
+    public List<String> getPaths(String siteRoot) {
+        String sql = "SELECT DISTINCT path FROM documents WHERE site = ? ORDER BY path";
+        ArrayList<String> paths = new ArrayList<>();
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.prepareStatement(sql)) {
+            statement.setString(1, siteRoot);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    paths.add(resultSet.getString("path"));
+                }
+                resultSet.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
+        return paths;
+    }
+
+    @Override
+    public List<String> getSiteNames(){
+        String sql = "SELECT DISTINCT site FROM documents ORDER BY site";
+        ArrayList<String> sites = new ArrayList<>();
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.prepareStatement(sql)) {
+            try (ResultSet resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    sites.add(resultSet.getString("site"));
+                }
+                resultSet.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
+        return sites;
     }
 
 

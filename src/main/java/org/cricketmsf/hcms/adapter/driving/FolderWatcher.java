@@ -1,4 +1,4 @@
-package org.cricketmsf.hcms.application.out;
+package org.cricketmsf.hcms.adapter.driving;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -8,6 +8,7 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 
+import org.cricketmsf.hcms.app.driven_ports.ForDocumentsLoaderIface;
 import org.jboss.logging.Logger;
 
 public class FolderWatcher implements Runnable {
@@ -16,7 +17,7 @@ public class FolderWatcher implements Runnable {
 
     private String root;
     private String watchedFile;
-    private DocumentRepositoryLoader loader;
+    private ForDocumentsLoaderIface loader;
     private String site;
     private String[] sitesList;
     private boolean mapImplementation;
@@ -24,7 +25,7 @@ public class FolderWatcher implements Runnable {
     public FolderWatcher(
             String root,
             String watchedFile,
-            DocumentRepositoryLoader loader,
+            ForDocumentsLoaderIface loader,
             String site,
             String[] sitesList,
             boolean mapImplementation) {

@@ -1,11 +1,11 @@
-package org.cricketmsf.hcms.adapter.in;
+package org.cricketmsf.hcms.adapter.driving;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.cricketmsf.hcms.application.in.DocumentPort;
-import org.cricketmsf.hcms.domain.Document;
+import org.cricketmsf.hcms.app.driving_ports.ForDocumentsIface;
+import org.cricketmsf.hcms.app.logic.Document;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -34,7 +34,7 @@ import jakarta.ws.rs.core.Response;
 public class DocumentApi {
 
     @Inject
-    DocumentPort documentPort;
+    ForDocumentsIface documentPort;
     @Inject
     Logger logger;
 
@@ -71,9 +71,9 @@ public class DocumentApi {
         } else {
             logger.debug("requesting: " + searchPath);
             if (withContent) {
-                list = documentPort.getDocs(searchPath, true);
+                list = documentPort.getDocuments(searchPath, true);
             } else {
-                list = documentPort.getDocs(searchPath, false);
+                list = documentPort.getDocuments(searchPath, false);
             }
         }
         list = sort(list);
@@ -91,6 +91,35 @@ public class DocumentApi {
             e.printStackTrace();
             return Response.serverError().entity(e.getMessage()).build();
         }
+    }
+
+    @GET
+    @Path("/paths/")
+    @APIResponse(responseCode = "401", description = "Unauthorized")
+    @APIResponseSchema(value = List.class, responseDescription = "List of document paths.", responseCode = "200")
+    @Operation(summary = "List paths", description = "List paths of documents in the specified site.")
+    public Response getPaths(
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Site name.", required = true, example = "site1", schema = @Schema(type = SchemaType.STRING)) @QueryParam("site") String site) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        List<String> list = documentPort.getPaths(site);
+        return Response.ok(list).build();
+    }
+
+    @GET
+    @Path("/sites/")
+    @APIResponse(responseCode = "401", description = "Unauthorized")
+    @APIResponseSchema(value = List.class, responseDescription = "List of site names.", responseCode = "200")
+    @Operation(summary = "List site names", description = "List site names provided by the document service.")
+    public Response getSiteNames(
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        List<String> list = documentPort.getSiteNames();
+        return Response.ok(list).build();
     }
 
     @GET
@@ -116,7 +145,7 @@ public class DocumentApi {
         if(path==null || path.equals("")){
             path="/";
         }
-        List<Document> list = documentPort.findDocs(path, pair[0], pair[1], sort, direction, withContent);
+        List<Document> list = documentPort.findDocuments(path, pair[0], pair[1], sort, direction, withContent);
         return Response.ok(list).build();
     }
 
@@ -224,7 +253,7 @@ public class DocumentApi {
      * }
      */
 
-    @GET
+/*     @GET
     @Path("/file/")
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponse(responseCode = "200", description = "File content as binary/octet-stream MIME type.")
@@ -254,7 +283,7 @@ public class DocumentApi {
             return Response.ok(doc.content).build();
         }
     }
-
+ */
     @POST
     @Path("/reload")
     @APIResponse(responseCode = "401", description = "Unauthorized")

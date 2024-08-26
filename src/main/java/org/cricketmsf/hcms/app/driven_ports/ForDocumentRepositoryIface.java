@@ -1,14 +1,16 @@
-package org.cricketmsf.hcms.application.out;
+package org.cricketmsf.hcms.app.driven_ports;
 
 import java.util.HashMap;
 import java.util.List;
 
-import org.cricketmsf.hcms.domain.Document;
+import org.cricketmsf.hcms.app.logic.Document;
 
 import io.agroal.api.AgroalDataSource;
 
-public interface DocumentRepositoryIface {
+public interface ForDocumentRepositoryIface {
     public List<Document> getDocuments(String path, boolean withContent);
+    public List<String> getPaths(String siteRoot);
+    public List<String> getSiteNames();
     public List<Document> getAllDocuments(boolean noContent);
     public List<Document> findDocuments(String path, String metadataName, String metadataValue, boolean withContent);
     public List<Document> findDocumentsSorted(String path, String metadataName, String metadataValue, boolean withContent, String sortBy, String sortOrder);

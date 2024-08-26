@@ -1,4 +1,4 @@
-package org.cricketmsf.hcms.application.out;
+package org.cricketmsf.hcms.adapter.driven.loader;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.cricketmsf.hcms.domain.Document;
+import org.cricketmsf.hcms.app.logic.Document;
 
 public class JsonReader {
 

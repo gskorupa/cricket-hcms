@@ -1,18 +1,17 @@
-package org.cricketmsf.hcms.adapter.out;
+package org.cricketmsf.hcms.adapter.driven.repo;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.cricketmsf.hcms.application.out.DocumentRepositoryIface;
-import org.cricketmsf.hcms.domain.Document;
+import org.cricketmsf.hcms.app.driven_ports.ForDocumentRepositoryIface;
+import org.cricketmsf.hcms.app.logic.Document;
 import org.jboss.logging.Logger;
 
 import io.agroal.api.AgroalDataSource;
 
-//@ApplicationScoped
-public class DocumentRepository implements DocumentRepositoryIface {
+public class DocumentRepository implements ForDocumentRepositoryIface {
 
     private static Logger logger = Logger.getLogger(DocumentRepository.class);
 
@@ -100,11 +99,14 @@ public class DocumentRepository implements DocumentRepositoryIface {
             return;
         }
         logger.info("addDocument: " + doc.name);
+        deleteMetadata(doc.name);
         getUnderConstrDocs().put(doc.name, doc);
+        addMetadata(doc.name, doc.metadata);
     }
 
     @Override
     public void deleteDocument(String path) {
+        deleteMetadata(path);
         getDocuments().remove(path);
     }
 
@@ -187,6 +189,18 @@ public class DocumentRepository implements DocumentRepositoryIface {
             boolean withContent, String sortBy, String sortOrder) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'findDocumentsSorted'");
+    }
+
+    @Override
+    public List<String> getPaths(String siteRoot) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getPaths'");
+    }
+
+    @Override
+    public List<String> getSiteNames() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getSiteNames'");
     }
 
 }

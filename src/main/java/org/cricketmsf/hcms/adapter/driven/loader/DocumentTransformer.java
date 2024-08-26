@@ -1,8 +1,8 @@
-package org.cricketmsf.hcms.application.out;
+package org.cricketmsf.hcms.adapter.driven.loader;
 
 import java.util.Arrays;
 
-import org.cricketmsf.hcms.domain.Document;
+import org.cricketmsf.hcms.app.logic.Document;
 import org.jboss.logging.Logger;
 
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
@@ -25,7 +25,7 @@ public class DocumentTransformer {
             String hcmsServiceUrl) {
 
         try {
-            logger.debug("pre doc.name: " + doc.name);
+/*             logger.debug("pre doc.name: " + doc.name);
             logger.debug("pre doc.path: " + doc.path);
             if(!(doc.path.startsWith(siteRootFolder)||doc.path.startsWith("/"+siteRootFolder))){
                 doc.path = siteRootFolder + doc.path;
@@ -40,7 +40,7 @@ public class DocumentTransformer {
                 doc.name = "/" + doc.name;
             }
             logger.debug("post doc.name: " + doc.name);
-            logger.debug("post doc.path: " + doc.path);
+            logger.debug("post doc.path: " + doc.path); */
             if (doc.name.endsWith(markdownExtension)) {
                 doc.content = getHtml(doc.content);
             }
