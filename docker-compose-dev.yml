@@ -8,12 +8,13 @@ services:
     environment:
       FOLDERS_ROOT: documents
       FILE_TO_WATCH: version.txt;demo-version.txt
-      HCMS_SERVICE_URL: http://localhost:8082
+      HCMS_SERVICE_URL: http://localhost:8082;http://localhost:8082
       FOLDERS_ASSETS: assets;assets
       FOLDERS_SITES: documentation;demo
       FOLDERS_INDEXES: index.md;index.md
-      FOLDERS_EXCLUDED: excluded_folder;none
+      FOLDERS_EXCLUDED: .git,excluded_folder;none
       DATABASE_TYPE: h2
+      LOADER_TYPE: filesystem
     expose:
       - "8080"
     ports:

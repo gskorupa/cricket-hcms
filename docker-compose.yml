@@ -13,7 +13,7 @@ services:
       FOLDERS_SITES: documentation;demo
       FOLDERS_INDEXES: index.md;index.md
       FOLDERS_EXCLUDED: .git,excluded_folder;none
-      DATABASE_TYPE: map
+      DATABASE_TYPE: h2
     expose:
       - "8080"
     ports:
