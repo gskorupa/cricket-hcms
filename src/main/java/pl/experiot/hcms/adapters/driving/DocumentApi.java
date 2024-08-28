@@ -207,98 +207,6 @@ public class DocumentApi {
         }
     }
 
-    /*
-     * @GET
-     * 
-     * @Path("/file/{path}")
-     * 
-     * @APIResponse(responseCode = "401", description = "Unauthorized")
-     * 
-     * @APIResponse(responseCode = "200", description =
-     * "File content as binary/octet-stream MIME type.")
-     * 
-     * @Operation(summary = "Get file", description =
-     * "Get a file with the specified path. The file will be returned as a download."
-     * )
-     * public Response getFile(
-     * 
-     * @Parameter(description = "Token to authorize the request.", required = false,
-     * example = "app-token", schema = @Schema(type =
-     * SchemaType.STRING)) @HeaderParam("X-app-token") String token,
-     * 
-     * @Parameter(description = "Path to the document.", required = true, example =
-     * "docs/doc1", schema = @Schema(type = SchemaType.STRING)) @PathParam("path")
-     * String path) {
-     * if (getDocumentAuthorizationRequired && (token == null ||
-     * !token.equals(appToken))) {
-     * return Response.status(Response.Status.UNAUTHORIZED).build();
-     * }
-     * Document doc = documentPort.getDocument("/"+path);
-     * if (doc == null) {
-     * return Response.status(Response.Status.NOT_FOUND).build();
-     * }
-     * if (doc.binaryFile == true) {
-     * try {
-     * ByteArrayInputStream bis = new ByteArrayInputStream(doc.binaryContent);
-     * return Response.ok(bis, doc.mediaType)
-     * .header("content-disposition",
-     * "attachment; filename = " + doc.getFileName())
-     * .build();
-     * } catch (Exception e) {
-     * return Response.serverError().entity(e.getMessage()).build();
-     * }
-     * } else {
-     * return Response.ok(doc.content).build();
-     * }
-     * }
-     */
-
-/*     @GET
-    @Path("/file/")
-    @APIResponse(responseCode = "401", description = "Unauthorized")
-    @APIResponse(responseCode = "200", description = "File content as binary/octet-stream MIME type.")
-    @Operation(summary = "Get file", description = "Get a file with the specified path. The file will be returned as a download.")
-    public Response getBinary(
-            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
-            @Parameter(description = "Document name.", required = true, example = "/docs/doc1.png", schema = @Schema(type = SchemaType.STRING)) @QueryParam("name") String name) {
-        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
-        logger.debug("requesting file: " + name);
-        Document doc = documentPort.getDocument(name);
-        if (doc == null) {
-            return Response.status(Response.Status.NOT_FOUND).build();
-        }
-        if (doc.binaryFile == true) {
-            try {
-                ByteArrayInputStream bis = new ByteArrayInputStream(doc.binaryContent);
-                return Response.ok(bis, doc.mediaType)
-                        .header("content-disposition",
-                                "attachment; filename = " + doc.getFileName())
-                        .build();
-            } catch (Exception e) {
-                return Response.serverError().entity(e.getMessage()).build();
-            }
-        } else {
-            return Response.ok(doc.content).build();
-        }
-    }
- */
-    @POST
-    @Path("/reload")
-    @APIResponse(responseCode = "401", description = "Unauthorized")
-    @APIResponse(responseCode = "501", description = "Not implemented")
-    @APIResponseSchema(value = String.class, responseDescription = "Command executed successfully.", responseCode = "200")
-    @Operation(summary = "Command to reload the documents", description = "Forces the system service to reload the documents from the storage.")
-    public Response reload(
-            @Parameter(description = "Token to authorize the request.", required = true, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token) {
-        if (token == null || !token.equals(appToken)) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        }
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
-        // documentPort.reload();
-        // return Response.ok().build();
-    }
 
     @POST
     @Path("/docs/")
@@ -312,7 +220,7 @@ public class DocumentApi {
         if (token == null || !token.equals(appToken)) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
+        return Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
         // documentPort.addDocument(doc);
         // return Response.ok().build();
     }

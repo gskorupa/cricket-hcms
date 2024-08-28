@@ -12,8 +12,6 @@ public interface ForDocumentsIface {
 
     Document getDocument(String path);
 
-    void reload();
-
     List<Document> findDocuments(String path, String tagName, String tagValue);
 
     List<Document> findDocumentsSorted(String path, String tagName, String tagValue, String sortBy, String sortOrder);

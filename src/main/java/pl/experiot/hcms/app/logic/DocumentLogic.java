@@ -23,11 +23,12 @@ import pl.experiot.hcms.adapters.driving.FolderWatcher;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 import pl.experiot.hcms.app.ports.driven.ForDocumentsLoaderIface;
 import pl.experiot.hcms.app.ports.driven.ForTranslatorIface;
+import pl.experiot.hcms.app.ports.driving.ForAdministrationIface;
 import pl.experiot.hcms.app.ports.driving.ForChangeWatcherIface;
 import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
 
 @ApplicationScoped
-public class DocumentLogic implements ForDocumentsIface {
+public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface {
 
     @Inject
     Logger logger;
