@@ -23,34 +23,29 @@ public class FolderWatcher implements Runnable, ForChangeWatcherIface {
 
     private ForDocumentsLoaderIface loader;
     private HashMap<String, Site> siteMap;
-
-    private String root;
     private String watchedFile;
-    private String site;
-    private String[] sitesList;
     private boolean mapImplementation;
+    private Site site = null;
 
+    public FolderWatcher(HashMap<String, Site> siteMap, ForDocumentsLoaderIface loader) {
+        this.siteMap = siteMap;
+        this.loader = loader;
+        logger.info("Creating FolderWatcher "+getClass().getSimpleName());
+    }
 
     public FolderWatcher(
-            HashMap<String, Site> siteMap,
-            String root,
-            String watchedFile,
+            Site site,
             ForDocumentsLoaderIface loader,
-            String site,
-            String[] sitesList,
             boolean mapImplementation) {
-        this.loader = loader;
-        this.watchedFile = watchedFile;
-        this.root = root;
         this.site = site;
-        this.sitesList = sitesList;
+        this.loader = loader;
+        this.watchedFile = site.watchedFile;
         this.mapImplementation = mapImplementation;
-        this.siteMap = siteMap;
     }
 
     @Override
     public void run() {
-        Path path = Path.of(root);
+        Path path = Path.of(site.name);
         FileSystem fs = path.getFileSystem();
         try (WatchService service = fs.newWatchService();) {
             path.register(
@@ -62,15 +57,7 @@ public class FolderWatcher implements Runnable, ForChangeWatcherIface {
             while ((key = service.take()) != null) {
                 for (WatchEvent<?> event : key.pollEvents()) {
                     logger.debug(event.kind() + " -> " + event.context());
-                    if (mapImplementation) {
-                        // reloading all sites regardless of the event context
-                        for (int i = 0; i < sitesList.length; i++) {
-                            loader.loadDocuments(sitesList[i], siteMap, i == 0, i == sitesList.length - 1,
-                                    System.currentTimeMillis());
-                        }
-                    } else if (event.context().toString().equals(watchedFile)) {
-                        loader.loadDocuments(site, siteMap, true, true, System.currentTimeMillis());
-                    }
+                    loader.loadDocuments(site, System.currentTimeMillis());
                 }
                 key.reset();
             }
@@ -82,21 +69,24 @@ public class FolderWatcher implements Runnable, ForChangeWatcherIface {
 
     @Override
     public void setLoader(ForDocumentsLoaderIface loader) {
-        this.loader=loader;
+        this.loader = loader;
     }
 
     @Override
-    public List<ForChangeWatcherIface> getInstances(HashMap<String,Site> siteMap) {
-        this.siteMap=siteMap;
-        ArrayList<ForChangeWatcherIface> instances=new ArrayList<>();
+    public List<ForChangeWatcherIface> getInstances() {
+        logger.info("Creating instances of FolderWatcher "+getClass().getSimpleName());
+        ArrayList<ForChangeWatcherIface> instances = new ArrayList<>();
         siteMap.keySet().forEach(siteName -> {
-            Site site=siteMap.get(siteName);
-            String root=site.name;
-            String fileToWatch = site.watchedFile;
-            FolderWatcher watcher = new FolderWatcher(siteMap, root, fileToWatch, loader, siteName, sitesList, mapImplementation);
-            instances.add(watcher);
+            Site site = siteMap.get(siteName);
+            logger.info("instance "+site.name);
+            instances.add(new FolderWatcher(site, loader, mapImplementation));
         });
         return instances;
+    }
+
+    @Override
+    public String getNameplate() {
+        return getClass().getSimpleName() + " for " + watchedFile;
     }
 
 }

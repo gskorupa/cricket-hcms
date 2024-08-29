@@ -120,7 +120,7 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
     }
 
     @Override
-    public void startReload() {
+    public void startReload(String siteName) {
         reloadInProgress = true;
         underConstrDocs = new ConcurrentHashMap<>();
     }

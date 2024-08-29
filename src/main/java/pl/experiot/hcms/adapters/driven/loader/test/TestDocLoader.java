@@ -58,5 +58,9 @@ public class TestDocLoader implements ForDocumentsLoaderIface {
     public void setAssets(String assets) {
 
     }
+
+    @Override
+    public void loadDocuments(Site site, long timestamp) {
+    }
     
 }

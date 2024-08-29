@@ -39,27 +39,28 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         this.excludes = excludes;
     }
 
-
-
     @Override
     public void setRepositoryPort(ForDocumentRepositoryIface repositoryPort) {
         this.repositoryPort = repositoryPort;
     }
 
     @Override
-    public void loadDocuments(String siteName, HashMap<String,Site> siteMap, boolean start, boolean stop, long timestamp) {
+    public void loadDocuments(String siteName, HashMap<String, Site> siteMap, boolean start, boolean stop,
+            long timestamp) {
         String docPath = siteName;
         Site site = siteMap.get(siteName);
         if (!docPath.isEmpty()) {
             docPath = "/" + docPath;
         }
         if (start) {
-            repositoryPort.startReload();
+            repositoryPort.startReload(siteName);
         }
-        /* String[] sitesList = sites.split(";");
-        String[] assetsList = assets.split(";");
-        String[] hcmsServiceList = hcmsServiceUrl.split(";");
-        String[] excludedList = excludes.split(";"); */
+        /*
+         * String[] sitesList = sites.split(";");
+         * String[] assetsList = assets.split(";");
+         * String[] hcmsServiceList = hcmsServiceUrl.split(";");
+         * String[] excludedList = excludes.split(";");
+         */
         logger.debug("loading documents");
         logger.debug("actual path: " + Paths.get(".").toAbsolutePath().normalize().toString());
         logger.debug("getDocuments: " + docPath);
@@ -70,15 +71,17 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         visitor.setSyntax(syntax);
         visitor.setMarkdownFileExtension(markdownFileExtension);
         visitor.setHtmlFileExtension(htmlFileExtension);
-        //int siteIndex = getSiteIndex(sitesList, siteName);
-        
-        /* String siteExcludedFolders[];
-        if (siteIndex >= 0) {
-            siteExcludedFolders = excludedList[siteIndex].split(",");
-            for (String exclude : siteExcludedFolders) {
-                visitor.exclude(exclude);
-            }
-        } */
+        // int siteIndex = getSiteIndex(sitesList, siteName);
+
+        /*
+         * String siteExcludedFolders[];
+         * if (siteIndex >= 0) {
+         * siteExcludedFolders = excludedList[siteIndex].split(",");
+         * for (String exclude : siteExcludedFolders) {
+         * visitor.exclude(exclude);
+         * }
+         * }
+         */
         site.excludedPaths.forEach((path) -> {
             visitor.exclude(path);
         });
@@ -96,8 +99,10 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         for (int i = 0; i < files.size(); i++) {
             // logger.info(" " + files.get(i).path);
             doc = normalize(files.get(i), siteName);
-            doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName, site.assetsPath,site.hcmsServiceLocation);
-            //doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName, assetsList[0],hcmsServiceList[0]);
+            doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName, site.assetsPath,
+                    site.hcmsServiceLocation);
+            // doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName,
+            // assetsList[0],hcmsServiceList[0]);
             if (null != doc) {
                 doc.refreshTimestamp = timestamp;
                 repositoryPort.addDocument(doc);
@@ -111,20 +116,70 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         }
     }
 
+    @Override
+    public void loadDocuments(Site site, long timestamp) {
+        String docPath = site.name;
+        if (!docPath.isEmpty()) {
+            docPath = "/" + docPath;
+        }
+        repositoryPort.startReload(site.name);
+        logger.debug("loading documents");
+        logger.debug("actual path: " + Paths.get(".").toAbsolutePath().normalize().toString());
+        logger.debug("getDocuments: " + docPath);
+        logger.debug("complete path: " + root + docPath);
+        ArrayList<Document> files = new ArrayList<>();
+        DocumentVisitor visitor = new DocumentVisitor();
+        visitor.setRoot(Paths.get(root + docPath).toAbsolutePath().toString());
+        visitor.setSyntax(syntax);
+        visitor.setMarkdownFileExtension(markdownFileExtension);
+        visitor.setHtmlFileExtension(htmlFileExtension);
+
+        site.excludedPaths.forEach((path) -> {
+            visitor.exclude(path);
+        });
+        Path p;
+        try {
+            p = Paths.get(root + docPath);
+            logger.info("absolute path: " + p.toAbsolutePath().toString());
+            Files.walkFileTree(p, visitor);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        files = visitor.getList();
+        logger.info("found: " + files.size() + " documents");
+        Document doc;
+        for (int i = 0; i < files.size(); i++) {
+            // logger.info(" " + files.get(i).path);
+            doc = normalize(files.get(i), site.name);
+            doc = DocumentTransformer.transform(doc, markdownFileExtension, site.name, site.assetsPath,
+                    site.hcmsServiceLocation);
+            // doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName,
+            // assetsList[0],hcmsServiceList[0]);
+            if (null != doc) {
+                doc.refreshTimestamp = timestamp;
+                repositoryPort.addDocument(doc);
+            }
+        }
+        logger.info("loaded: " + files.size() + " documents");
+        logger.info("repositoryPort database size: " + repositoryPort.getDocumentsCount());
+        repositoryPort.stopReload(timestamp, docPath);
+        listAll();
+    }
+
     private Document normalize(Document doc, String siteRootFolder) {
         logger.debug("pre doc.name: " + doc.name);
         logger.debug("pre doc.path: " + doc.path);
         doc.siteName = siteRootFolder;
-        if(!(doc.path.startsWith(siteRootFolder)||doc.path.startsWith("/"+siteRootFolder))){
+        if (!(doc.path.startsWith(siteRootFolder) || doc.path.startsWith("/" + siteRootFolder))) {
             doc.path = siteRootFolder + doc.path;
         }
-        if(!(doc.name.startsWith(siteRootFolder)||doc.name.startsWith("/"+siteRootFolder))){
+        if (!(doc.name.startsWith(siteRootFolder) || doc.name.startsWith("/" + siteRootFolder))) {
             doc.name = siteRootFolder + doc.name;
         }
-        if(!(doc.path.startsWith("/"))){
+        if (!(doc.path.startsWith("/"))) {
             doc.path = "/" + doc.path;
         }
-        if(!(doc.name.startsWith("/"))){
+        if (!(doc.name.startsWith("/"))) {
             doc.name = "/" + doc.name;
         }
         logger.debug("post doc.name: " + doc.name);
@@ -137,7 +192,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         logger.info("repositoryPort database size: " + docs.size());
         logger.info("listing all documents");
         for (Document doc : docs) {
-            logger.info(doc.name + " [" + doc.getSiteName()+"]");
+            logger.info(doc.name + " [" + doc.getSiteName() + "]");
         }
 
     }
@@ -150,7 +205,6 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         }
         return -1;
     }
-
 
     @Override
     public void setSyntax(String syntax) {

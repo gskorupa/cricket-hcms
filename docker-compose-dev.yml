@@ -15,6 +15,7 @@ services:
       FOLDERS_EXCLUDED: .git,excluded_folder;none
       DATABASE_TYPE: h2
       LOADER_TYPE: filesystem
+      WATCHER_TYPE: filesystem
     expose:
       - "8080"
     ports:

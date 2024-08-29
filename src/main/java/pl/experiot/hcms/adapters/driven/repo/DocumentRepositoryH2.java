@@ -306,7 +306,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
     }
 
     @Override
-    public void startReload() {
+    public void startReload(String siteName) {
         // nothing to do
     }
 

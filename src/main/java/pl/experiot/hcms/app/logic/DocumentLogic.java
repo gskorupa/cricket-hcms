@@ -56,8 +56,10 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     String hcmsServiceUrl;
     @ConfigProperty(name = "hcms.database.type")
     String databaseType;
-    @ConfigProperty(name = "loader.type")
+    @ConfigProperty(name = "hcms.loader.type")
     String loaderType;
+    @ConfigProperty(name = "hcms.watcher.type")
+    String watcherType;
     @ConfigProperty(name = "document.folders.indexes")
     String indexFiles;
 
@@ -96,6 +98,11 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     }
 
     void onStart(@Observes StartupEvent ev) {
+
+        // environment variables should be cleaned from non printable characters
+        watcherType=watcherType.trim();
+        loaderType=loaderType.trim();
+
         // repository adapter setup
         switch (databaseType) {
             case "h2":
@@ -131,11 +138,6 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
         loader.setMarkdownFileExtension(markdownFileExtension);
         loader.setSyntax(syntax);
 
-        // watcher adapter setup
-        watcher = new DummyWatcher();
-        watcher.setLoader(loader);
-
-        // start
         try {
             siteMap = getSiteMap();
         } catch (Exception e) {
@@ -145,46 +147,27 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
             System.exit(1);
         }
 
+        // watcher adapter setup
+        logger.info("WATCHER TYPE: ["+watcherType+"]");
+        if(watcherType.equalsIgnoreCase("filesystem")){
+            watcher = new FolderWatcher(siteMap, loader);
+        } else {
+            watcher = new DummyWatcher();
+        }
+        watcher.setLoader(loader);
+
+        // start
         long timestamp = System.currentTimeMillis();
-        String[] sitesList = sites.split(";");
         int idx = 0;
         siteMap.values().forEach(site -> {
             logger.info("loading documents of site " + site.name);
             loader.loadDocuments(site.name, siteMap, idx == 0, idx == siteMap.size() - 1, timestamp);
         });
 
-        // TODO: watcherAdapter
-        List<ForChangeWatcherIface> watchers = watcher.getInstances(siteMap);
+        List<ForChangeWatcherIface> watchers = watcher.getInstances();
         for (ForChangeWatcherIface w : watchers) {
+            logger.info("WATCHER "+w.getNameplate());
             Executors.newSingleThreadExecutor().execute((Runnable) w);
-        }
-
-        if (watcherActive) {
-            boolean mapImplementation = false;
-            if (databaseType.equals("h2")) {
-                mapImplementation = false;
-            } else {
-                mapImplementation = true;
-            }
-            String[] filesToWatch = watchedFile.split(";");
-            String docRoot;
-            String docName;
-            for (int i = 0; i < filesToWatch.length; i++) {
-                docRoot = "";
-                if (filesToWatch[i].lastIndexOf("/") > 0) {
-                    docName = filesToWatch[i].substring(filesToWatch[i].lastIndexOf("/") + 1);
-                    docRoot = filesToWatch[i].substring(0, filesToWatch[i].lastIndexOf("/"));
-                } else {
-                    docName = filesToWatch[i];
-                }
-                docRoot = root + "/" + sitesList[i] + docRoot;
-                logger.info("Monitoring changes in " + docRoot + "/" + docName);
-                Executors.newSingleThreadExecutor().execute(
-                        new FolderWatcher(siteMap, docRoot, docName, loader, sitesList[i], sitesList,
-                                mapImplementation));
-            }
-        } else {
-            logger.info("Watcher is not active");
         }
     }
 
