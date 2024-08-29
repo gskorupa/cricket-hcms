@@ -150,7 +150,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
         // watcher adapter setup
         logger.info("WATCHER TYPE: ["+watcherType+"]");
         if(watcherType.equalsIgnoreCase("filesystem")){
-            watcher = new FolderWatcher(siteMap, loader);
+            watcher = new FolderWatcher(root, siteMap, loader);
         } else {
             watcher = new DummyWatcher();
         }

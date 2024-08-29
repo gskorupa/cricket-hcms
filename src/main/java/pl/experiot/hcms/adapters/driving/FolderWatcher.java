@@ -26,26 +26,43 @@ public class FolderWatcher implements Runnable, ForChangeWatcherIface {
     private String watchedFile;
     private boolean mapImplementation;
     private Site site = null;
+    private String root;
+    private String docRoot;
 
-    public FolderWatcher(HashMap<String, Site> siteMap, ForDocumentsLoaderIface loader) {
+    private String filePath = null;
+
+    public FolderWatcher(String root, HashMap<String, Site> siteMap, ForDocumentsLoaderIface loader) {
         this.siteMap = siteMap;
         this.loader = loader;
-        logger.info("Creating FolderWatcher "+getClass().getSimpleName());
+        this.root = root;
+        logger.info("Creating FolderWatcher " + getClass().getSimpleName());
     }
 
     public FolderWatcher(
+            String root,
             Site site,
             ForDocumentsLoaderIface loader,
             boolean mapImplementation) {
+        this.root = root;
         this.site = site;
         this.loader = loader;
         this.watchedFile = site.watchedFile;
         this.mapImplementation = mapImplementation;
+        // filePath
+        String fileName = site.watchedFile;
+        docRoot = "";
+        if (fileName.lastIndexOf("/") > 0) {
+            fileName = fileName.substring(fileName.lastIndexOf("/") + 1);
+            docRoot = fileName.substring(0, fileName.lastIndexOf("/"));
+        }
+        docRoot = root + "/" + site.name + docRoot;
+
+        logger.info("Monitoring changes in " + docRoot + "/" + fileName);
     }
 
     @Override
     public void run() {
-        Path path = Path.of(site.name);
+        Path path = Path.of(docRoot);
         FileSystem fs = path.getFileSystem();
         try (WatchService service = fs.newWatchService();) {
             path.register(
@@ -57,7 +74,9 @@ public class FolderWatcher implements Runnable, ForChangeWatcherIface {
             while ((key = service.take()) != null) {
                 for (WatchEvent<?> event : key.pollEvents()) {
                     logger.debug(event.kind() + " -> " + event.context());
-                    loader.loadDocuments(site, System.currentTimeMillis());
+                    if (event.context().toString().equals(watchedFile)) {
+                        loader.loadDocuments(site, System.currentTimeMillis());
+                    }
                 }
                 key.reset();
             }
@@ -74,12 +93,12 @@ public class FolderWatcher implements Runnable, ForChangeWatcherIface {
 
     @Override
     public List<ForChangeWatcherIface> getInstances() {
-        logger.info("Creating instances of FolderWatcher "+getClass().getSimpleName());
+        logger.info("Creating instances of FolderWatcher " + getClass().getSimpleName());
         ArrayList<ForChangeWatcherIface> instances = new ArrayList<>();
         siteMap.keySet().forEach(siteName -> {
             Site site = siteMap.get(siteName);
-            logger.info("instance "+site.name);
-            instances.add(new FolderWatcher(site, loader, mapImplementation));
+            logger.info("instance " + site.name);
+            instances.add(new FolderWatcher(root, site, loader, mapImplementation));
         });
         return instances;
     }
