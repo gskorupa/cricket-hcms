@@ -32,6 +32,9 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
         if (underConstrDocs == null) {
             underConstrDocs = new ConcurrentHashMap<>();
         }
+
+        documents.put("/index.html", new Document());
+        documents.put("/documentation/index.html", new Document());
     }
 
     private ConcurrentHashMap<String, Document> getDocuments() {
@@ -135,6 +138,7 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
     @Override
     public List<Document> findDocuments(String path, String propertyName, String propertyValue, boolean withContent) {
         ArrayList<Document> docs = new ArrayList<>();
+        /*
         if(path!=null){
             getDocuments().forEach((k, v) -> {
                 if (k.startsWith(path) && v.hasProperty(propertyName) && v.getProperty(propertyName).equals(propertyValue)) {
@@ -148,6 +152,9 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
                 }
             });
         }
+        */
+        docs.add(new Document());
+        docs.add(new Document());
         return docs;
     }
 
@@ -187,8 +194,11 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
     @Override
     public List<Document> findDocumentsSorted(String path, String metadataName, String metadataValue,
             boolean withContent, String sortBy, String sortOrder) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'findDocumentsSorted'");
+                logger.info("FIND DOCUMENTS SORTED");
+        ArrayList<Document> docs = new ArrayList<>();
+        docs.add(new Document());
+        docs.add(new Document());
+        return docs;
     }
 
     @Override

@@ -172,6 +172,9 @@ public class DocumentApi {
             path="/";
         }
         Document doc = documentPort.findFirstDocument(path, pair[0], pair[1], sort, direction);
+        if(doc==null){
+            return Response.status(Response.Status.NOT_FOUND).entity("Not found").build();
+        }
         return Response.ok(doc).build();
     }
 
