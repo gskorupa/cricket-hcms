@@ -147,4 +147,18 @@ class DocumentApiTest {
             .contentType(ContentType.TEXT)
             .body(equalTo("Not implemented"));
     }
+
+    @Test
+    void testSearchDocsEndpoint() {
+        given()
+            .header("X-app-token", "app-token")
+            .queryParam("text", "keyword")
+            .queryParam("lang", "en")
+            .queryParam("content", true)
+            .when()
+            .get("/api/search")
+            .then()
+            .statusCode(200)
+            .contentType(ContentType.JSON);
+    }
 }

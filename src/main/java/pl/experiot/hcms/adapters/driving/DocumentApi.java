@@ -210,6 +210,22 @@ public class DocumentApi {
         }
     }
 
+    @GET
+    @Path("/search")
+    @APIResponse(responseCode = "401", description = "Unauthorized")
+    @APIResponseSchema(value = List.class, responseDescription = "List of document names.", responseCode = "200")
+    @Operation(summary = "Full text search", description = "Search documents with the specified text.")
+    public Response searchDocs(
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Text to search.", required = true, example = "keyword", schema = @Schema(type = SchemaType.STRING)) @QueryParam("text") String text,
+            @Parameter(description = "Document language code or * for all supported languages", required = false, example = "en", schema = @Schema(type = SchemaType.STRING)) @QueryParam("lang") String lang) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
+        List<String> list = documentPort.searchDocuments(text, lang);
+        return Response.ok(list).build();
+    }
+
 
     @POST
     @Path("/docs/")

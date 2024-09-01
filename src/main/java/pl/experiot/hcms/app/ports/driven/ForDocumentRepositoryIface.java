@@ -25,4 +25,5 @@ public interface ForDocumentRepositoryIface {
     public HashMap<String, String> getMetadata(String name);
     public void addMetadata(String name, HashMap<String, String> metadata);
     public void deleteMetadata(String name);
+    public List<String> searchDocuments(String textToSearch, String languageCode);
 }

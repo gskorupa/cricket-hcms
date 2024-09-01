@@ -1,5 +1,6 @@
 package pl.experiot.hcms.adapters.driven.repo;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -211,6 +212,15 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
     public List<String> getSiteNames() {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getSiteNames'");
+    }
+
+    @Override
+    public List<String> searchDocuments(String textToSearch, String languageCode) {
+        ArrayList<String> docs = new ArrayList<>();
+        docs.add("doc1");
+        docs.add("doc2");
+        return docs;
+        // TODO: filter by languageCode
     }
 
 }

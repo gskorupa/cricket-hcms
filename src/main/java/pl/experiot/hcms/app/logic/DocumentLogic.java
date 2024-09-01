@@ -247,4 +247,11 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
         Document doc = repositoryPort.findFirstDocument(path, tagName, tagValue, true, sortBy, sortOrder);
         return doc;
     }
+
+    @Override
+    public List<String> searchDocuments(String textToSearch, String languageCode) {
+        List<String> docs = new ArrayList<>();
+        docs = repositoryPort.searchDocuments(textToSearch, languageCode);
+        return docs;
+    }
 }

@@ -19,4 +19,5 @@ public interface ForDocumentsIface {
 
     Document findFirstDocument(String path, String tagName, String tagValue, String sortBy, String sortOrder);
 
+    List<String> searchDocuments(String textToSearch, String languageCode);
 }

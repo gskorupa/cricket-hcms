@@ -36,7 +36,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                 + "path VARCHAR(255) NOT NULL, "
                 + "name VARCHAR(255) PRIMARY KEY, "
                 + "file_name VARCHAR(255), "
-                + "content TEXT, "
+                + "content TEXT NOT NULL DEFAULT '', "
                 + "binary BOOLEAN, "
                 + "binary_content BLOB,"
                 + "media_type VARCHAR(100),"
@@ -44,7 +44,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                 + "modified TIMESTAMP,"
                 + "refreshed TIMESTAMP,"
                 + "site VARCHAR(255)"
-                + ")";
+                + "); commit;";
 
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.createStatement()) {
@@ -59,7 +59,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                 + "m_name VARCHAR(255) NOT NULL, "
                 + "m_value VARCHAR(255),"
                 + "PRIMARY KEY (d_name, m_name)"
-                + ")";
+                + ");";
 
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.createStatement()) {
@@ -68,6 +68,22 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             e.printStackTrace();
         }
         logger.debug("Document repository started");
+
+        String sql2 = "CREATE ALIAS IF NOT EXISTS FT_INIT FOR 'org.h2.fulltext.FullText.init'; CALL FT_INIT();";
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.createStatement()) {
+            statement.execute(sql2);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        sql2 = "CALL FT_CREATE_INDEX('PUBLIC', 'DOCUMENTS', 'CONTENT');";
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.createStatement()) {
+            statement.execute(sql2);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -98,7 +114,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                     doc.mediaType = resultSet.getString("media_type");
                     doc.updateTimestamp = resultSet.getTimestamp("modified").getTime();
                     doc.refreshTimestamp = resultSet.getTimestamp("refreshed").getTime();
-                    doc.siteName=resultSet.getString("site");
+                    doc.siteName = resultSet.getString("site");
                     docs.add(doc);
                 }
                 resultSet.close();
@@ -135,7 +151,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                 doc.mediaType = resultSet.getString("media_type");
                 doc.updateTimestamp = resultSet.getTimestamp("modified").getTime();
                 doc.refreshTimestamp = resultSet.getTimestamp("refreshed").getTime();
-                doc.siteName=resultSet.getString("site");
+                doc.siteName = resultSet.getString("site");
                 docs.add(doc);
             }
             resultSet.close();
@@ -178,7 +194,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                     doc.mediaType = resultSet.getString("media_type");
                     doc.updateTimestamp = resultSet.getTimestamp("modified").getTime();
                     doc.refreshTimestamp = resultSet.getTimestamp("refreshed").getTime();
-                    doc.siteName=resultSet.getString("site");
+                    doc.siteName = resultSet.getString("site");
                     docs.add(doc);
                 }
                 resultSet.close();
@@ -227,7 +243,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                     doc.binaryContent = resultSet.getBytes("binary_content");
                     doc.updateTimestamp = resultSet.getTimestamp("modified").getTime();
                     doc.refreshTimestamp = resultSet.getTimestamp("refreshed").getTime();
-                    doc.siteName=resultSet.getString("site");
+                    doc.siteName = resultSet.getString("site");
                     logger.debug("binary content size: " + doc.binaryContent.length);
                 }
                 resultSet.close();
@@ -319,10 +335,10 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
         String sql = "DELETE FROM documents WHERE name LIKE ? AND refreshed < ?";
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(sql)) {
-            statement.setString(1, "/"+siteName + "/%");
+            statement.setString(1, "/" + siteName + "/%");
             statement.setTimestamp(2, new java.sql.Timestamp(timestamp));
-            int rows=statement.executeUpdate();
-            logger.info("Documents removed: "+rows);
+            int rows = statement.executeUpdate();
+            logger.info("Documents removed: " + rows);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -337,7 +353,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             int lineNumber = Thread.currentThread().getStackTrace()[level].getLineNumber();
             result = className + "." + methodName + "()[" + lineNumber + "]: " + message;
         } catch (Exception e) {
-            result = "[bad StackTrace level "+level+"] "+message;
+            result = "[bad StackTrace level " + level + "] " + message;
         }
         return result;
     }
@@ -399,9 +415,11 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
     }
 
     @Override
-    public List<Document> findDocumentsSorted(String path, String metadataName, String metadataValue, boolean withContent,
+    public List<Document> findDocumentsSorted(String path, String metadataName, String metadataValue,
+            boolean withContent,
             String sortBy, String sortOrder) {
-        // Find document names by metadata and use it to get document list sorted by document's
+        // Find document names by metadata and use it to get document list sorted by
+        // document's
         // metadata 'published' value
         // Then get the first document from the list
         List<Document> docs = findDocuments(path, metadataName, metadataValue, withContent);
@@ -414,7 +432,8 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
     @Override
     public Document findFirstDocument(String path, String metadataName, String metadataValue, boolean withContent,
             String sortBy, String sortOrder) {
-        // Find document names by metadata and use it to get document list sorted by document's
+        // Find document names by metadata and use it to get document list sorted by
+        // document's
         // metadata 'published' value
         // Then get the first document from the list
         List<Document> docs = findDocuments(path, metadataName, metadataValue, withContent);
@@ -426,6 +445,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
 
     /**
      * Sort the list of documents by the given metadata field value.
+     * 
      * @param docs
      * @param sortBy
      * @param sortOrder
@@ -440,19 +460,21 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
         }
         if (sortOrder.equals("asc")) {
             docs.sort((Document d1, Document d2) -> {
-                try{
-                return d1.metadata.get(sortBy).compareTo(d2.metadata.get(sortBy));
-                }catch(NullPointerException e){
-                    //In this case the document will go to the end of the list regardless of the sorting direction
+                try {
+                    return d1.metadata.get(sortBy).compareTo(d2.metadata.get(sortBy));
+                } catch (NullPointerException e) {
+                    // In this case the document will go to the end of the list regardless of the
+                    // sorting direction
                     return 1;
                 }
             });
         } else {
             docs.sort((Document d1, Document d2) -> {
-                try{
-                return d2.metadata.get(sortBy).compareTo(d1.metadata.get(sortBy));
-                }catch(NullPointerException e){
-                    //In this case the document will go to the end of the list regardless of the sorting direction
+                try {
+                    return d2.metadata.get(sortBy).compareTo(d1.metadata.get(sortBy));
+                } catch (NullPointerException e) {
+                    // In this case the document will go to the end of the list regardless of the
+                    // sorting direction
                     return 1;
                 }
             });
@@ -481,7 +503,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
     }
 
     @Override
-    public List<String> getSiteNames(){
+    public List<String> getSiteNames() {
         String sql = "SELECT DISTINCT site FROM documents ORDER BY site";
         ArrayList<String> sites = new ArrayList<>();
         try (var connection = defaultDataSource.getConnection();
@@ -499,5 +521,30 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
         return sites;
     }
 
+    @Override
+    public List<String> searchDocuments(String textToSearch, String languageCode) {
+        // full text search
+        logger.info("searchDocuments: " + textToSearch);
+        ArrayList<String> docs = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM FT_SEARCH_DATA(?, 0, 0);";
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.prepareStatement(sql)) {
+            statement.setString(1, textToSearch);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                String documentName;
+                while (resultSet.next()) {
+                    documentName=resultSet.getString(4);
+                    // remove [ and ] from beginning and end of the document name, because H2 full text search returns array of strings here
+                    documentName = documentName.substring(1, documentName.length() - 1);
+                    docs.add(documentName);
+                }
+                resultSet.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return List.of();
+        }
+        return docs;
+    }
 
 }
