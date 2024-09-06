@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import io.agroal.api.AgroalDataSource;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import pl.experiot.hcms.app.logic.Document;
 
 public interface ForDocumentRepositoryIface {
@@ -26,4 +27,5 @@ public interface ForDocumentRepositoryIface {
     public void addMetadata(String name, HashMap<String, String> metadata);
     public void deleteMetadata(String name);
     public List<String> searchDocuments(String textToSearch, String languageCode);
+    public void setEventBus(EventBus eventBus, String queName);
 }

@@ -1,6 +1,5 @@
 package pl.experiot.hcms.adapters.driven.repo;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,12 +8,16 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.jboss.logging.Logger;
 
 import io.agroal.api.AgroalDataSource;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import pl.experiot.hcms.app.logic.Document;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 
 public class DocumentRepository implements ForDocumentRepositoryIface {
 
     private static Logger logger = Logger.getLogger(DocumentRepository.class);
+
+    private EventBus eventBus = null;
+    private String queueName = null;
 
 
     /** In memory document database */
@@ -24,6 +27,13 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
 
     private boolean reloadInProgress = false;
 
+    @Override
+    public void setEventBus(EventBus eventBus, String queName) {
+        this.eventBus = eventBus;
+        this.queueName = queName;
+    }
+
+    @Override
     public void init(AgroalDataSource dataSource) {
 
         logger.info("DocumentRepository initializing ...");
@@ -36,6 +46,9 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
 
         documents.put("/index.html", new Document());
         documents.put("/documentation/index.html", new Document());
+
+        eventBus.publish(queueName, "/index.html");
+        eventBus.publish(queueName, "/documentation/index.html");
     }
 
     private ConcurrentHashMap<String, Document> getDocuments() {

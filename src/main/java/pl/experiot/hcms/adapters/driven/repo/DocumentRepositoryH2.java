@@ -8,15 +8,19 @@ import java.util.List;
 import org.jboss.logging.Logger;
 
 import io.agroal.api.AgroalDataSource;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import pl.experiot.hcms.app.logic.Document;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 
 public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
 
     private static Logger logger = Logger.getLogger(DocumentRepositoryH2.class);
+    private EventBus eventBus;
+    private String queueName=null;
 
     private static AgroalDataSource defaultDataSource;
 
+    @Override
     public void init(AgroalDataSource dataSource) {
         defaultDataSource = dataSource;
         // create database tables
@@ -85,6 +89,12 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             e.printStackTrace();
         }
 
+    }
+
+    @Override
+    public void setEventBus(EventBus eventBus, String queName) {
+        this.eventBus = eventBus;
+        this.queueName = queName;
     }
 
     @Override
@@ -260,6 +270,11 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
 
     @Override
     public void addDocument(Document doc) {
+        logger.info("addDocumentToH2: " + doc.name);
+        if(getAllDocuments(false).size()>100){
+            logger.info("Too many documents in the repository. Skipping adding document: " + doc.name);
+            return;
+        }
         deleteMetadata(doc.name);
         String sql = """
                 MERGE INTO documents (path, name, file_name, content, binary, binary_content, created, modified, refreshed, media_type, site)
@@ -289,6 +304,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             e.printStackTrace();
         }
         addMetadata(doc.name, doc.metadata);
+        eventBus.publish(queueName, doc.name);
     }
 
     @Override
@@ -524,7 +540,6 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
     @Override
     public List<String> searchDocuments(String textToSearch, String languageCode) {
         // full text search
-        logger.info("searchDocuments: " + textToSearch);
         ArrayList<String> docs = new java.util.ArrayList<>();
         String sql = "SELECT * FROM FT_SEARCH_DATA(?, 0, 0);";
         try (var connection = defaultDataSource.getConnection();

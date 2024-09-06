@@ -31,6 +31,8 @@ public class FolderWatcher implements Runnable, ForChangeWatcherIface {
 
     private String filePath = null;
 
+    private long minimalDelay = 1000;
+
     public FolderWatcher(String root, HashMap<String, Site> siteMap, ForDocumentsLoaderIface loader) {
         this.siteMap = siteMap;
         this.loader = loader;
@@ -62,6 +64,7 @@ public class FolderWatcher implements Runnable, ForChangeWatcherIface {
 
     @Override
     public void run() {
+        HashMap<String, Long> contexts = new HashMap<>();
         Path path = Path.of(docRoot);
         FileSystem fs = path.getFileSystem();
         try (WatchService service = fs.newWatchService();) {
@@ -73,9 +76,20 @@ public class FolderWatcher implements Runnable, ForChangeWatcherIface {
             WatchKey key;
             while ((key = service.take()) != null) {
                 for (WatchEvent<?> event : key.pollEvents()) {
-                    logger.debug(event.kind() + " -> " + event.context());
                     if (event.context().toString().equals(watchedFile)) {
-                        loader.loadDocuments(site, System.currentTimeMillis());
+                        long now = System.currentTimeMillis();
+                        long last = contexts.getOrDefault(watchedFile, 0L);
+                        if (now - last < minimalDelay) {
+                            logger.info(
+                                    "watcherevent " + event.kind() + " -> " + event.context() + " already processed");
+                            continue;
+                        } else {
+                            contexts.put(watchedFile, now);
+                            logger.info("watcherevent " + event.kind() + " -> " + event.context() + " "
+                                    + System.currentTimeMillis());
+                            loader.loadDocuments(site, System.currentTimeMillis());
+                        }
+
                     }
                 }
                 key.reset();

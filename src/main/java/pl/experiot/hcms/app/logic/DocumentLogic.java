@@ -11,13 +11,10 @@ import org.jboss.logging.Logger;
 
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.runtime.StartupEvent;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
-import pl.experiot.hcms.adapters.driven.loader.fs.FromFilesystemLoader;
-import pl.experiot.hcms.adapters.driven.loader.test.TestDocLoader;
-import pl.experiot.hcms.adapters.driven.repo.DocumentRepository;
-import pl.experiot.hcms.adapters.driven.repo.DocumentRepositoryH2;
 import pl.experiot.hcms.adapters.driving.DummyWatcher;
 import pl.experiot.hcms.adapters.driving.FolderWatcher;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
@@ -75,7 +72,17 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     @Inject
     AgroalDataSource dataSource;
 
+    @Inject
+    EventBus bus;
+
+    @Inject
+    Configurator2 configurator;
+
+    String queueName = "hcms";
+
     private HashMap<String, Site> siteMap = new HashMap<>();
+
+    public boolean ready = false;
 
     @Override
     public List<Document> getDocuments(String path, boolean withContent) {
@@ -100,28 +107,31 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     void onStart(@Observes StartupEvent ev) {
 
         // environment variables should be cleaned from non printable characters
-        watcherType=watcherType.trim();
-        loaderType=loaderType.trim();
+        watcherType = watcherType.trim();
+        loaderType = loaderType.trim();
 
         // repository adapter setup
-        switch (databaseType) {
-            case "h2":
-                repositoryPort = new DocumentRepositoryH2();
-                break;
-            case "map":
-                repositoryPort = new DocumentRepository();
-                break;
-            default:
-                repositoryPort = new DocumentRepositoryH2();
-        }
+        /*
+         * switch (databaseType) {
+         * case "h2":
+         * repositoryPort = new DocumentRepositoryH2();
+         * break;
+         * case "map":
+         * repositoryPort = new DocumentRepository();
+         * break;
+         * default:
+         * repositoryPort = new DocumentRepositoryH2();
+         * }
+         */
+        repositoryPort = configurator.getRepositoryPort();
+        repositoryPort.setEventBus(bus, queueName);
         repositoryPort.init(dataSource);
 
         // translator adapter setup
         // TODO
 
         // document loader adapter setup
-        // TODO: loaderPort
-        switch(loaderType.toLowerCase()) {
+        /* switch (loaderType.toLowerCase()) {
             case "filesystem":
                 loader = new FromFilesystemLoader();
                 loader.setAssets(assets);
@@ -131,12 +141,15 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
                 break;
             default:
                 loader = new TestDocLoader();
-        }
+        } */
+        //loader= Configurator.getLoaderPort(loaderType, root, assets, excludes, hcmsServiceUrl);
+        loader = configurator.getLoaderPort();
+        loader.setEventBus(bus, queueName);
         loader.setRepositoryPort(repositoryPort);
-        loader.setSites(sites);
-        loader.setHtmlFileExtension(htmlFileExtension);
-        loader.setMarkdownFileExtension(markdownFileExtension);
-        loader.setSyntax(syntax);
+        //loader.setSites(sites);
+        //loader.setHtmlFileExtension(htmlFileExtension);
+        //loader.setMarkdownFileExtension(markdownFileExtension);
+        //loader.setSyntax(syntax);
 
         try {
             siteMap = getSiteMap();
@@ -148,13 +161,16 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
         }
 
         // watcher adapter setup
-        logger.info("WATCHER TYPE: ["+watcherType+"]");
-        if(watcherType.equalsIgnoreCase("filesystem")){
+        logger.info("WATCHER TYPE: [" + watcherType + "]");
+        if (watcherType.equalsIgnoreCase("filesystem")) {
             watcher = new FolderWatcher(root, siteMap, loader);
         } else {
             watcher = new DummyWatcher();
         }
+        
         watcher.setLoader(loader);
+
+        ready = true;
 
         // start
         long timestamp = System.currentTimeMillis();
@@ -166,7 +182,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
 
         List<ForChangeWatcherIface> watchers = watcher.getInstances();
         for (ForChangeWatcherIface w : watchers) {
-            logger.info("WATCHER "+w.getNameplate());
+            logger.info("WATCHER " + w.getNameplate());
             Executors.newSingleThreadExecutor().execute((Runnable) w);
         }
     }

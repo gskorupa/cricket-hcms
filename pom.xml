@@ -73,6 +73,10 @@ https://maven.apache.org/xsd/maven-4.0.0.xsd">
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-agroal</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-vertx</artifactId>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

@@ -62,5 +62,9 @@ public class TestDocLoader implements ForDocumentsLoaderIface {
     @Override
     public void loadDocuments(Site site, long timestamp) {
     }
+
+    @Override
+    public void setEventBus(io.vertx.mutiny.core.eventbus.EventBus eventBus, String queueName) {
+    }
     
 }

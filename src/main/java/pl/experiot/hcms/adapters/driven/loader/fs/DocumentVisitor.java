@@ -3,12 +3,14 @@ package pl.experiot.hcms.adapters.driven.loader.fs;
 import static java.nio.file.FileVisitResult.CONTINUE;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.net.URLConnection;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.jboss.logging.Logger;
 
@@ -19,6 +21,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     static Logger logger = Logger.getLogger(DocumentVisitor.class);
 
     ArrayList<Document> files = new ArrayList<>();
+    HashMap<String, Document> documents = new HashMap<>();
     String root;
     ArrayList<String> excludes = new ArrayList<>();
     String syntax = "github"; // "obsidian", "github"
@@ -52,7 +55,13 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     }
 
     public ArrayList<Document> getList() {
-        return files;
+        logger.info("documents.size: " + documents.size());
+        ArrayList<Document> docs = new ArrayList<>();
+        for (Document doc : documents.values()) {
+            docs.add(doc);
+        }
+        documents.clear();
+        return docs;
     }
 
     @Override
@@ -75,17 +84,17 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                     githubWikiReader.parse(file);
                     doc = githubWikiReader.getDocument();
                     doc.mediaType = "text/html";
-                    files.add(doc);
+                    //files.add(doc);
                 } else if (name.endsWith(htmlFileExtension)) {
                     htmlReader.parse(file);
                     doc = htmlReader.getDocument();
                     doc.mediaType = "text/html";
-                    files.add(doc);
+                    //files.add(doc);
                 } else if (name.toLowerCase().endsWith(jsonFileExtension)) {
                     jsonReader.parse(file);
                     doc = jsonReader.getDocument();
                     doc.mediaType = "application/json";
-                    files.add(doc);
+                    //files.add(doc);
                 } else {
                     // binary file
                     binaryReader.parse(file);
@@ -100,7 +109,8 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                 logger.info("doc.name: " + doc.name);
                 logger.debug("doc.path: " + doc.path);
                 doc.updateTimestamp = updateTimestamp;
-                files.add(doc);
+                //files.add(doc);
+                documents.put(doc.name, doc);
 
             } else {
                 logger.info("excluded: " + path);

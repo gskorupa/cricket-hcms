@@ -9,6 +9,7 @@ import java.util.HashMap;
 
 import org.jboss.logging.Logger;
 
+import io.vertx.mutiny.core.eventbus.EventBus;
 import pl.experiot.hcms.app.logic.Document;
 import pl.experiot.hcms.app.logic.Site;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
@@ -29,6 +30,15 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
     String sites;
     String assets;
 
+    EventBus eventBus;
+    String queueName;
+
+    @Override
+    public void setEventBus(EventBus eventBus, String queueName) {
+        this.eventBus = eventBus;
+        this.queueName = queueName;
+    }
+
     @Override
     public void setRoot(String root) {
         this.root = root;
@@ -42,6 +52,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
     @Override
     public void setRepositoryPort(ForDocumentRepositoryIface repositoryPort) {
         this.repositoryPort = repositoryPort;
+        this.repositoryPort.setEventBus(eventBus, queueName);
     }
 
     @Override
@@ -94,7 +105,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             e.printStackTrace();
         }
         files = visitor.getList();
-        logger.info("found: " + files.size() + " documents");
+        logger.info("found1: " + files.size() + " documents");
         Document doc;
         for (int i = 0; i < files.size(); i++) {
             // logger.info(" " + files.get(i).path);
@@ -146,7 +157,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             e.printStackTrace();
         }
         files = visitor.getList();
-        logger.info("found: " + files.size() + " documents");
+        logger.info("found2: " + files.size() + " documents");
         Document doc;
         for (int i = 0; i < files.size(); i++) {
             // logger.info(" " + files.get(i).path);
