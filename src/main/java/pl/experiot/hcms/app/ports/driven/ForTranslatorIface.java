@@ -4,6 +4,6 @@ import pl.experiot.hcms.app.logic.Document;
 
 public interface ForTranslatorIface {
     
-    Document translate(Document document, String sourceLanguage, String targetLanguage);
+    Document translate(Document document, String sourceLanguage, String targetLanguage, String authKey);
 
 }

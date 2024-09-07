@@ -78,7 +78,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     @Inject
     Configurator2 configurator;
 
-    String queueName = "hcms";
+    String queueName = "to-translate";
 
     private HashMap<String, Site> siteMap = new HashMap<>();
 

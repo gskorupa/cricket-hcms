@@ -7,6 +7,7 @@ import pl.experiot.hcms.adapters.driven.loader.fs.FromFilesystemLoader;
 import pl.experiot.hcms.adapters.driven.loader.test.TestDocLoader;
 import pl.experiot.hcms.adapters.driven.repo.DocumentRepository;
 import pl.experiot.hcms.adapters.driven.repo.DocumentRepositoryH2;
+import pl.experiot.hcms.adapters.driven.translator.DeeplTranslator;
 import pl.experiot.hcms.adapters.driven.translator.DummyRepoModel;
 import pl.experiot.hcms.adapters.driven.translator.DummyTranslator;
 import pl.experiot.hcms.adapters.driven.translator.PathBasedRepoModel;
@@ -87,7 +88,7 @@ public class Configurator2 {
                 translator = new DummyTranslator();
                 break;
             case "deepl":
-                //translator = new DeeplTranslator();
+                translator = new DeeplTranslator();
                 break;                
             default:
                 translator = new DummyTranslator();

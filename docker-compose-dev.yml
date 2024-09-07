@@ -16,6 +16,8 @@ services:
       DATABASE_TYPE: h2
       LOADER_TYPE: filesystem
       WATCHER_TYPE: filesystem
+      HCMS_TRANSLATOR_TYPE: deepl
+      DEEPL_API_KEY_FILE: /run/secrets/deepl_api_key
     expose:
       - "8080"
     ports:
@@ -24,6 +26,8 @@ services:
       - $PWD:/home/jboss/documents
     networks:
       - hcms
+    secrets:
+       - deepl_api_key
   
   website:
     image: cricket-website:latest
@@ -58,3 +62,7 @@ services:
 networks:
   hcms:
     driver: bridge
+
+secrets:
+  deepl_api_key:
+    file: ~/.secrets/deepl_api_key.txt

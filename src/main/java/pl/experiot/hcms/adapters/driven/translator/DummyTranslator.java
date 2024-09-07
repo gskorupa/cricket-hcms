@@ -6,7 +6,7 @@ import pl.experiot.hcms.app.ports.driven.ForTranslatorIface;
 public class DummyTranslator implements ForTranslatorIface {
 
     @Override
-    public Document translate(Document document, String sourceLanguage, String targetLanguage) {
+    public Document translate(Document document, String sourceLanguage, String targetLanguage, String authKey) {
         // dummy translator, just return the same document content
         document.content = document.content;
         return document;

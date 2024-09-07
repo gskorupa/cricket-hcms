@@ -1,5 +1,9 @@
 package pl.experiot.hcms.app.logic;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -28,19 +32,16 @@ public class TranslatorLogic {
 
     @Inject
     EventBus bus;
-/* 
-    @ConfigProperty(name = "hcms.database.type")
-    String databaseType;
-    @ConfigProperty(name = "hcms.localization.model")
-    String localizationModel; */
+
     @ConfigProperty(name = "hcms.repository.language.main")
     String mainLanguage;
     @ConfigProperty(name = "hcms.repository.languages")
     String[] languages;
-    //@ConfigProperty(name = "hcms.translator.type")
-    //String translatorType;
+    @ConfigProperty(name = "deepl.api.key.file")
+    String deeplApiKeyFile;
+    String deeplApiKey;
 
-    String queueName = "hcms";
+    String queueName = "to-translate";
 
     ForDocumentRepositoryIface repositoryPort;
     ForTranslatorIface translatorPort;
@@ -48,54 +49,54 @@ public class TranslatorLogic {
 
     void onStart(@Observes StartupEvent ev) {
         logger.info("TranslatorLogic starting...");
-/*         repositoryPort = Configurator.getRepositoryPort(databaseType);
-        translatorPort = Configurator.getTranslatorPort(translatorType);
-        localizationModelPort = Configurator.getRepoModelPort(localizationModel);
- */        
+
         repositoryPort = configurator.getRepositoryPort();
         repositoryPort.setEventBus(bus, queueName);
-        //repositoryPort.init(dataSource);
+
         translatorPort = configurator.getTranslatorPort();
         localizationModelPort = configurator.getRepoModelPort();
-        //localizationModelPort.setMainLanguage(mainLanguage);
-        //localizationModelPort.setRepoLanguages(languages);
+
+        Path filePath = Path.of(deeplApiKeyFile);
+        try {
+            deeplApiKey = Files.readString(filePath).trim();
+        } catch (IOException e) {
+            logger.warn("Error reading Deepl API key from file: " + filePath);
+            e.printStackTrace();
+        }
+
     }
 
-    @ConsumeEvent("hcms")
+    @ConsumeEvent("to-translate")
     public void translate(String documentName) {
-        if(repositoryPort == null) {
+        if (repositoryPort == null) {
             repositoryPort = configurator.getRepositoryPort();
             repositoryPort.setEventBus(bus, queueName);
         }
-        if(translatorPort == null) {
+        if (translatorPort == null) {
             translatorPort = configurator.getTranslatorPort();
         }
-        if(localizationModelPort == null) {
+        if (localizationModelPort == null) {
             localizationModelPort = configurator.getRepoModelPort();
         }
         Document document = repositoryPort.getDocument(documentName);
         if (document != null) {
             if (localizationModelPort.getDocumentLanguage(document).equals(mainLanguage)) {
-/*                 String tmps="";
-                for(int i=0;i<languages.length;i++){
-                    tmps+=languages[i];
-                    if(i<languages.length-1){
-                        tmps+=" ";
-                    }
-                } */
                 for (String language : languages) {
-                    if(language.equals(mainLanguage)) {
+                    if (language.equals(mainLanguage)) {
                         continue;
                     }
-                    if(document.binaryFile){
+                    if (document.binaryFile) {
                         continue;
                     }
                     logger.info("Translating: " + document.name + " to " + language);
-                    Document translatedDocument = translatorPort.translate(document, mainLanguage, language);
-                    translatedDocument = localizationModelPort.setDocumentLanguage(translatedDocument, language);
-                    repositoryPort.addDocument(translatedDocument);
+                    Document translatedDocument = translatorPort.translate(document, mainLanguage, language,
+                            deeplApiKey);
+                    if (null != translatedDocument) {
+                        translatedDocument = localizationModelPort.setDocumentLanguage(translatedDocument, language);
+                        repositoryPort.addDocument(translatedDocument);
+                    }
                 }
-            }else{
+            } else {
                 logger.info("Skipping: " + document.name);
             }
         }
