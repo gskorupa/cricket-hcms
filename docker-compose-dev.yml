@@ -6,16 +6,17 @@ services:
     container_name: hcms
     hostname: hcms
     environment:
-      FOLDERS_ROOT: documents
       FILE_TO_WATCH: version.txt;demo-version.txt
       HCMS_SERVICE_URL: http://localhost:8082;http://localhost:8082
       FOLDERS_ASSETS: assets;assets
       FOLDERS_SITES: documentation;demo
       FOLDERS_INDEXES: index.md;index.md
       FOLDERS_EXCLUDED: .git,excluded_folder;none
-      DATABASE_TYPE: h2
-      LOADER_TYPE: filesystem
-      WATCHER_TYPE: filesystem
+      #DATABASE_TYPE: h2
+      #LOADER_TYPE: filesystem
+      #WATCHER_TYPE: filesystem
+      HCMS_REPOSITORY_LANGUAGE_MAIN: en
+      HCMS_REPOSITORY_LANGUAGES: en,pl
       HCMS_TRANSLATOR_TYPE: deepl
       DEEPL_API_KEY_FILE: /run/secrets/deepl_api_key
     expose:
