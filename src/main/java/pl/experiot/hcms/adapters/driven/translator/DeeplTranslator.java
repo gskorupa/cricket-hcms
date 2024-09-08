@@ -1,5 +1,7 @@
 package pl.experiot.hcms.adapters.driven.translator;
 
+import java.util.Map;
+
 import org.jboss.logging.Logger;
 
 import com.deepl.api.TextResult;
@@ -13,7 +15,8 @@ public class DeeplTranslator implements ForTranslatorIface {
     private static Logger logger = Logger.getLogger(DeeplTranslator.class);
 
     @Override
-    public Document translate(Document document, String sourceLanguage, String targetLanguage, String authKey) {
+    public Document translate(Document document, String sourceLanguage, String targetLanguage, Map<String, Object> options) {
+        String authKey = (String) options.getOrDefault("deepl.api.key", "");
         Document translatedDocument = document.clone(true);
         try {
             logger.info("Translating (deepl) " + document.name + " key:" + authKey);

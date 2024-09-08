@@ -3,6 +3,8 @@ package pl.experiot.hcms.app.logic;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
@@ -47,6 +49,8 @@ public class TranslatorLogic {
     ForTranslatorIface translatorPort;
     ForMultilanguageRepoModelIface localizationModelPort;
 
+    HashMap<String, Object> options = null;
+
     void onStart(@Observes StartupEvent ev) {
         logger.info("TranslatorLogic starting...");
 
@@ -55,15 +59,23 @@ public class TranslatorLogic {
 
         translatorPort = configurator.getTranslatorPort();
         localizationModelPort = configurator.getRepoModelPort();
+        options = getOptions();
 
-        Path filePath = Path.of(deeplApiKeyFile);
-        try {
-            deeplApiKey = Files.readString(filePath).trim();
-        } catch (IOException e) {
-            logger.warn("Error reading Deepl API key from file: " + filePath);
-            e.printStackTrace();
+    }
+
+    private HashMap<String, Object> getOptions() {
+        if (options == null) {
+            Path filePath = Path.of(deeplApiKeyFile);
+            try {
+                deeplApiKey = Files.readString(filePath).trim();
+            } catch (IOException e) {
+                logger.warn("Error reading Deepl API key from file: " + filePath);
+                e.printStackTrace();
+            }
+            options = new HashMap<>();
+            options.put("deepl.api.key", deeplApiKey);
         }
-
+        return options;
     }
 
     @ConsumeEvent("to-translate")
@@ -90,7 +102,7 @@ public class TranslatorLogic {
                     }
                     logger.info("Translating: " + document.name + " to " + language);
                     Document translatedDocument = translatorPort.translate(document, mainLanguage, language,
-                            deeplApiKey);
+                            getOptions());
                     if (null != translatedDocument) {
                         translatedDocument = localizationModelPort.setDocumentLanguage(translatedDocument, language);
                         repositoryPort.addDocument(translatedDocument);
