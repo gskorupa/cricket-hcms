@@ -35,7 +35,7 @@ services:
     container_name: website
     hostname: website
     environment:
-      PUBLIC_HCMS_URL: http://hcms:8080/api/docs
+      PUBLIC_HCMS_URL: http://hcms:8080
       PUBLIC_HCMS_INDEX: index.md
       PUBLIC_HCMS_ROOT: documentation
     depends_on:
@@ -50,9 +50,10 @@ services:
     container_name: website2
     hostname: website2
     environment:
-      PUBLIC_HCMS_URL: http://hcms:8080/api/docs
+      PUBLIC_HCMS_URL: http://hcms:8080
       PUBLIC_HCMS_INDEX: index.md
       PUBLIC_HCMS_ROOT: demo
+      PUBLIC_HCMS_LANGUAGES: en,pl
     depends_on:
       - hcms
     ports:

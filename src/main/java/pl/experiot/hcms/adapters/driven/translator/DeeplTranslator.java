@@ -8,7 +8,6 @@ import org.jboss.logging.Logger;
 import com.deepl.api.TextResult;
 import com.deepl.api.TextTranslationOptions;
 import com.deepl.api.Translator;
-import com.deepl.api.TranslatorOptions;
 
 import pl.experiot.hcms.app.logic.Document;
 import pl.experiot.hcms.app.ports.driven.ForTranslatorIface;
