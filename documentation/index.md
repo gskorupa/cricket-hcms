@@ -10,7 +10,8 @@ keyword:running
 Cricket HCMS is a headless content management system designed for developers looking for an easy and quick to implement HCMS solution. It is a lightweight, file-based CMS that provides a REST API for content retrieval.
 -->
 <p align="center">
-    <img src="./assets/cricket-logo.svg" width="20%">
+    <!--<img src="./assets/cricket-logo.svg" width="20%">-->
+    <img src="./assets/hcms2.png" class="w-100">
 </p>
 
 ## Introduction

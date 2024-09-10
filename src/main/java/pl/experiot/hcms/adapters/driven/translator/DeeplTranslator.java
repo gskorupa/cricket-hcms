@@ -26,11 +26,14 @@ public class DeeplTranslator implements ForTranslatorIface {
             textTranslationOptions.setTagHandling("html");
             textTranslationOptions.setPreserveFormatting(true);
             HashSet<String> ignoreTags = new HashSet<>();
+            ignoreTags.add("code");
             textTranslationOptions.setIgnoreTags(ignoreTags);
             Translator translator = new Translator(authKey);
             TextResult result = translator.translateText(document.content, sourceLanguage, getCode(targetLanguage), textTranslationOptions);
             logger.info("Translated (deepl): "+result.getText());
             translatedDocument.content = result.getText();
+            translatedDocument.metadata.put("language", targetLanguage);
+            translatedDocument.metadata.put("translator", "DeepL");
         } catch (Exception e) {
             e.printStackTrace();
             logger.error("Error translating document " + document.name + ": " + e.getMessage());

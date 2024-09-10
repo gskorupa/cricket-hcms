@@ -8,5 +8,6 @@ public interface ForMultilanguageRepoModelIface {
     public String[] getLanguages();
     public String getMainLanguage();
     public String getDocumentLanguage(Document document);
-    public Document setDocumentLanguage(Document document, String language);
+    public Document setDocumentLanguage(Document document, String targetLanguage);
+    public String translateRepoLinks(String content, String targetLanguage);
 }

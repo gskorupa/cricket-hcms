@@ -39,10 +39,22 @@ public class PathBasedRepoModel implements ForMultilanguageRepoModelIface {
         return "no_language"; // won't be translated
     }
 
-    public Document setDocumentLanguage(Document document, String language) {
+    public Document setDocumentLanguage(Document document, String targetLanguage) {
         // document name is started with language code, e.g. "/en/" for English
         String docName = document.name;
-        document.name = "/" + document.siteName + "/" + language + "/" + docName.substring(docName.indexOf("/", document.siteName.length()+mainLanguage.length()+1) + 1);
+        document.name = "/" + document.siteName + "/" + targetLanguage + "/" + docName.substring(docName.indexOf("/", document.siteName.length()+mainLanguage.length()+1) + 1);
+        document.content = translateRepoLinks(document.content, targetLanguage);
         return document;
+    }
+
+    @Override
+    public String translateRepoLinks(String content, String targetLanguage) {
+        // Content is a string (HTML) with links to other documents in the repository
+        // The links are in the form of "/language/documentName"
+        // The method should translate the links to the target language
+        // e.g. "/en/documentName" to "/de/documentName" if targetLanguage is "de"
+        // The method should return the translated content
+        content = content.replaceAll("href=\"/" + getMainLanguage() + "/", "href=\"/" + targetLanguage + "/");
+        return content;
     }
 }
