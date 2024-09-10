@@ -43,6 +43,8 @@ public class PathBasedRepoModel implements ForMultilanguageRepoModelIface {
         // document name is started with language code, e.g. "/en/" for English
         String docName = document.name;
         document.name = "/" + document.siteName + "/" + targetLanguage + "/" + docName.substring(docName.indexOf("/", document.siteName.length()+mainLanguage.length()+1) + 1);
+        String docPath = document.path;
+        document.path = "/" + document.siteName + "/" + targetLanguage + "/" + docPath.substring(docPath.indexOf("/", document.siteName.length()+mainLanguage.length()+1) + 1);
         document.content = translateRepoLinks(document.content, targetLanguage);
         return document;
     }

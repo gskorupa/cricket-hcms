@@ -6,7 +6,7 @@ https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>pl.experiot.hcms</groupId>
   <artifactId>cricket-hcms</artifactId>
-  <version>0.16.0</version>
+  <version>latest</version>
   <properties>
     <compiler-plugin.version>3.13.0</compiler-plugin.version>
     <maven.compiler.release>21</maven.compiler.release>
