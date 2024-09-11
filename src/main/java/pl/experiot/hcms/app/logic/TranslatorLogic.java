@@ -41,6 +41,8 @@ public class TranslatorLogic {
     @ConfigProperty(name = "deepl.api.key.file")
     String deeplApiKeyFile;
     String deeplApiKey;
+    @ConfigProperty(name = "deepl.doc.metadata")
+    String metadataToTranslate;
 
     String queueName = "to-translate";
 
@@ -73,6 +75,9 @@ public class TranslatorLogic {
             }
             options = new HashMap<>();
             options.put("deepl.api.key", deeplApiKey);
+            if (metadataToTranslate != null && !metadataToTranslate.equalsIgnoreCase("none")) {
+                options.put("deepl.doc.metadata", metadataToTranslate);
+            }
         }
         return options;
     }
