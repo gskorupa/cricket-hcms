@@ -40,7 +40,6 @@ public class TranslatorLogic {
     String[] languages;
     @ConfigProperty(name = "deepl.api.key.file")
     String deeplApiKeyFile;
-    String deeplApiKey;
     @ConfigProperty(name = "deepl.doc.metadata")
     String metadataToTranslate;
 
@@ -65,13 +64,18 @@ public class TranslatorLogic {
     }
 
     private HashMap<String, Object> getOptions() {
+        String deeplApiKey="";
         if (options == null) {
-            Path filePath = Path.of(deeplApiKeyFile);
-            try {
-                deeplApiKey = Files.readString(filePath).trim();
-            } catch (IOException e) {
-                logger.warn("Error reading Deepl API key from file: " + filePath);
-                e.printStackTrace();
+            if ("none".equalsIgnoreCase(deeplApiKeyFile)) {
+                deeplApiKey = "";
+            } else {
+                Path filePath = Path.of(deeplApiKeyFile);
+                try {
+                    deeplApiKey = Files.readString(filePath).trim();
+                } catch (IOException e) {
+                    logger.warn("Error reading Deepl API key from file: " + filePath);
+                    e.printStackTrace();
+                }
             }
             options = new HashMap<>();
             options.put("deepl.api.key", deeplApiKey);
