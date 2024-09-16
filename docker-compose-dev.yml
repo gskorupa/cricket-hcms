@@ -8,6 +8,7 @@ services:
     environment:
       FILE_TO_WATCH: version.txt;demo-version.txt
       HCMS_SERVICE_URL: http://localhost:8082;http://localhost:8082
+      HCMS_FILE_API: /api/file;/api/_file
       FOLDERS_ASSETS: assets;assets
       FOLDERS_SITES: documentation;demo
       FOLDERS_INDEXES: index.md;index.md

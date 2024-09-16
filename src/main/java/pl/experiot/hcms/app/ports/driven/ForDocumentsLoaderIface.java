@@ -22,7 +22,10 @@ public interface ForDocumentsLoaderIface {
 
     void setHtmlFileExtension(String htmlFileExtension);
 
+    @Deprecated
     void setHcmsServiceUrl(String hcmsServiceUrl);
+    
+    void setHcmsFileApi(String hcmsFileApiUrl);
 
     void setSites(String sites);
 

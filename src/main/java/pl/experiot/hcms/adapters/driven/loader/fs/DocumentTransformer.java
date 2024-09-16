@@ -23,32 +23,37 @@ public class DocumentTransformer {
             String markdownExtension,
             String siteRootFolder,
             String assetsFolderName,
-            String hcmsServiceUrl) {
+            String hcmsServiceUrl,
+            String hcmsFileApi) {
 
         try {
-/*             logger.debug("pre doc.name: " + doc.name);
-            logger.debug("pre doc.path: " + doc.path);
-            if(!(doc.path.startsWith(siteRootFolder)||doc.path.startsWith("/"+siteRootFolder))){
-                doc.path = siteRootFolder + doc.path;
-            }
-            if(!(doc.name.startsWith(siteRootFolder)||doc.name.startsWith("/"+siteRootFolder))){
-                doc.name = siteRootFolder + doc.name;
-            }
-            if(!(doc.path.startsWith("/"))){
-                doc.path = "/" + doc.path;
-            }
-            if(!(doc.name.startsWith("/"))){
-                doc.name = "/" + doc.name;
-            }
-            logger.debug("post doc.name: " + doc.name);
-            logger.debug("post doc.path: " + doc.path); */
+            /*
+             * logger.debug("pre doc.name: " + doc.name);
+             * logger.debug("pre doc.path: " + doc.path);
+             * if(!(doc.path.startsWith(siteRootFolder)||doc.path.startsWith("/"+
+             * siteRootFolder))){
+             * doc.path = siteRootFolder + doc.path;
+             * }
+             * if(!(doc.name.startsWith(siteRootFolder)||doc.name.startsWith("/"+
+             * siteRootFolder))){
+             * doc.name = siteRootFolder + doc.name;
+             * }
+             * if(!(doc.path.startsWith("/"))){
+             * doc.path = "/" + doc.path;
+             * }
+             * if(!(doc.name.startsWith("/"))){
+             * doc.name = "/" + doc.name;
+             * }
+             * logger.debug("post doc.name: " + doc.name);
+             * logger.debug("post doc.path: " + doc.path);
+             */
             if (doc.name.endsWith(markdownExtension)) {
                 doc.content = getHtml(doc.content);
             }
             if (assetsFolderName != null && !assetsFolderName.isEmpty()
                     && hcmsServiceUrl != null && !hcmsServiceUrl.isEmpty()
                     && !hcmsServiceUrl.equalsIgnoreCase("none")) {
-                doc.content = transformImageLinks(doc.content, siteRootFolder, assetsFolderName, hcmsServiceUrl);
+                doc.content = transformImageLinks(doc.content, siteRootFolder, assetsFolderName, hcmsServiceUrl, hcmsFileApi);
             }
             logger.debug("doc to save name: " + doc.name);
             logger.debug("doc to save path: " + doc.path);
@@ -83,7 +88,7 @@ public class DocumentTransformer {
      * then replaces them with the parameter param1.
      */
     private static String transformImageLinks(String content, String siteRootFolder, String assetsFolderName,
-            String hcmsServiceUrl) {
+            String hcmsServiceUrl, String hcmsFileApi) {
 
         String tag = "<img src=\"";
         String fragment;
@@ -100,7 +105,7 @@ public class DocumentTransformer {
                 int end = content.indexOf("\"");
                 fragment = content.substring(0, end);
                 content = content.substring(end);
-                result += tag + replaceFragment(fragment, siteRootFolder, assetsFolderName, hcmsServiceUrl);
+                result += tag + replaceFragment(fragment, siteRootFolder, assetsFolderName, hcmsServiceUrl, hcmsFileApi);
             } while (content.length() > 0);
         } catch (Exception e) {
             logger.error("transformImageLinks4 error: " + e.getMessage());
@@ -111,7 +116,7 @@ public class DocumentTransformer {
     }
 
     private static String replaceFragment(String fragment, String siteRootFolder, String assetsFolderName,
-            String hcmsServiceUrl) {
+            String hcmsServiceUrl, String hcmsFileApi) {
         String[] parts = fragment.split("/");
         String fragmentToReplace = "";
         String siteRootFolderName = "";
@@ -135,8 +140,12 @@ public class DocumentTransformer {
         // if the fragment starts with the assetsFolderName
         // and the hcmsServiceUrl is set
         // then replace the fragment with equivalent API call
+        String fileApiPath="/api/file";
+        if(hcmsFileApi!=null && !hcmsFileApi.isEmpty() && !hcmsFileApi.equalsIgnoreCase("none")){
+            fileApiPath=hcmsFileApi;
+        }
         if (fragmentToReplace.startsWith(assetsFolderName) && hcmsServiceUrl != null && !hcmsServiceUrl.isEmpty()) {
-            result = hcmsServiceUrl + "/api/file?name=" + siteRootFolderName + fragmentToReplace;
+            result = hcmsServiceUrl + fileApiPath+ "?name=" + siteRootFolderName + fragmentToReplace;
         } else {
             result = fragmentToReplace;
         }

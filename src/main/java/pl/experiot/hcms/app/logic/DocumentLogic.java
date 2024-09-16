@@ -51,6 +51,8 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     String assets;
     @ConfigProperty(name = "hcms.sevice.url")
     String hcmsServiceUrl;
+    @ConfigProperty(name = "hcms.file.api")
+    String hcmsFileApi;
     @ConfigProperty(name = "hcms.database.type")
     String databaseType;
     @ConfigProperty(name = "hcms.loader.type")
@@ -194,6 +196,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
         String[] watchedList = watchedFile.split(";");
         String[] indexList = indexFiles.split(";");
         String[] hcmsServiceList = hcmsServiceUrl.split(";");
+        String[] hcmsFileApiList = hcmsFileApi.split(";");
 
         HashMap<String, Site> siteMap = new HashMap<>();
         // TODO: handle error coused by lists sizes not equal
@@ -210,6 +213,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
             s.watchedFile = watchedList[i];
             s.indexFile = indexList[i];
             s.hcmsServiceLocation = hcmsServiceList[i];
+            s.hcmsFileApiPath = hcmsFileApiList[i];
             siteMap.put(s.name, s);
         }
 

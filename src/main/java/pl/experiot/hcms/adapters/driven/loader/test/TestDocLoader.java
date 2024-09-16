@@ -50,6 +50,11 @@ public class TestDocLoader implements ForDocumentsLoaderIface {
     }
 
     @Override
+    public void setHcmsFileApi(String hcmsFileApi) {
+
+    }
+
+    @Override
     public void setSites(String sites) {
 
     }

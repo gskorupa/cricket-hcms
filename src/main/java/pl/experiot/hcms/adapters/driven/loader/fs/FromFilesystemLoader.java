@@ -27,6 +27,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
     String markdownFileExtension;
     String htmlFileExtension;
     String hcmsServiceUrl;
+    String hcmsFileApi;
     String sites;
     String assets;
 
@@ -66,12 +67,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         if (start) {
             repositoryPort.startReload(siteName);
         }
-        /*
-         * String[] sitesList = sites.split(";");
-         * String[] assetsList = assets.split(";");
-         * String[] hcmsServiceList = hcmsServiceUrl.split(";");
-         * String[] excludedList = excludes.split(";");
-         */
+
         logger.debug("loading documents");
         logger.debug("actual path: " + Paths.get(".").toAbsolutePath().normalize().toString());
         logger.debug("getDocuments: " + docPath);
@@ -82,17 +78,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         visitor.setSyntax(syntax);
         visitor.setMarkdownFileExtension(markdownFileExtension);
         visitor.setHtmlFileExtension(htmlFileExtension);
-        // int siteIndex = getSiteIndex(sitesList, siteName);
 
-        /*
-         * String siteExcludedFolders[];
-         * if (siteIndex >= 0) {
-         * siteExcludedFolders = excludedList[siteIndex].split(",");
-         * for (String exclude : siteExcludedFolders) {
-         * visitor.exclude(exclude);
-         * }
-         * }
-         */
         site.excludedPaths.forEach((path) -> {
             visitor.exclude(path);
         });
@@ -111,9 +97,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             // logger.info(" " + files.get(i).path);
             doc = normalize(files.get(i), siteName);
             doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName, site.assetsPath,
-                    site.hcmsServiceLocation);
-            // doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName,
-            // assetsList[0],hcmsServiceList[0]);
+                    site.hcmsServiceLocation, site.hcmsFileApiPath);
             if (null != doc) {
                 doc.refreshTimestamp = timestamp;
                 repositoryPort.addDocument(doc);
@@ -163,9 +147,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             // logger.info(" " + files.get(i).path);
             doc = normalize(files.get(i), site.name);
             doc = DocumentTransformer.transform(doc, markdownFileExtension, site.name, site.assetsPath,
-                    site.hcmsServiceLocation);
-            // doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName,
-            // assetsList[0],hcmsServiceList[0]);
+                    site.hcmsServiceLocation, site.hcmsFileApiPath);
             if (null != doc) {
                 doc.refreshTimestamp = timestamp;
                 repositoryPort.addDocument(doc);
@@ -235,6 +217,11 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
     @Override
     public void setHcmsServiceUrl(String hcmsServiceUrl) {
         this.hcmsServiceUrl = hcmsServiceUrl;
+    }
+
+    @Override
+    public void setHcmsFileApi(String hcmsFileApi){
+        this.hcmsFileApi=hcmsFileApi;
     }
 
     @Override

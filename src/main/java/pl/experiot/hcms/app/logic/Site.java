@@ -9,4 +9,5 @@ public class Site {
     public String watchedFile;
     public HashSet<String> excludedPaths;
     public String hcmsServiceLocation;
+    public String hcmsFileApiPath;
 }

@@ -39,6 +39,8 @@ public class Configurator2 {
     String assets;
     @ConfigProperty(name = "hcms.sevice.url")
     String hcmsServiceUrl;
+/*     @ConfigProperty(name = "hcms.file.api")
+    String hcmsFileApi; */
 
     @ConfigProperty(name = "hcms.translator.type")
     String translatorType;
@@ -68,6 +70,7 @@ public class Configurator2 {
                 loader.setAssets(assets);
                 loader.setExcludes(excludes);
                 loader.setHcmsServiceUrl(hcmsServiceUrl);
+                //loader.setHcmsFileApi(hcmsFileApi);
                 loader.setRoot(root);
                 break;
             default:
