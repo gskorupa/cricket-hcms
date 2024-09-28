@@ -39,8 +39,8 @@ public class FileApi2 {
     @Inject
     ForDocumentsIface documentPort;
 
-    @ConfigProperty(name = "app.token")
-    String appToken;
+    @ConfigProperty(name = "auth.token")
+    String authToken;
     @ConfigProperty(name = "get.document.authorization.required")
     boolean documentAuthorizationRequired;
 
@@ -52,7 +52,7 @@ public class FileApi2 {
     public Response getBinary(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
             @Parameter(description = "Path to the document.", required = true, example = "docs/doc1", schema = @Schema(type = SchemaType.STRING)) @PathParam("path") String path) {
-        if (documentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+        if (documentAuthorizationRequired && (token == null || !token.equals(authToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         logger.info("requesting file: " + path);
@@ -82,7 +82,7 @@ public class FileApi2 {
     public Response getBinaryByName(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
             @Parameter(description = "Document name.", required = true, example = "/docs/doc1.png", schema = @Schema(type = SchemaType.STRING)) @QueryParam("name") String name) {
-        if (documentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+        if (documentAuthorizationRequired && (token == null || !token.equals(authToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         logger.info("requesting file: " + name);

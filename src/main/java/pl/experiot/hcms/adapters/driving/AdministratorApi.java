@@ -31,8 +31,8 @@ public class AdministratorApi {
     @Inject
     Logger logger;
 
-    @ConfigProperty(name = "app.token")
-    String appToken;
+    @ConfigProperty(name = "auth.token")
+    String authToken;
 
     @POST
     @Path("/reload")
@@ -44,7 +44,7 @@ public class AdministratorApi {
     @Operation(summary = "Command to reload the documents", description = "Forces the system service to reload the documents from the storage.")
     public Response reload(
             @Parameter(description = "Token to authorize the request.", required = true, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token) {
-        if (token == null || !token.equals(appToken)) {
+        if (token == null || !token.equals(authToken)) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         return Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();

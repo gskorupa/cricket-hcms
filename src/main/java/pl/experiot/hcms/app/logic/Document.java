@@ -29,6 +29,7 @@ public class Document {
         doc.name = name;
         doc.fileName = fileName.trim();
         doc.updateTimestamp = updateTimestamp;
+        doc.metadata = metadata;
         doc.refreshTimestamp = refreshTimestamp;
         doc.binaryFile = binaryFile;
         doc.mediaType = mediaType;
