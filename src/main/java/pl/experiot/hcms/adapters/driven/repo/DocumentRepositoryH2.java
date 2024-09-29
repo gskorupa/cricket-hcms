@@ -271,10 +271,10 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
     @Override
     public void addDocument(Document doc) {
         logger.info("addDocumentToH2: " + doc.name);
-        if(getAllDocuments(false).size()>100){
+/*         if(getAllDocuments(false).size()>100){
             logger.info("Too many documents in the repository. Skipping adding document: " + doc.name);
             return;
-        }
+        } */
         deleteMetadata(doc.name);
         String sql = """
                 MERGE INTO documents (path, name, file_name, content, binary, binary_content, created, modified, refreshed, media_type, site)
