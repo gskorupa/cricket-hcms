@@ -1,9 +1,15 @@
 package pl.experiot.hcms.adapters.driving;
 
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SchemaType;
@@ -13,14 +19,6 @@ import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponseSchema;
 import org.jboss.logging.Logger;
-
-import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.HeaderParam;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.Response;
 import pl.experiot.hcms.app.logic.Document;
 import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
 
@@ -38,8 +36,8 @@ public class DocumentApi {
     @Inject
     Logger logger;
 
-    @ConfigProperty(name = "app.token")
-    String appToken;
+    @ConfigProperty(name = "auth.token")
+    String authToken;
     @ConfigProperty(name = "get.document.authorization.required")
     boolean getDocumentAuthorizationRequired;
     @ConfigProperty(name = "document.folders.indexes")
@@ -55,7 +53,7 @@ public class DocumentApi {
             @Parameter(description = "If true, documents will be listed with their content.", required = false, example = "true", schema = @Schema(type = SchemaType.BOOLEAN)) @QueryParam("content") boolean withContent,
             @Parameter(description = "Path to the document or directory. If not provided, the root directory will be listed.", required = false, example = "/documentation/", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path) {
 
-        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(authToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         String searchPath = path;
@@ -101,7 +99,7 @@ public class DocumentApi {
     public Response getPaths(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
             @Parameter(description = "Site name.", required = true, example = "site1", schema = @Schema(type = SchemaType.STRING)) @QueryParam("site") String site) {
-        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(authToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         List<String> list = documentPort.getPaths(site);
@@ -115,7 +113,7 @@ public class DocumentApi {
     @Operation(summary = "List site names", description = "List site names provided by the document service.")
     public Response getSiteNames(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token) {
-        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(authToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         List<String> list = documentPort.getSiteNames();
@@ -134,7 +132,7 @@ public class DocumentApi {
             @Parameter(description = "Tag name to sort by.", required = false, example = "date", schema = @Schema(type = SchemaType.STRING)) @QueryParam("sort") String sort,
             @Parameter(description = "Sort direction.", required = false, example = "asc", schema = @Schema(type = SchemaType.STRING)) @QueryParam("direction") String direction,
             @Parameter(description = "If true, documents will be listed with their content.", required = false, example = "true", schema = @Schema(type = SchemaType.BOOLEAN)) @QueryParam("content") boolean withContent) {
-        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(authToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         //properties param should be like "type:article,author:John Doe"
@@ -160,7 +158,7 @@ public class DocumentApi {
             @Parameter(description = "Tag (name:value}.", required = true, example = "type:article", schema = @Schema(type = SchemaType.STRING)) @QueryParam("tag") String tag,
             @Parameter(description = "Tag name to sort by.", required = false, example = "date", schema = @Schema(type = SchemaType.STRING)) @QueryParam("sort") String sort,
             @Parameter(description = "Sort direction.", required = false, example = "asc", schema = @Schema(type = SchemaType.STRING)) @QueryParam("direction") String direction) {
-        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(authToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         //properties param should be like "type:article,author:John Doe"
@@ -187,7 +185,7 @@ public class DocumentApi {
     public Response getDoc(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
             @Parameter(description = "Document name.", required = true, example = "/docs/doc1.md", schema = @Schema(type = SchemaType.STRING)) @QueryParam("name") String name) {
-        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(authToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         logger.debug("requesting document: " + name);
@@ -219,7 +217,7 @@ public class DocumentApi {
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
             @Parameter(description = "Text to search.", required = true, example = "keyword", schema = @Schema(type = SchemaType.STRING)) @QueryParam("text") String text,
             @Parameter(description = "Document language code or * for all supported languages", required = false, example = "en", schema = @Schema(type = SchemaType.STRING)) @QueryParam("lang") String lang) {
-        if (getDocumentAuthorizationRequired && (token == null || !token.equals(appToken))) {
+        if (getDocumentAuthorizationRequired && (token == null || !token.equals(authToken))) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         List<String> list = documentPort.searchDocuments(text, lang);
@@ -236,7 +234,7 @@ public class DocumentApi {
     public Response saveDoc(
             @Parameter(description = "Token to authorize the request.", required = true, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
             @RequestBody(description = "Document to save.", required = true) Document doc) {
-        if (token == null || !token.equals(appToken)) {
+        if (token == null || !token.equals(authToken)) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
         return Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();

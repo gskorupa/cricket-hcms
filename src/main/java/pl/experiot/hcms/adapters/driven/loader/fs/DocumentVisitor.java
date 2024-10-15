@@ -28,11 +28,13 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     String markdownFileExtension = ".md";
     String htmlFileExtension = ".html";
     String jsonFileExtension = ".json";
+    String xmlFileExtension = ".xml";
 
     GithubWikiReader githubWikiReader = new GithubWikiReader();
     HtmlReader htmlReader = new HtmlReader();
     BinaryReader binaryReader = new BinaryReader();
     JsonReader jsonReader = new JsonReader();
+    XmlReader xmlReader = new XmlReader();
 
     public void setRoot(String root) {
         this.root = root;
@@ -95,7 +97,12 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                     doc = jsonReader.getDocument();
                     doc.mediaType = "application/json";
                     //files.add(doc);
-                } else {
+                } else if (name.toLowerCase().endsWith(xmlFileExtension)) {
+                    xmlReader.parse(file);
+                    doc = xmlReader.getDocument();
+                    doc.mediaType = "application/xml";
+                    //files.add(doc);
+                }else {
                     // binary file
                     binaryReader.parse(file);
                     doc = binaryReader.getDocument();

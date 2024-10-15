@@ -105,7 +105,7 @@ public class TranslatorLogic {
                     if (language.equals(mainLanguage)) {
                         continue;
                     }
-                    if (document.binaryFile) {
+                    if (document.binaryFile && !document.mediaType.equalsIgnoreCase("application/xml")) {
                         continue;
                     }
                     logger.info("Translating: " + document.name + " to " + language);

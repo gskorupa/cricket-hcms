@@ -18,29 +18,37 @@ public class DeeplTranslator implements ForTranslatorIface {
     private static Logger logger = Logger.getLogger(DeeplTranslator.class);
 
     @Override
-    public Document translate(Document document, String sourceLanguage, String targetLanguage, Map<String, Object> options) {
+    public Document translate(Document document, String sourceLanguage, String targetLanguage,
+            Map<String, Object> options) {
         String authKey = (String) options.getOrDefault("deepl.api.key", "");
-        String[] metadataToTranslate = ((String)options.getOrDefault("deepl.doc.metadata", "")).split(",");
+        String[] metadataToTranslate = ((String) options.getOrDefault("deepl.doc.metadata", "")).split(",");
         Document translatedDocument = document.clone(true);
         try {
             logger.info("Translating (deepl) " + document.name + " from " + sourceLanguage + " to " + targetLanguage);
             Translator translator = new Translator(authKey);
-
-            // Set content translation options
             TextTranslationOptions contentTranslationOptions = new TextTranslationOptions();
-            contentTranslationOptions.setTagHandling("html");
-            contentTranslationOptions.setPreserveFormatting(true);
             HashSet<String> ignoreTags = new HashSet<>();
-            ignoreTags.add("code");
-            contentTranslationOptions.setIgnoreTags(ignoreTags);
 
+            if (document.mediaType.equalsIgnoreCase("application/xml")) {
+                // Set content translation options
+                contentTranslationOptions.setTagHandling("xml");
+                contentTranslationOptions.setPreserveFormatting(true);
+                ignoreTags.add("key");
+                contentTranslationOptions.setIgnoreTags(ignoreTags);
+            } else {
+                // Set content translation options
+                contentTranslationOptions.setTagHandling("html");
+                contentTranslationOptions.setPreserveFormatting(true);
+                ignoreTags.add("code");
+                contentTranslationOptions.setIgnoreTags(ignoreTags);
+            }
             // Set metadata translation options
             TextTranslationOptions metadataTranslationOptions = new TextTranslationOptions();
             metadataTranslationOptions.setSentenceSplittingMode(SentenceSplittingMode.NoNewlines);
-
             // Translate document content
-            TextResult result = translator.translateText(document.content, sourceLanguage, getCode(targetLanguage), contentTranslationOptions);
-            logger.debug("Translated (deepl): "+result.getText());
+            TextResult result = translator.translateText(document.content, sourceLanguage, getCode(targetLanguage),
+                    contentTranslationOptions);
+            logger.debug("Translated (deepl): " + result.getText());
             translatedDocument.content = result.getText();
 
             // Translate metadata
@@ -48,10 +56,11 @@ public class DeeplTranslator implements ForTranslatorIface {
             for (String key : metadataToTranslate) {
                 if (document.metadata.containsKey(key)) {
                     metadataValue = document.metadata.get(key);
-                    if(metadataValue == null) {
+                    if (metadataValue == null) {
                         continue;
                     }
-                    result = translator.translateText(metadataValue, sourceLanguage, getCode(targetLanguage), metadataTranslationOptions);
+                    result = translator.translateText(metadataValue, sourceLanguage, getCode(targetLanguage),
+                            metadataTranslationOptions);
                     translatedDocument.metadata.put(key, result.getText());
                 }
             }
