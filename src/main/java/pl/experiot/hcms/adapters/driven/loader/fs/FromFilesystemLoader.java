@@ -10,8 +10,8 @@ import java.util.HashMap;
 import org.jboss.logging.Logger;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
-import pl.experiot.hcms.app.logic.Document;
-import pl.experiot.hcms.app.logic.Site;
+import pl.experiot.hcms.app.logic.dto.Document;
+import pl.experiot.hcms.app.logic.dto.Site;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 import pl.experiot.hcms.app.ports.driven.ForDocumentsLoaderIface;
 
@@ -93,9 +93,21 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         files = visitor.getList();
         logger.info("found1: " + files.size() + " documents");
         Document doc;
+        Document updatedDoc;
         for (int i = 0; i < files.size(); i++) {
             // logger.info(" " + files.get(i).path);
             doc = normalize(files.get(i), siteName);
+            updatedDoc = repositoryPort.getDocument(doc.name);
+            logger.info("repository size: "+repositoryPort.getDocumentsCount());
+            // skip if the document is already in the database and has not been updated
+            if(null!=updatedDoc){
+                if(updatedDoc.updateTimestamp>=doc.updateTimestamp){
+                    logger.info("skipping not modified: " + doc.name);
+                    continue;
+                }
+            }else{
+                logger.info("not found: " + doc.name);
+            }
             doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName, site.assetsPath,
                     site.hcmsServiceLocation, site.hcmsFileApiPath);
             if (null != doc) {
@@ -143,9 +155,18 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         files = visitor.getList();
         logger.info("found2: " + files.size() + " documents");
         Document doc;
+        Document updatedDoc = null;
         for (int i = 0; i < files.size(); i++) {
             // logger.info(" " + files.get(i).path);
             doc = normalize(files.get(i), site.name);
+            updatedDoc = repositoryPort.getDocument(doc.name);
+            // skip if the document is already in the database and has not been updated
+            if(null!=updatedDoc){
+                if(updatedDoc.updateTimestamp>=doc.updateTimestamp){
+                    logger.info("skipping not modified: " + doc.name);
+                    continue;
+                }
+            }
             doc = DocumentTransformer.transform(doc, markdownFileExtension, site.name, site.assetsPath,
                     site.hcmsServiceLocation, site.hcmsFileApiPath);
             if (null != doc) {

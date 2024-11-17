@@ -1,4 +1,4 @@
-package pl.experiot.hcms.app.logic;
+package pl.experiot.hcms.app.logic.dto;
 
 public class Entry {
     public String key;

@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 import org.jboss.logging.Logger;
 
-import pl.experiot.hcms.app.logic.Document;
+import pl.experiot.hcms.app.logic.dto.Document;
 
 public class DocumentVisitor extends SimpleFileVisitor<Path> {
 

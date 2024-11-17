@@ -2,7 +2,7 @@ package pl.experiot.hcms.app.ports.driven;
 
 import java.util.Map;
 
-import pl.experiot.hcms.app.logic.Document;
+import pl.experiot.hcms.app.logic.dto.Document;
 
 public interface ForTranslatorIface {
     

@@ -14,8 +14,8 @@ import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Response;
-import pl.experiot.hcms.app.logic.Document;
-import pl.experiot.hcms.app.logic.Dictionary;
+import pl.experiot.hcms.app.logic.dto.Dictionary;
+import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driving.ForDictionaryIface;
 import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
 

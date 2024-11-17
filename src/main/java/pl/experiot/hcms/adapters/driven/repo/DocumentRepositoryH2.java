@@ -9,7 +9,7 @@ import org.jboss.logging.Logger;
 
 import io.agroal.api.AgroalDataSource;
 import io.vertx.mutiny.core.eventbus.EventBus;
-import pl.experiot.hcms.app.logic.Document;
+import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 
 public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
@@ -26,14 +26,15 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
         // create database tables
         logger.debug("Document repository initializing (H2) ...");
 
+        String sql;
         // drop to update structure if needed
-        String sql = "DROP TABLE IF EXISTS documents; DROP TABLE IF EXISTS metadata";
+        /* sql = "DROP TABLE IF EXISTS documents; DROP TABLE IF EXISTS metadata";
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.createStatement()) {
             statement.execute(sql);
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        } */
 
         // create table documents
         sql = "CREATE TABLE IF NOT EXISTS documents ("
@@ -86,8 +87,11 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                 var statement = connection.createStatement()) {
             statement.execute(sql2);
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            logger.warn("It's probably OK if this isn't your first time running it: "+e.getMessage());
         }
+
+        logger.info("Document repository initialized. Document count: " + getDocumentsCount());
 
     }
 

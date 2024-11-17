@@ -2,7 +2,7 @@ package pl.experiot.hcms.adapters.driven.loader.test;
 
 import java.util.HashMap;
 
-import pl.experiot.hcms.app.logic.Site;
+import pl.experiot.hcms.app.logic.dto.Site;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 import pl.experiot.hcms.app.ports.driven.ForDocumentsLoaderIface;
 

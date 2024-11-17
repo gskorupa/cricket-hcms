@@ -10,7 +10,7 @@ import com.deepl.api.TextResult;
 import com.deepl.api.TextTranslationOptions;
 import com.deepl.api.Translator;
 
-import pl.experiot.hcms.app.logic.Document;
+import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driven.ForTranslatorIface;
 
 public class DeeplTranslator implements ForTranslatorIface {

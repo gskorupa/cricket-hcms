@@ -15,6 +15,7 @@ import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 import pl.experiot.hcms.app.ports.driven.ForMultilanguageRepoModelIface;
 import pl.experiot.hcms.app.ports.driven.ForTranslatorIface;

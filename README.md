@@ -28,6 +28,6 @@ Note: Cricket HCMS does not offer a web-based interface for document creation or
 -->
 ## How to use Cricket HCMS
 
-Documentation is available in `documents` folder - look at [index file](documentation/index.md) to read.
+Documentation is available in `documents/documentation/en` folder - look at [index file](documents/documentation//en/index.md) to read.
 
-To read the same documentation on the live demo follow [Running with Docker Compose](documentation/running-with-docker-compose.md) and then open [http://localhost:8080](http://localhost:8080) in your browser.
+To read the same documentation on the live demo follow [Running with Docker Compose](documents/documentation/en/development/running-with-docker-compose.md) and then open [http://localhost:8080](http://localhost:8080) in your browser.

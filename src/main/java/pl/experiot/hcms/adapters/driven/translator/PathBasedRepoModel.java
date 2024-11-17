@@ -1,6 +1,6 @@
 package pl.experiot.hcms.adapters.driven.translator;
 
-import pl.experiot.hcms.app.logic.Document;
+import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driven.ForMultilanguageRepoModelIface;
 
 public class PathBasedRepoModel implements ForMultilanguageRepoModelIface {

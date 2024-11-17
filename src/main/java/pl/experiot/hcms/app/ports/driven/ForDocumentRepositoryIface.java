@@ -5,7 +5,7 @@ import java.util.List;
 
 import io.agroal.api.AgroalDataSource;
 import io.vertx.mutiny.core.eventbus.EventBus;
-import pl.experiot.hcms.app.logic.Document;
+import pl.experiot.hcms.app.logic.dto.Document;
 
 public interface ForDocumentRepositoryIface {
     public List<Document> getDocuments(String path, boolean withContent);

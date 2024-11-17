@@ -17,6 +17,8 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import pl.experiot.hcms.adapters.driving.DummyWatcher;
 import pl.experiot.hcms.adapters.driving.FolderWatcher;
+import pl.experiot.hcms.app.logic.dto.Document;
+import pl.experiot.hcms.app.logic.dto.Site;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 import pl.experiot.hcms.app.ports.driven.ForDocumentsLoaderIface;
 import pl.experiot.hcms.app.ports.driven.ForTranslatorIface;

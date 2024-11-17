@@ -11,7 +11,7 @@ import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 
-import pl.experiot.hcms.app.logic.Document;
+import pl.experiot.hcms.app.logic.dto.Document;
 
 public class DocumentTransformer {
     private static Logger logger = Logger.getLogger(DocumentTransformer.class);

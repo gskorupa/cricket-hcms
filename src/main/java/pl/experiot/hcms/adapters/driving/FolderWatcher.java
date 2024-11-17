@@ -13,7 +13,7 @@ import java.util.List;
 
 import org.jboss.logging.Logger;
 
-import pl.experiot.hcms.app.logic.Site;
+import pl.experiot.hcms.app.logic.dto.Site;
 import pl.experiot.hcms.app.ports.driven.ForDocumentsLoaderIface;
 import pl.experiot.hcms.app.ports.driving.ForChangeWatcherIface;
 

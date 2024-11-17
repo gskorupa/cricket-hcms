@@ -11,7 +11,7 @@ Cricket HCMS is a headless content management system designed for developers loo
 -->
 <p align="center">
     <!--<img src="./assets/cricket-logo.svg" width="20%">-->
-    <img src="./assets/hcms2.png" class="w-100">
+    <img src="../assets/hcms2.png" class="w-100">
 </p>
 
 ## Introduction
@@ -40,6 +40,7 @@ The demo hcms service is configured to read documents from the `documents` folde
 - Reload content database when changes are detected on disk or on user request
 - Serving binary files (e.g. images, PDFs, etc.)
 - Multi-site support
+- Multi-language support (automatic translation of content)
 
 Release history is available in the [history](history.md) document.
 

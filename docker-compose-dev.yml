@@ -18,7 +18,7 @@ services:
       #WATCHER_TYPE: filesystem
       HCMS_REPOSITORY_LANGUAGE_MAIN: en
       HCMS_REPOSITORY_LANGUAGES: en,pl
-      HCMS_TRANSLATOR_TYPE: deepl
+      #HCMS_TRANSLATOR_TYPE: deepl
       AUTH_TOKEN: 123
       DEEPL_API_KEY_FILE: /run/secrets/deepl_api_key
     expose:
@@ -27,6 +27,7 @@ services:
       - "8082:8080"
     volumes:
       - $PWD:/home/jboss/documents
+      - $PWD/database:/home/jboss/database:rw
     networks:
       - hcms
     secrets:

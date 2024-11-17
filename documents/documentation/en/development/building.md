@@ -17,7 +17,7 @@ Script `build-image.sh` can be used to build and publish the Cricket HCMS Docker
 sh build-image.sh .env
 ```
 
-The same script camn be used to build local (development version) image withou publishing it to the repository.
+The same script can be used to build local (development version) image without publishing it to the repository.
 
 ```shell
 sh build-image.sh dev.env

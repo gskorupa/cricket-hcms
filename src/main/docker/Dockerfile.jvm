@@ -90,6 +90,7 @@ COPY --chown=185 target/quarkus-app/quarkus/ /deployments/quarkus/
 
 VOLUME /documents
 WORKDIR /documents
+VOLUME /database
 
 EXPOSE 8080
 USER 185

@@ -2,7 +2,7 @@ package pl.experiot.hcms.adapters.driven.translator;
 
 import java.util.Map;
 
-import pl.experiot.hcms.app.logic.Document;
+import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driven.ForTranslatorIface;
 
 public class DummyTranslator implements ForTranslatorIface {

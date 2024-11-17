@@ -1,4 +1,4 @@
-package pl.experiot.hcms.app.logic;
+package pl.experiot.hcms.app.logic.dto;
 
 import java.util.HashSet;
 

@@ -1,5 +1,5 @@
 package pl.experiot.hcms.app.ports.driven;
-import pl.experiot.hcms.app.logic.Document;
+import pl.experiot.hcms.app.logic.dto.Document;
 
 public interface ForMultilanguageRepoModelIface {
     public void setRepoLanguages(String[] languages);

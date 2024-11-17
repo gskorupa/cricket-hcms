@@ -9,7 +9,7 @@ import org.jboss.logging.Logger;
 
 import io.agroal.api.AgroalDataSource;
 import io.vertx.mutiny.core.eventbus.EventBus;
-import pl.experiot.hcms.app.logic.Document;
+import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 
 public class DocumentRepository implements ForDocumentRepositoryIface {

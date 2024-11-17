@@ -3,7 +3,7 @@ package pl.experiot.hcms.app.ports.driven;
 import java.util.HashMap;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
-import pl.experiot.hcms.app.logic.Site;
+import pl.experiot.hcms.app.logic.dto.Site;
 
 public interface ForDocumentsLoaderIface {
 

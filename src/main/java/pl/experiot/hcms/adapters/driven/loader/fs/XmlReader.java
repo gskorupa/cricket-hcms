@@ -6,7 +6,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import pl.experiot.hcms.app.logic.Document;
+
+import pl.experiot.hcms.app.logic.dto.Document;
 
 public class XmlReader {
 
