@@ -120,7 +120,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                 documents.put(doc.name, doc);
 
             } else {
-                logger.info("excluded: " + path);
+                logger.debug("excluded: " + path);
             }
         } else {
             // not a regular file nor a symbolic link

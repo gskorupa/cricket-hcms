@@ -98,16 +98,12 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             // logger.info(" " + files.get(i).path);
             doc = normalize(files.get(i), siteName);
             updatedDoc = repositoryPort.getDocument(doc.name);
-            logger.info("repository size: "+repositoryPort.getDocumentsCount());
-            // skip if the document is already in the database and has not been updated
-            if(null!=updatedDoc){
-                if(updatedDoc.updateTimestamp>=doc.updateTimestamp){
-                    logger.info("skipping not modified: " + doc.name);
-                    continue;
-                }
-            }else{
-                logger.info("not found: " + doc.name);
+            /*
+            if(null==updatedDoc || updatedDoc.updateTimestamp<doc.updateTimestamp){
+                doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName, site.assetsPath,
+                    site.hcmsServiceLocation, site.hcmsFileApiPath);
             }
+            */
             doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName, site.assetsPath,
                     site.hcmsServiceLocation, site.hcmsFileApiPath);
             if (null != doc) {

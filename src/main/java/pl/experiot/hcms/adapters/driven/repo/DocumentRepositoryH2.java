@@ -308,7 +308,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             e.printStackTrace();
         }
         addMetadata(doc.name, doc.metadata);
-        eventBus.publish(queueName, doc.name);
+        eventBus.publish(queueName, doc.name+";"+doc.updateTimestamp);
     }
 
     @Override

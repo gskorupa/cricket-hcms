@@ -88,7 +88,7 @@ public class TranslatorLogic {
     }
 
     @ConsumeEvent("to-translate")
-    public void translate(String documentName) {
+    public void translate(String documentData) {
         if (repositoryPort == null) {
             repositoryPort = configurator.getRepositoryPort();
             repositoryPort.setEventBus(bus, queueName);
@@ -99,8 +99,16 @@ public class TranslatorLogic {
         if (localizationModelPort == null) {
             localizationModelPort = configurator.getRepoModelPort();
         }
+        String[] params=documentData.split(";");
+        String documentName =   params[0];
+        long updateTimestamp = Long.MAX_VALUE;
+        try{
+            updateTimestamp = Long.parseLong(params[1]);
+        }catch(Exception e){
+            logger.error("Error parsing updateTimestamp: "+params[1]);
+        }
         Document document = repositoryPort.getDocument(documentName);
-        if (document != null) {
+        if (document != null && document.updateTimestamp < updateTimestamp) {
             if (localizationModelPort.getDocumentLanguage(document).equals(mainLanguage)) {
                 for (String language : languages) {
                     if (language.equals(mainLanguage)) {
