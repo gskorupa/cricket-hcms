@@ -1,10 +1,9 @@
 package pl.experiot.hcms.app.ports.driven;
 
-import java.util.HashMap;
-import java.util.List;
-
 import io.agroal.api.AgroalDataSource;
 import io.vertx.mutiny.core.eventbus.EventBus;
+import java.util.HashMap;
+import java.util.List;
 import pl.experiot.hcms.app.logic.dto.Document;
 
 public interface ForDocumentRepositoryIface {
@@ -17,6 +16,7 @@ public interface ForDocumentRepositoryIface {
     public Document findFirstDocument(String path, String metadataName, String metadataValue, boolean withContent, String sortBy, String sortOrder);
     public List<Document> filter(List<Document> docs, String metadataName, String metadataValue);
     public Document getDocument(String path);
+    public void addDocument(Document doc, String origin);
     public void addDocument(Document doc);
     public void deleteDocument(String path);
     public long getDocumentsCount();
@@ -27,5 +27,6 @@ public interface ForDocumentRepositoryIface {
     public void addMetadata(String name, HashMap<String, String> metadata);
     public void deleteMetadata(String name);
     public List<String> searchDocuments(String textToSearch, String languageCode);
+    public long getPreviousUpdateTimestamp(String documentName);
     public void setEventBus(EventBus eventBus, String queName);
 }

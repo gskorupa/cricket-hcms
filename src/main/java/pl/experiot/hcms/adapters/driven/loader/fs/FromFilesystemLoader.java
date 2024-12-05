@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.jboss.logging.Logger;
 
@@ -198,7 +199,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
     }
 
     private void listAll() {
-        ArrayList<Document> docs = (ArrayList<Document>) repositoryPort.getAllDocuments(false);
+        List<Document> docs = (List<Document>) repositoryPort.getAllDocuments(false);
         logger.info("repositoryPort database size: " + docs.size());
         logger.info("listing all documents");
         for (Document doc : docs) {

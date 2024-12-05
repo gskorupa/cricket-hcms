@@ -1,13 +1,5 @@
 package pl.experiot.hcms.app.logic;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
-
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.vertx.ConsumeEvent;
@@ -15,6 +7,12 @@ import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 import pl.experiot.hcms.app.ports.driven.ForMultilanguageRepoModelIface;
@@ -100,15 +98,22 @@ public class TranslatorLogic {
             localizationModelPort = configurator.getRepoModelPort();
         }
         String[] params=documentData.split(";");
-        String documentName =   params[0];
-        long updateTimestamp = Long.MAX_VALUE;
-        try{
-            updateTimestamp = Long.parseLong(params[1]);
-        }catch(Exception e){
-            logger.error("Error parsing updateTimestamp: "+params[1]);
+        if(params.length<2){
+            logger.error("Invalid document data: "+documentData);
+            return;
         }
+        String documentName =   params[0];
+    
         Document document = repositoryPort.getDocument(documentName);
-        if (document != null && document.updateTimestamp < updateTimestamp) {
+        if(document==null){
+            logger.error("Document not found: "+documentName);
+            return;
+        }
+        long updateTimestamp = Long.parseLong(params[1]);
+        long previousTimestamp = repositoryPort.getPreviousUpdateTimestamp(documentName);
+        logger.info("Translating: " + documentName + " with timestamps: "+updateTimestamp+" "+previousTimestamp);
+
+        if (previousTimestamp < updateTimestamp) {
             if (localizationModelPort.getDocumentLanguage(document).equals(mainLanguage)) {
                 for (String language : languages) {
                     if (language.equals(mainLanguage)) {
@@ -122,12 +127,14 @@ public class TranslatorLogic {
                             getOptions());
                     if (null != translatedDocument) {
                         translatedDocument = localizationModelPort.setDocumentLanguage(translatedDocument, language);
-                        repositoryPort.addDocument(translatedDocument);
+                        repositoryPort.addDocument(translatedDocument, documentName);
                     }
                 }
             } else {
-                logger.info("Skipping: " + document.name);
+                logger.debug("Skipping (main language): " + document.name);
             }
+        }else{
+            logger.info("Skipping: "+document.name+" - up to date: "+previousTimestamp+">="+updateTimestamp);
         }
     }
 

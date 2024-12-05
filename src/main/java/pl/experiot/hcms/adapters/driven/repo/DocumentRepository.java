@@ -1,14 +1,12 @@
 package pl.experiot.hcms.adapters.driven.repo;
 
+import io.agroal.api.AgroalDataSource;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.jboss.logging.Logger;
-
-import io.agroal.api.AgroalDataSource;
-import io.vertx.mutiny.core.eventbus.EventBus;
 import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 
@@ -111,6 +109,11 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
 
     @Override
     public void addDocument(Document doc) {
+        addDocument(doc, "");
+    }
+
+    @Override
+    public void addDocument(Document doc, String origin) {
         if(!reloadInProgress){
             //TODO: for real, not in memory database, this won't be needed
             return;
@@ -234,6 +237,12 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
         docs.add("doc2");
         return docs;
         // TODO: filter by languageCode
+    }
+
+    @Override
+    public long getPreviousUpdateTimestamp(String documentName) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'getPreviousUpdateTimestamp'");
     }
 
 }

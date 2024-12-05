@@ -16,7 +16,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
 
     private static Logger logger = Logger.getLogger(DocumentRepositoryH2.class);
     private EventBus eventBus;
-    private String queueName=null;
+    private String queueName = null;
 
     private static AgroalDataSource defaultDataSource;
 
@@ -48,7 +48,8 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                 + "created TIMESTAMP, "
                 + "modified TIMESTAMP,"
                 + "refreshed TIMESTAMP,"
-                + "site VARCHAR(255)"
+                + "site VARCHAR(255),"
+                + "origin VARCHAR(255) DEFAULT ''"
                 + "); commit;";
 
         try (var connection = defaultDataSource.getConnection();
@@ -89,6 +90,28 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
         } catch (Exception e) {
             //e.printStackTrace();
             logger.warn("It's probably OK if this isn't your first time running it: "+e.getMessage());
+        }
+
+        // document update timestamp by language
+        sql = "CREATE TABLE IF NOT EXISTS document_updates ("
+                + "name VARCHAR(255) NOT NULL, "
+                + "modification_ts TIMESTAMP NOT NULL,"
+                + "ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP"
+                + ");";
+
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.createStatement()) {
+            statement.execute(sql);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // create index
+        sql = "CREATE INDEX IF NOT EXISTS document_updates_idx ON document_updates (name, ts);";
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.createStatement()) {
+            statement.execute(sql);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         logger.info("Document repository initialized. Document count: " + getDocumentsCount());
@@ -274,16 +297,25 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
 
     @Override
     public void addDocument(Document doc) {
+        addDocument(doc, "");
+    }
+
+    @Override
+    public void addDocument(Document doc, String origin) {
         logger.info("addDocumentToH2: " + doc.name);
-/*         if(getAllDocuments(false).size()>100){
-            logger.info("Too many documents in the repository. Skipping adding document: " + doc.name);
-            return;
-        } */
+        /*
+         * if(getAllDocuments(false).size()>100){
+         * logger.
+         * info("Too many documents in the repository. Skipping adding document: " +
+         * doc.name);
+         * return;
+         * }
+         */
         deleteMetadata(doc.name);
         String sql = """
-                MERGE INTO documents (path, name, file_name, content, binary, binary_content, created, modified, refreshed, media_type, site)
+                MERGE INTO documents (path, name, file_name, content, binary, binary_content, created, modified, refreshed, media_type, site, origin)
                 KEY (NAME)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """;
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(sql)) {
@@ -302,13 +334,53 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             statement.setTimestamp(9, new java.sql.Timestamp(doc.refreshTimestamp));
             statement.setString(10, doc.mediaType);
             statement.setString(11, doc.siteName);
+            statement.setString(12, origin);
             statement.executeUpdate();
         } catch (Exception e) {
             logger.error("Error adding document: " + doc.path);
             e.printStackTrace();
         }
         addMetadata(doc.name, doc.metadata);
-        eventBus.publish(queueName, doc.name+";"+doc.updateTimestamp);
+        updateDocumentTimestamp(doc);
+        eventBus.publish(queueName, doc.name + ";" + doc.updateTimestamp);
+    }
+
+    private void updateDocumentTimestamp(Document doc) {
+        String sql = "INSERT INTO document_updates (name, modification_ts) VALUES (?, ?)";
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.prepareStatement(sql)) {
+            statement.setString(1, doc.name);
+            statement.setTimestamp(2, new java.sql.Timestamp(doc.updateTimestamp));
+            statement.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Get document's previous update timestamp.
+     */
+    @Override
+    public long getPreviousUpdateTimestamp(String documentName) {
+        String sql = "SELECT modification_ts FROM document_updates WHERE name = ? ORDER BY modification_ts DESC LIMIT 2";
+        long[] timestamps = new long[2];
+        timestamps[0] = 0;
+        timestamps[1] = 0;
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.prepareStatement(sql)) {
+            statement.setString(1, documentName);
+            try (var resultSet = statement.executeQuery()) {
+                int i = 0;
+                while (resultSet.next()) {
+                    timestamps[i] = resultSet.getTimestamp("modification_ts").getTime();
+                    i++;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        logger.info("Last update timestamps: " + timestamps[0] + " " + timestamps[1]);
+        return timestamps[1];
     }
 
     @Override
@@ -352,7 +424,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
         // timestamp -
         // it means that they were not been read from file system during the last reload
         // (they were deleted)
-        String sql = "DELETE FROM documents WHERE name LIKE ? AND refreshed < ?";
+/*         String sql = "DELETE FROM documents WHERE name LIKE ? AND refreshed < ?";
         try (var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(sql)) {
             statement.setString(1, "/" + siteName + "/%");
@@ -361,7 +433,48 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             logger.info("Documents removed: " + rows);
         } catch (Exception e) {
             e.printStackTrace();
+        } */
+
+        // get document names
+        ArrayList<String> docNames = new ArrayList<>();
+        String sql = "SELECT name FROM documents WHERE name LIKE ? AND refreshed < ?";
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.prepareStatement(sql)) {
+            statement.setString(1, "/" + siteName + "/%");
+            statement.setTimestamp(2, new java.sql.Timestamp(timestamp));
+            try (var resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    docNames.add(resultSet.getString("name"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        docNames.forEach((name) -> {
+            deleteLanguageVersions(sql);
+            deleteDocument(name);
+            deleteMetadata(siteName);
+        });
+    }
+
+    private void deleteLanguageVersions(String origin) {
+        ArrayList<String> docNames = new ArrayList<>();
+        String sql = "SELECT name FROM documents WHERE origin=?";
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.prepareStatement(sql)) {
+            statement.setString(1, origin);
+            try (var resultSet = statement.executeQuery()) {
+                while (resultSet.next()) {
+                    docNames.add(resultSet.getString("name"));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        docNames.forEach((name) -> {
+            deleteDocument(name);
+            deleteMetadata(name);
+        });
     }
 
     private String getExtendedLogMessage(int level, String message) {
@@ -419,6 +532,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                 statement.executeUpdate();
             }
         } catch (Exception e) {
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
     }
@@ -552,8 +666,9 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             try (ResultSet resultSet = statement.executeQuery()) {
                 String documentName;
                 while (resultSet.next()) {
-                    documentName=resultSet.getString(4);
-                    // remove [ and ] from beginning and end of the document name, because H2 full text search returns array of strings here
+                    documentName = resultSet.getString(4);
+                    // remove [ and ] from beginning and end of the document name, because H2 full
+                    // text search returns array of strings here
                     documentName = documentName.substring(1, documentName.length() - 1);
                     docs.add(documentName);
                 }
