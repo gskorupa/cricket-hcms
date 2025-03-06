@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>pl.experiot.hcms</groupId>
   <artifactId>cricket-hcms</artifactId>
-  <version>latest</version>
+  <version>1.2.3</version>
   <properties>
     <compiler-plugin.version>3.13.0</compiler-plugin.version>
     <maven.compiler.release>21</maven.compiler.release>
@@ -89,6 +89,14 @@
       <groupId>com.deepl.api</groupId>
       <artifactId>deepl-java</artifactId>
       <version>1.5.1</version>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-rest-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-rest-client-jackson</artifactId>
     </dependency>
   </dependencies>
   <build>
