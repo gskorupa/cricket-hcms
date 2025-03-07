@@ -23,6 +23,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import pl.experiot.hcms.adapters.driven.auth.SignomixAuthClient;
+import pl.experiot.hcms.app.logic.DocumentAccessLogic;
+import pl.experiot.hcms.app.logic.TokenCache;
 import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.logic.dto.User;
 import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
@@ -41,6 +43,12 @@ public class DocumentApi {
     @Inject
     Logger logger;
 
+    @Inject
+    TokenCache tokenCache;
+    @Inject
+    DocumentAccessLogic documentAccessLogic;
+
+
     @ConfigProperty(name = "auth.token")
     String authToken;
     @ConfigProperty(name = "get.document.authorization.required")
@@ -57,7 +65,7 @@ public class DocumentApi {
     @APIResponseSchema(value = List.class, responseDescription = "List of document objects.", responseCode = "200")
     @Operation(summary = "List documents", description = "List documents with the specified path. If the result is a single document and it is a binary file, the file will be returned as a download.")
     public Response getDocs(
-            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("Authorization") String token,
             @Parameter(description = "If true, documents will be listed with their content.", required = false, example = "true", schema = @Schema(type = SchemaType.BOOLEAN)) @QueryParam("content") boolean withContent,
             @Parameter(description = "Path to the document or directory. If not provided, the root directory will be listed.", required = false, example = "/documentation/", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path) {
 
@@ -108,7 +116,7 @@ public class DocumentApi {
     @APIResponseSchema(value = List.class, responseDescription = "List of document paths.", responseCode = "200")
     @Operation(summary = "List paths", description = "List paths of documents in the specified site.")
     public Response getPaths(
-            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("Authorization") String token,
             @Parameter(description = "Site name.", required = true, example = "site1", schema = @Schema(type = SchemaType.STRING)) @QueryParam("site") String site) {
         if (getDocumentAuthorizationRequired) {
             User user = getUser(token);
@@ -126,7 +134,7 @@ public class DocumentApi {
     @APIResponseSchema(value = List.class, responseDescription = "List of site names.", responseCode = "200")
     @Operation(summary = "List site names", description = "List site names provided by the document service.")
     public Response getSiteNames(
-            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token) {
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("Authorization") String token) {
         if (getDocumentAuthorizationRequired) {
             User user = getUser(token);
             if (user == null) {
@@ -143,7 +151,7 @@ public class DocumentApi {
     @APIResponseSchema(value = List.class, responseDescription = "List of document objects.", responseCode = "200")
     @Operation(summary = "Find documents", description = "Find documents with the specified path and tag (name:value). Path is optional.")
     public Response findDocs(
-            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("Authorization") String token,
             @Parameter(description = "Path to the document or directory. Default \"/\"", required = false, example = "/documentation/", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path,
             @Parameter(description = "Tag (name:value}.", required = true, example = "type:article", schema = @Schema(type = SchemaType.STRING)) @QueryParam("tag") String tag,
             @Parameter(description = "Tag name to sort by.", required = false, example = "date", schema = @Schema(type = SchemaType.STRING)) @QueryParam("sort") String sort,
@@ -174,7 +182,7 @@ public class DocumentApi {
     @APIResponseSchema(value = Document.class, responseDescription = "First document matching rules", responseCode = "200")
     @Operation(summary = "Find first document", description = "Find documents with the specified path and tag (name:value). Path is optional.")
     public Response findFirst(
-            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("Authorization") String token,
             @Parameter(description = "Path to the document or directory. Default \"/\"", required = false, example = "/documentation/", schema = @Schema(type = SchemaType.STRING)) @QueryParam("path") String path,
             @Parameter(description = "Tag (name:value}.", required = true, example = "type:article", schema = @Schema(type = SchemaType.STRING)) @QueryParam("tag") String tag,
             @Parameter(description = "Tag name to sort by.", required = false, example = "date", schema = @Schema(type = SchemaType.STRING)) @QueryParam("sort") String sort,
@@ -207,14 +215,21 @@ public class DocumentApi {
     @APIResponseSchema(value = Document.class, responseDescription = "Document object.", responseCode = "200")
     @Operation(summary = "Get document", description = "Get a document (JSON object) with the specified path. If the document is a binary file, the file will be returned as a download.")
     public Response getDoc(
-            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("Authorization") String token,
             @Parameter(description = "Document name.", required = true, example = "/docs/doc1.md", schema = @Schema(type = SchemaType.STRING)) @QueryParam("name") String name) {
-        if (getDocumentAuthorizationRequired) {
-            User user = getUser(token);
+        User user = null;
+        if (token != null && !token.isEmpty()) {
+            if (tokenCache.containsToken(token)) {
+                user = tokenCache.getUser(token);
+            } else {
+                user = getUser(token);
+                tokenCache.addToken(token, user);
+            }
             if (user == null) {
                 return Response.status(Response.Status.UNAUTHORIZED).build();
             }
         }
+        name=documentAccessLogic.getOrganizationDocName(name, user);
         logger.debug("requesting document: " + name);
         Document doc = documentPort.getDocument(name);
         if (doc == null) {
@@ -241,7 +256,7 @@ public class DocumentApi {
     @APIResponseSchema(value = List.class, responseDescription = "List of document names.", responseCode = "200")
     @Operation(summary = "Full text search", description = "Search documents with the specified text.")
     public Response searchDocs(
-            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("Authorization") String token,
             @Parameter(description = "Text to search.", required = true, example = "keyword", schema = @Schema(type = SchemaType.STRING)) @QueryParam("text") String text,
             @Parameter(description = "Document language code or * for all supported languages", required = false, example = "en", schema = @Schema(type = SchemaType.STRING)) @QueryParam("lang") String lang) {
         if (getDocumentAuthorizationRequired) {
@@ -261,7 +276,7 @@ public class DocumentApi {
     @APIResponseSchema(value = String.class, responseDescription = "Document saved.", responseCode = "200")
     @Operation(summary = "Save document to the storage", description = "Save a document. The document must be provided in the request body.")
     public Response saveDoc(
-            @Parameter(description = "Token to authorize the request.", required = true, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("X-app-token") String token,
+            @Parameter(description = "Token to authorize the request.", required = true, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("Authorization") String token,
             @RequestBody(description = "Document to save.", required = true) Document doc) {
         if (getDocumentAuthorizationRequired) {
             User user = getUser(token);
