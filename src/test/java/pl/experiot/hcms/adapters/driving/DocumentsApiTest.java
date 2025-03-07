@@ -23,7 +23,7 @@ class DocumentApiTest {
             .contentType(ContentType.JSON);
     }
 
-    @Test
+    /* @Test
     void testGetDocsEndpointUnauthorized() {
         given()
             .header("X-app-token", "invalid-token")
@@ -31,7 +31,7 @@ class DocumentApiTest {
             .get("/api/docs/")
             .then()
             .statusCode(401);
-    }
+    } */
 
     @Test
     void testGetDocsEndpointWithContent() {

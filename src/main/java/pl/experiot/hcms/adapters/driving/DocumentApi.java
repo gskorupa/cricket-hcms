@@ -48,7 +48,6 @@ public class DocumentApi {
     @Inject
     DocumentAccessLogic documentAccessLogic;
 
-
     @ConfigProperty(name = "auth.token")
     String authToken;
     @ConfigProperty(name = "get.document.authorization.required")
@@ -215,9 +214,10 @@ public class DocumentApi {
     @APIResponseSchema(value = Document.class, responseDescription = "Document object.", responseCode = "200")
     @Operation(summary = "Get document", description = "Get a document (JSON object) with the specified path. If the document is a binary file, the file will be returned as a download.")
     public Response getDoc(
-            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("Authorization") String token,
+            @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("Authentication") String token,
             @Parameter(description = "Document name.", required = true, example = "/docs/doc1.md", schema = @Schema(type = SchemaType.STRING)) @QueryParam("name") String name) {
         User user = null;
+        logger.info("token: " + token);
         if (token != null && !token.isEmpty()) {
             if (tokenCache.containsToken(token)) {
                 user = tokenCache.getUser(token);
@@ -229,8 +229,8 @@ public class DocumentApi {
                 return Response.status(Response.Status.UNAUTHORIZED).build();
             }
         }
-        name=documentAccessLogic.getOrganizationDocName(name, user);
-        logger.debug("requesting document: " + name);
+        name = documentAccessLogic.getOrganizationDocName(name, user);
+        logger.info("requesting document: " + name);
         Document doc = documentPort.getDocument(name);
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -307,9 +307,13 @@ public class DocumentApi {
         if (token == null || token.isEmpty()) {
             return null;
         }
-        Response response = authClient.getUser(token);
-        if (response.getStatus() == 200) {
-            return response.readEntity(User.class);
+        try {
+            Response response = authClient.getUser(token);
+            if (response.getStatus() == 200) {
+                return response.readEntity(User.class);
+            }
+        } catch (Exception e) {
+            logger.warn("Error getting user: " + e.getMessage());
         }
         return null;
     }

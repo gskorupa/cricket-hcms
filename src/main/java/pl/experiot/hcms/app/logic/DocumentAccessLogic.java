@@ -32,11 +32,16 @@ public class DocumentAccessLogic {
         if(user.organization!=null){
             prefix="/"+user.organization;
         }
-        if(user.tenant!=null){
+        if(user.tenant!=null && user.tenant>0){
             prefix+="/"+user.tenant;
         }
         if(prefix.length()>0){
-            return prefix+"/"+documentName;
+            int secondSlash = documentName.indexOf("/",1);
+            if(secondSlash>0){
+                return documentName.substring(0,secondSlash)+prefix+documentName.substring(secondSlash);
+            }else{
+                return documentName+prefix;
+            }
         }
         return documentName;
     }
