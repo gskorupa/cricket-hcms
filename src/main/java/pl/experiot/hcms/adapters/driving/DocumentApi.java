@@ -311,6 +311,8 @@ public class DocumentApi {
             Response response = authClient.getUser(token);
             if (response.getStatus() == 200) {
                 return response.readEntity(User.class);
+            }else{
+                logger.warn("Error getting user. Code: " + response.getStatus());
             }
         } catch (Exception e) {
             logger.warn("Error getting user: " + e.getMessage());
