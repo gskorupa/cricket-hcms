@@ -54,6 +54,8 @@ public class DocumentApi {
     boolean getDocumentAuthorizationRequired;
     @ConfigProperty(name = "document.folders.indexes")
     String indexes;
+    @ConfigProperty(name = "document.folders.restricted")
+    String restrictedFolders;
 
     @RestClient
     SignomixAuthClient authClient;
@@ -218,15 +220,17 @@ public class DocumentApi {
             @Parameter(description = "Document name.", required = true, example = "/docs/doc1.md", schema = @Schema(type = SchemaType.STRING)) @QueryParam("name") String name) {
         User user = null;
         logger.info("token: " + token);
-        if (token != null && !token.isEmpty()) {
-            if (tokenCache.containsToken(token)) {
-                user = tokenCache.getUser(token);
-            } else {
-                user = getUser(token);
-                tokenCache.addToken(token, user);
-            }
-            if (user == null) {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
+        if (isRestrictedFolder(name)) {
+            if (token != null && !token.isEmpty()) {
+                if (tokenCache.containsToken(token)) {
+                    user = tokenCache.getUser(token);
+                } else {
+                    user = getUser(token);
+                    tokenCache.addToken(token, user);
+                }
+                if (user == null) {
+                    return Response.status(Response.Status.UNAUTHORIZED).build();
+                }
             }
         }
         name = documentAccessLogic.getOrganizationDocName(name, user);
@@ -311,13 +315,28 @@ public class DocumentApi {
             Response response = authClient.getUser(token);
             if (response.getStatus() == 200) {
                 return response.readEntity(User.class);
-            }else{
+            } else {
                 logger.warn("Error getting user. Code: " + response.getStatus());
             }
         } catch (Exception e) {
             logger.warn("Error getting user: " + e.getMessage());
         }
         return null;
+    }
+
+    private boolean isRestrictedFolder(String documentName) {
+        if(restrictedFolders==null || restrictedFolders.isEmpty()){
+            return false;
+        }
+        String[] folders = restrictedFolders.split(";");
+        for (String folder : folders) {
+            // check if the document name starts with the restricted folder name
+            // document name starts with "/" so we need to add it to the folder name
+            if (documentName.startsWith("/"+folder)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
