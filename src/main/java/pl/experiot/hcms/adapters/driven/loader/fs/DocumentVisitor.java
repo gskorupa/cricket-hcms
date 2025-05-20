@@ -3,7 +3,6 @@ package pl.experiot.hcms.adapters.driven.loader.fs;
 import static java.nio.file.FileVisitResult.CONTINUE;
 
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.net.URLConnection;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
@@ -11,9 +10,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.HashMap;
-
 import org.jboss.logging.Logger;
-
 import pl.experiot.hcms.app.logic.dto.Document;
 
 public class DocumentVisitor extends SimpleFileVisitor<Path> {
@@ -36,10 +33,20 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     JsonReader jsonReader = new JsonReader();
     XmlReader xmlReader = new XmlReader();
 
+    /**
+     * Set the root directory for the document visitor.
+     *
+     * @param root The root directory.
+     */
     public void setRoot(String root) {
         this.root = root;
     }
 
+    /**
+     * Set the syntax for the document visitor.
+     *
+     * @param syntax The syntax.
+     */
     public void setSyntax(String syntax) {
         this.syntax = syntax;
     }
@@ -67,8 +74,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     }
 
     @Override
-    public FileVisitResult visitFile(Path file,
-            BasicFileAttributes attr) {
+    public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
         String name;
         String path;
         String fileName;
@@ -102,23 +108,24 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                     doc = xmlReader.getDocument();
                     doc.mediaType = "application/xml";
                     //files.add(doc);
-                }else {
+                } else {
                     // binary file
                     binaryReader.parse(file);
                     doc = binaryReader.getDocument();
                     doc.binaryFile = true;
-                    doc.mediaType = URLConnection.guessContentTypeFromName(fileName);
+                    doc.mediaType = URLConnection.guessContentTypeFromName(
+                        fileName
+                    );
                 }
                 doc.name = path;
                 doc.path = path.substring(0, path.lastIndexOf("/") + 1);
                 doc.fileName = fileName;
-                doc.siteName=doc.getSiteName();
+                doc.siteName = doc.getSiteName();
                 logger.info("doc.name: " + doc.name);
                 logger.debug("doc.path: " + doc.path);
                 doc.updateTimestamp = updateTimestamp;
                 //files.add(doc);
                 documents.put(doc.name, doc);
-
             } else {
                 logger.debug("excluded: " + path);
             }
@@ -129,16 +136,13 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     }
 
     @Override
-    public FileVisitResult postVisitDirectory(Path dir,
-            IOException exc) {
+    public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
         // do nothing
         return CONTINUE;
     }
 
     @Override
-    public FileVisitResult visitFileFailed(Path file,
-            IOException exc) {
-
+    public FileVisitResult visitFileFailed(Path file, IOException exc) {
         return CONTINUE;
     }
 
