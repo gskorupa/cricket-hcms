@@ -71,5 +71,10 @@ public class TestDocLoader implements ForDocumentsLoaderIface {
     @Override
     public void setEventBus(io.vertx.mutiny.core.eventbus.EventBus eventBus, String queueName) {
     }
+
+    @Override
+    public void setLanguages(String[] languages) {
+        
+    }
     
 }

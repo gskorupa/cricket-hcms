@@ -15,6 +15,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponseSchema;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
+import io.quarkus.cache.CacheResult;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -215,6 +216,7 @@ public class DocumentApi {
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponseSchema(value = Document.class, responseDescription = "Document object.", responseCode = "200")
     @Operation(summary = "Get document", description = "Get a document (JSON object) with the specified path. If the document is a binary file, the file will be returned as a download.")
+    @CacheResult(cacheName = "document-cache")
     public Response getDoc(
             @Parameter(description = "Token to authorize the request.", required = false, example = "app-token", schema = @Schema(type = SchemaType.STRING)) @HeaderParam("Authentication") String token,
             @Parameter(description = "Document name.", required = true, example = "/docs/doc1.md", schema = @Schema(type = SchemaType.STRING)) @QueryParam("name") String name) {

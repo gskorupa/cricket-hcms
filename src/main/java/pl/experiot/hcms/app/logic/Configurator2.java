@@ -72,6 +72,7 @@ public class Configurator2 {
                 loader.setHcmsServiceUrl(hcmsServiceUrl);
                 //loader.setHcmsFileApi(hcmsFileApi);
                 loader.setRoot(root);
+                loader.setLanguages(languages);
                 break;
             default:
                 loader = new TestDocLoader();

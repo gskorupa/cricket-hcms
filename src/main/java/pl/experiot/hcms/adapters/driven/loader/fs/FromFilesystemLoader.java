@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.jboss.logging.Logger;
 
+import io.quarkus.cache.CacheInvalidateAll;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.logic.dto.Site;
@@ -24,13 +25,14 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
 
     String root;
     String excludes;
-    String syntax; /* "obsidian", "github" */
+    String syntax;/* "obsidian", "github" */
     String markdownFileExtension;
     String htmlFileExtension;
     String hcmsServiceUrl;
     String hcmsFileApi;
     String sites;
     String assets;
+    String[] languages;
 
     EventBus eventBus;
     String queueName;
@@ -58,8 +60,14 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
     }
 
     @Override
-    public void loadDocuments(String siteName, HashMap<String, Site> siteMap, boolean start, boolean stop,
-            long timestamp) {
+    @CacheInvalidateAll(cacheName = "document-cache")
+    public void loadDocuments(
+        String siteName,
+        HashMap<String, Site> siteMap,
+        boolean start,
+        boolean stop,
+        long timestamp
+    ) {
         String docPath = siteName;
         Site site = siteMap.get(siteName);
         if (!docPath.isEmpty()) {
@@ -70,7 +78,10 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         }
 
         logger.debug("loading documents");
-        logger.debug("actual path: " + Paths.get(".").toAbsolutePath().normalize().toString());
+        logger.debug(
+            "actual path: " +
+            Paths.get(".").toAbsolutePath().normalize().toString()
+        );
         logger.debug("getDocuments: " + docPath);
         logger.debug("complete path: " + root + docPath);
         ArrayList<Document> files = new ArrayList<>();
@@ -80,7 +91,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         visitor.setMarkdownFileExtension(markdownFileExtension);
         visitor.setHtmlFileExtension(htmlFileExtension);
 
-        site.excludedPaths.forEach((path) -> {
+        site.excludedPaths.forEach(path -> {
             visitor.exclude(path);
         });
         Path p;
@@ -105,15 +116,25 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
                     site.hcmsServiceLocation, site.hcmsFileApiPath);
             }
             */
-            doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName, site.assetsPath,
-                    site.hcmsServiceLocation, site.hcmsFileApiPath);
+            doc = DocumentTransformer.transform(
+                doc,
+                markdownFileExtension,
+                siteName,
+                site.assetsPath,
+                site.hcmsServiceLocation,
+                site.hcmsFileApiPath,
+                languages
+            );
             if (null != doc) {
                 doc.refreshTimestamp = timestamp;
                 repositoryPort.addDocument(doc);
             }
         }
         logger.info("loaded: " + files.size() + " documents");
-        logger.info("repositoryPort database size: " + repositoryPort.getDocumentsCount());
+        logger.info(
+            "repositoryPort database size: " +
+            repositoryPort.getDocumentsCount()
+        );
         if (stop) {
             repositoryPort.stopReload(timestamp, docPath);
             listAll();
@@ -121,6 +142,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
     }
 
     @Override
+    @CacheInvalidateAll(cacheName = "document-cache")
     public void loadDocuments(Site site, long timestamp) {
         String docPath = site.name;
         if (!docPath.isEmpty()) {
@@ -128,7 +150,10 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         }
         repositoryPort.startReload(site.name);
         logger.debug("loading documents");
-        logger.debug("actual path: " + Paths.get(".").toAbsolutePath().normalize().toString());
+        logger.debug(
+            "actual path: " +
+            Paths.get(".").toAbsolutePath().normalize().toString()
+        );
         logger.debug("getDocuments: " + docPath);
         logger.debug("complete path: " + root + docPath);
         ArrayList<Document> files = new ArrayList<>();
@@ -138,7 +163,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         visitor.setMarkdownFileExtension(markdownFileExtension);
         visitor.setHtmlFileExtension(htmlFileExtension);
 
-        site.excludedPaths.forEach((path) -> {
+        site.excludedPaths.forEach(path -> {
             visitor.exclude(path);
         });
         Path p;
@@ -158,21 +183,31 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             doc = normalize(files.get(i), site.name);
             updatedDoc = repositoryPort.getDocument(doc.name);
             // skip if the document is already in the database and has not been updated
-            if(null!=updatedDoc){
-                if(updatedDoc.updateTimestamp>=doc.updateTimestamp){
+            if (null != updatedDoc) {
+                if (updatedDoc.updateTimestamp >= doc.updateTimestamp) {
                     logger.info("skipping not modified: " + doc.name);
                     continue;
                 }
             }
-            doc = DocumentTransformer.transform(doc, markdownFileExtension, site.name, site.assetsPath,
-                    site.hcmsServiceLocation, site.hcmsFileApiPath);
+            doc = DocumentTransformer.transform(
+                doc,
+                markdownFileExtension,
+                site.name,
+                site.assetsPath,
+                site.hcmsServiceLocation,
+                site.hcmsFileApiPath,
+                languages
+            );
             if (null != doc) {
                 doc.refreshTimestamp = timestamp;
                 repositoryPort.addDocument(doc);
             }
         }
         logger.info("loaded: " + files.size() + " documents");
-        logger.info("repositoryPort database size: " + repositoryPort.getDocumentsCount());
+        logger.info(
+            "repositoryPort database size: " +
+            repositoryPort.getDocumentsCount()
+        );
         repositoryPort.stopReload(timestamp, docPath);
         listAll();
     }
@@ -181,10 +216,16 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         logger.debug("pre doc.name: " + doc.name);
         logger.debug("pre doc.path: " + doc.path);
         doc.siteName = siteRootFolder;
-        if (!(doc.path.startsWith(siteRootFolder) || doc.path.startsWith("/" + siteRootFolder))) {
+        if (
+            !(doc.path.startsWith(siteRootFolder) ||
+                doc.path.startsWith("/" + siteRootFolder))
+        ) {
             doc.path = siteRootFolder + doc.path;
         }
-        if (!(doc.name.startsWith(siteRootFolder) || doc.name.startsWith("/" + siteRootFolder))) {
+        if (
+            !(doc.name.startsWith(siteRootFolder) ||
+                doc.name.startsWith("/" + siteRootFolder))
+        ) {
             doc.name = siteRootFolder + doc.name;
         }
         if (!(doc.path.startsWith("/"))) {
@@ -199,13 +240,14 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
     }
 
     private void listAll() {
-        List<Document> docs = (List<Document>) repositoryPort.getAllDocuments(false);
+        List<Document> docs = (List<Document>) repositoryPort.getAllDocuments(
+            false
+        );
         logger.info("repositoryPort database size: " + docs.size());
         logger.info("listing all documents");
         for (Document doc : docs) {
             logger.info(doc.name + " [" + doc.getSiteName() + "]");
         }
-
     }
 
     private int getSiteIndex(String[] sitesList, String siteRoot) {
@@ -238,8 +280,8 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
     }
 
     @Override
-    public void setHcmsFileApi(String hcmsFileApi){
-        this.hcmsFileApi=hcmsFileApi;
+    public void setHcmsFileApi(String hcmsFileApi) {
+        this.hcmsFileApi = hcmsFileApi;
     }
 
     @Override
@@ -252,4 +294,8 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         this.assets = assets;
     }
 
+    @Override
+    public void setLanguages(String[] languages) {
+        this.languages = languages;
+    }
 }

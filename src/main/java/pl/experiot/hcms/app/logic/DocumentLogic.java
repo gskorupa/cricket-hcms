@@ -10,6 +10,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import io.agroal.api.AgroalDataSource;
+import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -223,6 +224,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     }
 
     @Override
+    @CacheInvalidateAll(cacheName = "document-cache")
     public void reload() {
         long timestamp = System.currentTimeMillis();
         // executing system command to pull, the repository
