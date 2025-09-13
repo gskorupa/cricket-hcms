@@ -11,6 +11,7 @@ import org.jboss.logging.Logger;
 
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.cache.CacheInvalidateAll;
+import io.quarkus.cache.CacheResult;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -90,6 +91,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     public boolean ready = false;
 
     @Override
+    @CacheResult(cacheName = "document-list-cache")
     public List<Document> getDocuments(String path, boolean withContent) {
         return repositoryPort.getDocuments(path, withContent);
     }
@@ -105,6 +107,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     }
 
     @Override
+    @CacheResult(cacheName = "document-cache")
     public Document getDocument(String path) {
         return repositoryPort.getDocument(path);
     }
@@ -225,6 +228,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
 
     @Override
     @CacheInvalidateAll(cacheName = "document-cache")
+    @CacheInvalidateAll(cacheName = "document-list-cache")
     public void reload() {
         long timestamp = System.currentTimeMillis();
         // executing system command to pull, the repository

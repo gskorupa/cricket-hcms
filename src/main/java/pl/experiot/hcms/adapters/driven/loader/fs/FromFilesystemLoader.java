@@ -61,6 +61,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
 
     @Override
     @CacheInvalidateAll(cacheName = "document-cache")
+    @CacheInvalidateAll(cacheName = "document-list-cache")
     public void loadDocuments(
         String siteName,
         HashMap<String, Site> siteMap,
@@ -143,6 +144,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
 
     @Override
     @CacheInvalidateAll(cacheName = "document-cache")
+    @CacheInvalidateAll(cacheName = "document-list-cache")
     public void loadDocuments(Site site, long timestamp) {
         String docPath = site.name;
         if (!docPath.isEmpty()) {
