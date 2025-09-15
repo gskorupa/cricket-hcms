@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 >
   <modelVersion>4.0.0</modelVersion>
   <groupId>pl.experiot.hcms</groupId>
   <artifactId>cricket-hcms</artifactId>
-  <version>1.5.2</version>
+  <version>1.5.3</version>
   <properties>
     <compiler-plugin.version>3.13.0</compiler-plugin.version>
     <maven.compiler.release>21</maven.compiler.release>
@@ -100,8 +100,12 @@
       <artifactId>quarkus-rest-client-jackson</artifactId>
     </dependency>
     <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-cache</artifactId>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-cache</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-scheduler</artifactId>
     </dependency>
   </dependencies>
   <build>
@@ -136,8 +140,7 @@
         <version>${surefire-plugin.version}</version>
         <configuration>
           <systemPropertyVariables>
-            <java.util.logging.manager
-                        >org.jboss.logmanager.LogManager</java.util.logging.manager>
+            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
             <maven.home>${maven.home}</maven.home>
           </systemPropertyVariables>
         </configuration>
@@ -181,10 +184,8 @@
         </executions>
         <configuration>
           <systemPropertyVariables>
-            <native.image.path
-                        >${project.build.directory}/${project.build.finalName}-runner</native.image.path>
-            <java.util.logging.manager
-                        >org.jboss.logmanager.LogManager</java.util.logging.manager>
+            <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
             <maven.home>${maven.home}</maven.home>
           </systemPropertyVariables>
         </configuration>

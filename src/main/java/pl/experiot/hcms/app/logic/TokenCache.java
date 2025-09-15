@@ -28,5 +28,9 @@ public class TokenCache {
         return getTokenMap().containsKey(token);
     }
 
+    public void clear() {
+        getTokenMap().clear();
+    }
+
 
 }
