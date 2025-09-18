@@ -1,9 +1,10 @@
 package pl.experiot.hcms.app.ports.driven;
 
-import io.agroal.api.AgroalDataSource;
-import io.vertx.mutiny.core.eventbus.EventBus;
 import java.util.HashMap;
 import java.util.List;
+
+import io.agroal.api.AgroalDataSource;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import pl.experiot.hcms.app.logic.dto.Document;
 
 public interface ForDocumentRepositoryIface {
@@ -29,4 +30,5 @@ public interface ForDocumentRepositoryIface {
     public List<String> searchDocuments(String textToSearch, String languageCode);
     public long getPreviousUpdateTimestamp(String documentName);
     public void setEventBus(EventBus eventBus, String queName);
+    public long getSize();
 }

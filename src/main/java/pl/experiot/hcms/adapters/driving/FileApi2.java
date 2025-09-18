@@ -10,6 +10,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.jboss.logging.Logger;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -20,6 +21,7 @@ import jakarta.ws.rs.core.Response;
 import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
 
+@ApplicationScoped
 @Path("/api/_file")
 /**
  * FileApi is a REST API adapter for the DocumentPort. It provides a set of

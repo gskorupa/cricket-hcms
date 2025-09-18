@@ -9,6 +9,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponseSchema;
 import org.jboss.logging.Logger;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;
@@ -17,6 +18,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
 
+@ApplicationScoped
 @Path("/api")
 /**
  * DocumentApi is a REST API adapter for the DocumentPort. It provides a set of

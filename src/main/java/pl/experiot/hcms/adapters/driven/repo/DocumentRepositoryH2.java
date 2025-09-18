@@ -681,4 +681,20 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
         return docs;
     }
 
+    @Override
+    public long getSize() {
+        String sql = "SELECT count(*) FROM documents";
+        try (var connection = defaultDataSource.getConnection();
+                var statement = connection.createStatement();
+                var resultSet = statement.executeQuery(sql)) {
+            resultSet.next();
+            long result = resultSet.getLong(1);
+            resultSet.close();
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
 }

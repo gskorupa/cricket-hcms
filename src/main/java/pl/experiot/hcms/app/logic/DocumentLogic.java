@@ -282,4 +282,9 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
         docs = repositoryPort.searchDocuments(textToSearch, languageCode);
         return docs;
     }
+
+    @Override
+    public Long getRepositorySize() {
+        return repositoryPort.getSize();
+    }
 }

@@ -1,12 +1,14 @@
 package pl.experiot.hcms.adapters.driven.repo;
 
-import io.agroal.api.AgroalDataSource;
-import io.vertx.mutiny.core.eventbus.EventBus;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.jboss.logging.Logger;
+
+import io.agroal.api.AgroalDataSource;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 
@@ -243,6 +245,11 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
     public long getPreviousUpdateTimestamp(String documentName) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'getPreviousUpdateTimestamp'");
+    }
+
+    @Override
+    public long getSize() {
+        return getDocuments().size();
     }
 
 }

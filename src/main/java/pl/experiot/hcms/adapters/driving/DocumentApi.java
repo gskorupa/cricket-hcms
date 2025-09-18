@@ -15,6 +15,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponseSchema;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -29,6 +30,7 @@ import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.logic.dto.User;
 import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
 
+@ApplicationScoped
 @Path("/api")
 /**
  * DocumentApi is a REST API adapter for the DocumentPort. It provides a set of
@@ -234,9 +236,9 @@ public class DocumentApi {
                 }
             }
         }
-        name = documentAccessLogic.getOrganizationDocName(name, user);
-        logger.info("requesting document: " + name);
-        Document doc = documentPort.getDocument(name);
+        String docName = documentAccessLogic.getOrganizationDocName(name, user);
+        logger.info("requesting document: " + docName);
+        Document doc = documentPort.getDocument(docName);
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
