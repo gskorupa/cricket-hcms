@@ -14,6 +14,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponseSchema;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.reactive.NoCache;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -213,6 +214,7 @@ public class DocumentApi {
     }
 
     @GET
+    @NoCache
     @Path("/document/")
     @APIResponse(responseCode = "401", description = "Unauthorized")
     @APIResponseSchema(value = Document.class, responseDescription = "Document object.", responseCode = "200")
