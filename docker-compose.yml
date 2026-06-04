@@ -28,6 +28,10 @@ services:
     volumes:
       - $PWD:/home/jboss/documents
       - $PWD/database:/home/jboss/database
+    deploy:
+      resources:
+        limits:
+          memory: 512M
     networks:
       - hcms
     secrets:

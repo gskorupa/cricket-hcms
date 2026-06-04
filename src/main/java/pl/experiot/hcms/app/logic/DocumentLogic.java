@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -14,6 +15,7 @@ import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.mutiny.core.eventbus.EventBus;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
@@ -38,6 +40,9 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     ForDocumentsLoaderIface loader;
     ForChangeWatcherIface watcher;
     ForTranslatorIface translator;
+    
+    // Store executors for proper shutdown
+    private List<ExecutorService> watcherExecutors = new ArrayList<>();
 
     @ConfigProperty(name = "document.folders.root")
     String root;
@@ -189,10 +194,16 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
         });
 
         List<ForChangeWatcherIface> watchers = watcher.getInstances();
+        List<ExecutorService> executors = new ArrayList<>();
         for (ForChangeWatcherIface w : watchers) {
             logger.info("WATCHER " + w.getNameplate());
-            Executors.newSingleThreadExecutor().execute((Runnable) w);
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            executor.execute((Runnable) w);
+            executors.add(executor);
         }
+        
+        // Store executors for later shutdown
+        this.watcherExecutors = executors;
     }
 
     private HashMap<String, Site> getSiteMap() {
@@ -245,6 +256,25 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
             logger.error("Error updating repository: " + e.getMessage());
         }
 
+    }
+    
+    // Shutdown executors when application stops
+    public void shutdown() {
+        for (ExecutorService executor : watcherExecutors) {
+            try {
+                executor.shutdownNow();
+                logger.info("Shutting down watcher executor");
+            } catch (Exception e) {
+                logger.error("Error shutting down executor: " + e.getMessage());
+            }
+        }
+        watcherExecutors.clear();
+    }
+    
+    @PreDestroy
+    public void onShutdown() {
+        shutdown();
+        logger.info("DocumentLogic shutdown completed");
     }
 
     @Override

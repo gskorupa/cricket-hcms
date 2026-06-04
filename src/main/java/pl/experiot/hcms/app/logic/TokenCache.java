@@ -7,30 +7,33 @@ import pl.experiot.hcms.app.logic.dto.User;
 
 @ApplicationScoped
 public class TokenCache {
-    private HashMap<String, User> tokens = new HashMap<>();
 
-    private HashMap<String, User> getTokenMap() {
-        if(tokens == null) {
-            tokens = new HashMap<>();
+    private static final int MAX_TOKENS = 500;
+
+    private final java.util.Map<String, User> tokens = java.util.Collections.synchronizedMap(
+        new java.util.LinkedHashMap<String, User>(16, 0.75f, true) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            protected boolean removeEldestEntry(java.util.Map.Entry<String, User> eldest) {
+                return size() > MAX_TOKENS;
+            }
         }
-        return tokens;
-    }
+    );
 
     public void addToken(String token, User user) {
-        getTokenMap().put(token, user);
+        tokens.put(token, user);
     }
 
     public User getUser(String token) {
-        return getTokenMap().get(token);
+        return tokens.get(token);
     }
-    
+
     public boolean containsToken(String token) {
-        return getTokenMap().containsKey(token);
+        return tokens.containsKey(token);
     }
 
     public void clear() {
-        getTokenMap().clear();
+        tokens.clear();
     }
-
 
 }

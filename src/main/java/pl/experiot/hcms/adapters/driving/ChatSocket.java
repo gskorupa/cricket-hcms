@@ -38,8 +38,8 @@ public class ChatSocket {
     @OnClose
     public void onClose(Session session, @PathParam("username") String username) {
         logger.info("onClose: " + username);
-        //sessions.remove(username);
-        ////broadcast("User " + username + " left");
+        sessions.remove(username);
+        logger.info("Removed session for user: " + username);
     }
 
     @OnError
