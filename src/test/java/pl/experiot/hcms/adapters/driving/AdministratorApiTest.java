@@ -16,9 +16,9 @@ class AdministratorApiTest {
             .when()
             .post("/api/reload")
             .then()
-            .statusCode(501) //not implemented
+            .statusCode(200)
             .contentType(ContentType.TEXT)
-            .body(is("Not implemented"));
+            .body(is("OK"));
     }
 
     @Test
@@ -38,6 +38,6 @@ class AdministratorApiTest {
             .when()
             .post("/api/reload")
             .then()
-            .statusCode(501);
+            .statusCode(200);
     }
 }

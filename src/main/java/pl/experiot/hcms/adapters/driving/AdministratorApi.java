@@ -16,7 +16,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
-import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
+import pl.experiot.hcms.app.ports.driving.ForAdministrationIface;
 
 @ApplicationScoped
 @Path("/api")
@@ -29,7 +29,7 @@ import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
 public class AdministratorApi {
 
     @Inject
-    ForDocumentsIface documentPort;
+    ForAdministrationIface administrationPort;
     @Inject
     Logger logger;
 
@@ -49,9 +49,9 @@ public class AdministratorApi {
         if (token == null || !token.equals(authToken)) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        return Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
-        // documentPort.reload();
-        // return Response.ok().build();
+        // trigger reload via administration port
+        administrationPort.reload();
+        return Response.ok("OK").build();
     }
 
 }
