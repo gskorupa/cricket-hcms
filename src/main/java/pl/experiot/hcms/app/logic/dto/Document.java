@@ -29,7 +29,7 @@ public class Document {
         doc.name = name;
         doc.fileName = fileName.trim();
         doc.updateTimestamp = updateTimestamp;
-        doc.metadata = metadata;
+        doc.metadata = new HashMap<>();
         doc.refreshTimestamp = refreshTimestamp;
         doc.binaryFile = binaryFile;
         doc.mediaType = mediaType;

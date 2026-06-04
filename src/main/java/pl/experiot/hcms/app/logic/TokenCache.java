@@ -1,39 +1,38 @@
 package pl.experiot.hcms.app.logic;
 
-import java.util.HashMap;
-
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import io.quarkus.cache.CacheInvalidateAll;
+import io.quarkus.cache.CacheResult;
+import jakarta.ws.rs.core.Response;
+import pl.experiot.hcms.adapters.driven.auth.SignomixAuthClient;
 import pl.experiot.hcms.app.logic.dto.User;
 
 @ApplicationScoped
 public class TokenCache {
 
-    private static final int MAX_TOKENS = 500;
+    @Inject
+    @RestClient
+    SignomixAuthClient authClient;
 
-    private final java.util.Map<String, User> tokens = java.util.Collections.synchronizedMap(
-        new java.util.LinkedHashMap<String, User>(16, 0.75f, true) {
-            private static final long serialVersionUID = 1L;
-            @Override
-            protected boolean removeEldestEntry(java.util.Map.Entry<String, User> eldest) {
-                return size() > MAX_TOKENS;
-            }
-        }
-    );
-
-    public void addToken(String token, User user) {
-        tokens.put(token, user);
-    }
-
+    @CacheResult(cacheName = "token-cache")
     public User getUser(String token) {
-        return tokens.get(token);
+        if (token == null || token.isEmpty()) {
+            return null;
+        }
+        try {
+            Response response = authClient.getUser(token);
+            if (response.getStatus() == 200) {
+                return response.readEntity(User.class);
+            }
+        } catch (Exception e) {
+            // ignore -- caller treats null as unauthorized
+        }
+        return null;
     }
 
-    public boolean containsToken(String token) {
-        return tokens.containsKey(token);
-    }
-
+    @CacheInvalidateAll(cacheName = "token-cache")
     public void clear() {
-        tokens.clear();
     }
-
 }

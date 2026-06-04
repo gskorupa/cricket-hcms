@@ -246,9 +246,11 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
         String[] sitesList = sites.split(";");
         String[] command = { "git", "pull", "https://" + githubToken + "@" + githubRepository };
         try {
-            Process process = Runtime.getRuntime().exec(command);
-            process.waitFor();
-            logger.info("Repository updated");
+            ProcessBuilder pb = new ProcessBuilder(command);
+            pb.inheritIO();
+            Process process = pb.start();
+            int exitCode = process.waitFor();
+            logger.info("Repository updated, exit code: " + exitCode);
             for (int i = 0; i < sitesList.length; i++) {
                 loader.loadDocuments(sitesList[i], siteMap, i == 0, i == sitesList.length - 1, timestamp);
             }
