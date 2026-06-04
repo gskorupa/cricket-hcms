@@ -109,13 +109,13 @@
     </dependency>
     <!-- Open Telemetry -->
     <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-exporter-otlp</artifactId>
-    </dependency>
+     <groupId>io.quarkus</groupId>
+     <artifactId>quarkus-opentelemetry</artifactId>
+   </dependency>
+   <dependency>
+     <groupId>io.opentelemetry.instrumentation</groupId>
+     <artifactId>opentelemetry-jdbc</artifactId>
+   </dependency>
   </dependencies>
   <build>
     <plugins>
