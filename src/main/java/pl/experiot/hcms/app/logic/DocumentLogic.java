@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,8 +42,9 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     ForChangeWatcherIface watcher;
     ForTranslatorIface translator;
     
-    // Store executors for proper shutdown
+    // Store executors and watchers for proper shutdown
     private List<ExecutorService> watcherExecutors = new ArrayList<>();
+    private List<ForChangeWatcherIface> activeWatchers = new ArrayList<>();
 
     @ConfigProperty(name = "document.folders.root")
     String root;
@@ -175,12 +177,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
 
         // watcher adapter setup
         logger.info("WATCHER TYPE: [" + watcherType + "]");
-        if (watcherType.equalsIgnoreCase("filesystem")) {
-            watcher = new FolderWatcher(root, siteMap, loader);
-        } else {
-            watcher = new DummyWatcher();
-        }
-        
+        watcher = createWatcher(loader, siteMap);
         watcher.setLoader(loader);
 
         ready = true;
@@ -193,6 +190,9 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
             loader.loadDocuments(site.name, siteMap, idx == 0, idx == siteMap.size() - 1, timestamp);
         });
 
+        // Stop any existing watchers before creating new ones to prevent resource leaks
+        shutdown();
+        
         List<ForChangeWatcherIface> watchers = watcher.getInstances();
         List<ExecutorService> executors = new ArrayList<>();
         for (ForChangeWatcherIface w : watchers) {
@@ -202,8 +202,25 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
             executors.add(executor);
         }
         
-        // Store executors for later shutdown
+        // Store executors and watchers for later shutdown
         this.watcherExecutors = executors;
+        this.activeWatchers = watchers;
+    }
+
+    /**
+     * Creates a watcher instance based on the configured watcher type.
+     * Extracted for testability.
+     * 
+     * @param loader the document loader
+     * @param siteMap the site configuration map
+     * @return a new watcher instance
+     */
+    ForChangeWatcherIface createWatcher(ForDocumentsLoaderIface loader, HashMap<String, Site> siteMap) {
+        if (watcherType.equalsIgnoreCase("filesystem")) {
+            return new FolderWatcher(root, siteMap, loader);
+        } else {
+            return new DummyWatcher();
+        }
     }
 
     private HashMap<String, Site> getSiteMap() {
@@ -227,7 +244,9 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
                 excluded.add(excludedPaths[j]);
             }
             s.excludedPaths = excluded;
-            s.watchedFile = watchedList[i];
+            Set<String> watchedFiles = new HashSet<>();
+            watchedFiles.add(watchedList[i]);
+            s.watchedFiles = watchedFiles;
             s.indexFile = indexList[i];
             s.hcmsServiceLocation = hcmsServiceList[i];
             s.hcmsFileApiPath = hcmsFileApiList[i];
@@ -260,17 +279,60 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
 
     }
     
-    // Shutdown executors when application stops
+    // Shutdown executors and watchers when application stops
     public void shutdown() {
+        // First, signal all watchers to stop
+        for (ForChangeWatcherIface w : activeWatchers) {
+            try {
+                w.stop();
+                if (logger != null) {
+                    logger.info("Stop signal sent to watcher: " + w.getNameplate());
+                }
+            } catch (Exception e) {
+                if (logger != null) {
+                    logger.error("Error stopping watcher " + w.getNameplate() + ": " + e.getMessage());
+                }
+            }
+        }
+        activeWatchers.clear();
+        
+        // Then shutdown all executors
         for (ExecutorService executor : watcherExecutors) {
             try {
                 executor.shutdownNow();
-                logger.info("Shutting down watcher executor");
+                if (logger != null) {
+                    logger.info("Shutting down watcher executor");
+                }
             } catch (Exception e) {
-                logger.error("Error shutting down executor: " + e.getMessage());
+                if (logger != null) {
+                    logger.error("Error shutting down executor: " + e.getMessage());
+                }
             }
         }
         watcherExecutors.clear();
+    }
+    
+    // ==================== Test helper methods ====================
+    
+    /**
+     * Returns the list of watcher executors (for testing).
+     */
+    public List<ExecutorService> getWatcherExecutors() {
+        return new ArrayList<>(watcherExecutors);
+    }
+
+    /**
+     * Returns the list of active watchers (for testing).
+     */
+    public List<ForChangeWatcherIface> getActiveWatchers() {
+        return new ArrayList<>(activeWatchers);
+    }
+
+    /**
+     * Returns the site map (for testing).
+     */
+    public HashMap<String, Site> getSiteMapForTesting() {
+        return getSiteMap();
     }
     
     @PreDestroy

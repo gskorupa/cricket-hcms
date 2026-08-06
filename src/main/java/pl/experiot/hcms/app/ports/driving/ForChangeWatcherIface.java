@@ -9,4 +9,11 @@ public interface ForChangeWatcherIface {
     public String getNameplate();
 
     List<ForChangeWatcherIface> getInstances();
+    
+    /**
+     * Stops the watcher instance gracefully.
+     */
+    default void stop() {
+        // Default no-op implementation for backward compatibility
+    }
 }
