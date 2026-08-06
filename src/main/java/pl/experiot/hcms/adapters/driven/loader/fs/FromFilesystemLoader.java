@@ -1,5 +1,7 @@
 package pl.experiot.hcms.adapters.driven.loader.fs;
 
+import io.quarkus.cache.CacheInvalidateAll;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,11 +9,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import org.jboss.logging.Logger;
-
-import io.quarkus.cache.CacheInvalidateAll;
-import io.vertx.mutiny.core.eventbus.EventBus;
 import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.logic.dto.Site;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
@@ -25,7 +23,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
 
     String root;
     String excludes;
-    String syntax;/* "obsidian", "github" */
+    String syntax; /* "obsidian", "github" */
     String markdownFileExtension;
     String htmlFileExtension;
     String hcmsServiceUrl;
@@ -81,13 +79,17 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         logger.debug("loading documents");
         logger.debug(
             "actual path: " +
-            Paths.get(".").toAbsolutePath().normalize().toString()
+                Paths.get(".").toAbsolutePath().normalize().toString()
         );
         logger.debug("getDocuments: " + docPath);
         logger.debug("complete path: " + root + docPath);
         ArrayList<Document> files = new ArrayList<>();
         DocumentVisitor visitor = new DocumentVisitor();
-        visitor.setRoot(Paths.get(root + docPath).toAbsolutePath().toString());
+        visitor.setRoot(
+            Paths.get(root + docPath)
+                .toAbsolutePath()
+                .toString()
+        );
         visitor.setSyntax(syntax);
         visitor.setMarkdownFileExtension(markdownFileExtension);
         visitor.setHtmlFileExtension(htmlFileExtension);
@@ -108,15 +110,12 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         Document doc;
         Document updatedDoc;
         for (int i = 0; i < files.size(); i++) {
-            // logger.info(" " + files.get(i).path);
             doc = normalize(files.get(i), siteName);
-            updatedDoc = repositoryPort.getDocument(doc.name);
-            /*
-            if(null==updatedDoc || updatedDoc.updateTimestamp<doc.updateTimestamp){
-                doc = DocumentTransformer.transform(doc, markdownFileExtension, siteName, site.assetsPath,
-                    site.hcmsServiceLocation, site.hcmsFileApiPath);
+            if (isExcluded(doc.path)) {
+                logger.info("skipping excluded: " + doc.name);
+                continue;
             }
-            */
+            updatedDoc = repositoryPort.getDocument(doc.name);
             doc = DocumentTransformer.transform(
                 doc,
                 markdownFileExtension,
@@ -134,7 +133,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         logger.info("loaded: " + files.size() + " documents");
         logger.info(
             "repositoryPort database size: " +
-            repositoryPort.getDocumentsCount()
+                repositoryPort.getDocumentsCount()
         );
         if (stop) {
             repositoryPort.stopReload(timestamp, docPath);
@@ -154,13 +153,17 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         logger.debug("loading documents");
         logger.debug(
             "actual path: " +
-            Paths.get(".").toAbsolutePath().normalize().toString()
+                Paths.get(".").toAbsolutePath().normalize().toString()
         );
         logger.debug("getDocuments: " + docPath);
         logger.debug("complete path: " + root + docPath);
         ArrayList<Document> files = new ArrayList<>();
         DocumentVisitor visitor = new DocumentVisitor();
-        visitor.setRoot(Paths.get(root + docPath).toAbsolutePath().toString());
+        visitor.setRoot(
+            Paths.get(root + docPath)
+                .toAbsolutePath()
+                .toString()
+        );
         visitor.setSyntax(syntax);
         visitor.setMarkdownFileExtension(markdownFileExtension);
         visitor.setHtmlFileExtension(htmlFileExtension);
@@ -183,6 +186,10 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         for (int i = 0; i < files.size(); i++) {
             // logger.info(" " + files.get(i).path);
             doc = normalize(files.get(i), site.name);
+            if (isExcluded(doc.path)) {
+                logger.info("skipping excluded: " + doc.name);
+                continue;
+            }
             updatedDoc = repositoryPort.getDocument(doc.name);
             // skip if the document is already in the database and has not been updated
             if (null != updatedDoc) {
@@ -208,7 +215,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         logger.info("loaded: " + files.size() + " documents");
         logger.info(
             "repositoryPort database size: " +
-            repositoryPort.getDocumentsCount()
+                repositoryPort.getDocumentsCount()
         );
         repositoryPort.stopReload(timestamp, docPath);
         listAll();
@@ -219,26 +226,44 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         logger.debug("pre doc.path: " + doc.path);
         doc.siteName = siteRootFolder;
         if (
-            !(doc.path.startsWith(siteRootFolder) ||
-                doc.path.startsWith("/" + siteRootFolder))
+            !(
+                doc.path.startsWith(siteRootFolder) ||
+                doc.path.startsWith("/" + siteRootFolder)
+            )
         ) {
             doc.path = siteRootFolder + doc.path;
         }
         if (
-            !(doc.name.startsWith(siteRootFolder) ||
-                doc.name.startsWith("/" + siteRootFolder))
+            !(
+                doc.name.startsWith(siteRootFolder) ||
+                doc.name.startsWith("/" + siteRootFolder)
+            )
         ) {
             doc.name = siteRootFolder + doc.name;
         }
-        if (!(doc.path.startsWith("/"))) {
+        if (!doc.path.startsWith("/")) {
             doc.path = "/" + doc.path;
         }
-        if (!(doc.name.startsWith("/"))) {
+        if (!doc.name.startsWith("/")) {
             doc.name = "/" + doc.name;
         }
         logger.debug("post doc.name: " + doc.name);
         logger.debug("post doc.path: " + doc.path);
         return doc;
+    }
+
+    private boolean isExcluded(String path) {
+        if (excludes == null || excludes.isEmpty()) {
+            return false;
+        }
+        String[] excludeList = excludes.split(",");
+        for (String exclude : excludeList) {
+            //if path contains exclude, return true
+            if (path.contains(exclude)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void listAll() {
