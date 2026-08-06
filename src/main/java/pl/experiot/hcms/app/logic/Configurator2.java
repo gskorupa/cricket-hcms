@@ -10,6 +10,7 @@ import pl.experiot.hcms.adapters.driven.repo.DocumentRepositoryH2;
 import pl.experiot.hcms.adapters.driven.translator.DeeplTranslator;
 import pl.experiot.hcms.adapters.driven.translator.DummyRepoModel;
 import pl.experiot.hcms.adapters.driven.translator.DummyTranslator;
+import pl.experiot.hcms.adapters.driven.translator.GeminiTranslator;
 import pl.experiot.hcms.adapters.driven.translator.PathBasedRepoModel;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 import pl.experiot.hcms.app.ports.driven.ForDocumentsLoaderIface;
@@ -87,13 +88,16 @@ public class Configurator2 {
 
     public ForTranslatorIface getTranslatorPort() {
         ForTranslatorIface translator = null;
-        switch (translatorType) {
+        switch (translatorType.toLowerCase()) {
             case "dummy":
                 translator = new DummyTranslator();
                 break;
             case "deepl":
                 translator = new DeeplTranslator();
-                break;                
+                break;
+            case "gemini":
+                translator = new GeminiTranslator();
+                break;
             default:
                 translator = new DummyTranslator();
                 break;
