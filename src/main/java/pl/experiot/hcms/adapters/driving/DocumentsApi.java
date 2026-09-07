@@ -1,21 +1,21 @@
 package pl.experiot.hcms.adapters.driving;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
 import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 import org.jboss.logging.Logger;
 import pl.experiot.hcms.app.logic.dto.Document;
+import pl.experiot.hcms.app.logic.dto.User;
 import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
 
 @ApplicationScoped
@@ -28,22 +28,39 @@ public class DocumentsApi {
     @Inject
     Logger logger;
 
+    @Inject
+    TokenCache tokenCache;
+
     @GET
     @Path("/docs/")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getDocs(@HeaderParam("X-app-token") String token,
-                            @QueryParam("path") String path,
-                            @QueryParam("content") boolean content) {
-        String p = (path == null || path.isEmpty()) ? "/" : path;
-        List<Document> docs = documentPort.getDocuments(p, content);
+    public Response getDocs(
+        @HeaderParam("X-app-token") String token,
+        @QueryParam("path") String path,
+        @QueryParam("content") boolean content
+    ) {
+        String p = path == null || path.isEmpty() ? "/" : path;
+        List<Document> docs;
+        if (token == null || token.isEmpty()) {
+            docs = documentPort.getDocuments(p, content);
+        } else {
+            User user = tokenCache.getUser(token);
+            if (user == null) {
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+            }
+            docs = documentPort.getDocuments(p, content, user);
+        }
+
         return Response.ok(docs).build();
     }
 
     @GET
     @Path("/paths/")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getPaths(@HeaderParam("X-app-token") String token,
-                             @QueryParam("site") String site) {
+    public Response getPaths(
+        @HeaderParam("X-app-token") String token,
+        @QueryParam("site") String site
+    ) {
         List<String> paths = documentPort.getPaths(site);
         return Response.ok(paths).build();
     }
@@ -59,12 +76,14 @@ public class DocumentsApi {
     @GET
     @Path("/find/")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findDocs(@HeaderParam("X-app-token") String token,
-                             @QueryParam("path") String path,
-                             @QueryParam("tag") String tag,
-                             @QueryParam("sort") String sort,
-                             @QueryParam("direction") String direction,
-                             @QueryParam("content") boolean content) {
+    public Response findDocs(
+        @HeaderParam("X-app-token") String token,
+        @QueryParam("path") String path,
+        @QueryParam("tag") String tag,
+        @QueryParam("sort") String sort,
+        @QueryParam("direction") String direction,
+        @QueryParam("content") boolean content
+    ) {
         String tagName = null;
         String tagValue = null;
         if (tag != null && tag.contains(":")) {
@@ -72,18 +91,27 @@ public class DocumentsApi {
             tagName = parts[0];
             tagValue = parts[1];
         }
-        List<Document> docs = documentPort.findDocuments(path, tagName, tagValue, sort, direction, content);
+        List<Document> docs = documentPort.findDocuments(
+            path,
+            tagName,
+            tagValue,
+            sort,
+            direction,
+            content
+        );
         return Response.ok(docs).build();
     }
 
     @GET
     @Path("/findfirst/")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response findFirst(@HeaderParam("X-app-token") String token,
-                              @QueryParam("path") String path,
-                              @QueryParam("tag") String tag,
-                              @QueryParam("sort") String sort,
-                              @QueryParam("direction") String direction) {
+    public Response findFirst(
+        @HeaderParam("X-app-token") String token,
+        @QueryParam("path") String path,
+        @QueryParam("tag") String tag,
+        @QueryParam("sort") String sort,
+        @QueryParam("direction") String direction
+    ) {
         String tagName = null;
         String tagValue = null;
         if (tag != null && tag.contains(":")) {
@@ -91,7 +119,13 @@ public class DocumentsApi {
             tagName = parts[0];
             tagValue = parts[1];
         }
-        var doc = documentPort.findFirstDocument(path, tagName, tagValue, sort, direction);
+        var doc = documentPort.findFirstDocument(
+            path,
+            tagName,
+            tagValue,
+            sort,
+            direction
+        );
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
@@ -101,8 +135,10 @@ public class DocumentsApi {
     @GET
     @Path("/document/")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getDocument(@HeaderParam("X-app-token") String token,
-                                @QueryParam("name") String name) {
+    public Response getDocument(
+        @HeaderParam("X-app-token") String token,
+        @QueryParam("name") String name
+    ) {
         var doc = documentPort.getDocument(name);
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -113,10 +149,12 @@ public class DocumentsApi {
     @GET
     @Path("/search")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response search(@HeaderParam("X-app-token") String token,
-                           @QueryParam("text") String text,
-                           @QueryParam("lang") String lang,
-                           @QueryParam("content") boolean content) {
+    public Response search(
+        @HeaderParam("X-app-token") String token,
+        @QueryParam("text") String text,
+        @QueryParam("lang") String lang,
+        @QueryParam("content") boolean content
+    ) {
         List<String> names = documentPort.searchDocuments(text, lang);
         if (content) {
             List<Document> docs = new ArrayList<>();
@@ -133,7 +171,12 @@ public class DocumentsApi {
     @Path("/docs/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.TEXT_PLAIN)
-    public Response saveDoc(@HeaderParam("X-app-token") String token, Document doc) {
-        return Response.status(Response.Status.NOT_IMPLEMENTED).entity("Not implemented").build();
+    public Response saveDoc(
+        @HeaderParam("X-app-token") String token,
+        Document doc
+    ) {
+        return Response.status(Response.Status.NOT_IMPLEMENTED)
+            .entity("Not implemented")
+            .build();
     }
 }
