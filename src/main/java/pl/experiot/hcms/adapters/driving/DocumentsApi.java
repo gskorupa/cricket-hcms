@@ -14,6 +14,8 @@ import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 import org.jboss.logging.Logger;
+import pl.experiot.hcms.app.logic.DocumentAccessLogic;
+import pl.experiot.hcms.app.logic.TokenCache;
 import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.logic.dto.User;
 import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
@@ -31,26 +33,34 @@ public class DocumentsApi {
     @Inject
     TokenCache tokenCache;
 
+    @Inject
+    DocumentAccessLogic documentAccessLogic;
+
     @GET
     @Path("/docs/")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDocs(
-        @HeaderParam("X-app-token") String token,
+        /*@HeaderParam("X-app-token") String token,*/
+        @HeaderParam("Authentication") String token,
         @QueryParam("path") String path,
         @QueryParam("content") boolean content
     ) {
         String p = path == null || path.isEmpty() ? "/" : path;
-        List<Document> docs;
-        if (token == null || token.isEmpty()) {
-            docs = documentPort.getDocuments(p, content);
-        } else {
+        List<Document> docs = new ArrayList<>();
+        if (token != null && !token.isEmpty()) {
+            logger.info("Token: " + token);
             User user = tokenCache.getUser(token);
+            String organizationPath =
+                documentAccessLogic.getOrganizationDocName(p, user);
+            logger.info("Organization path: " + organizationPath);
             if (user == null) {
                 return Response.status(Response.Status.UNAUTHORIZED).build();
             }
-            docs = documentPort.getDocuments(p, content, user);
+            docs = documentPort.getDocuments(organizationPath, content);
+        } else {
+            logger.info("No token provided");
+            docs = documentPort.getDocuments(p, content);
         }
-
         return Response.ok(docs).build();
     }
 
@@ -136,10 +146,25 @@ public class DocumentsApi {
     @Path("/document/")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getDocument(
-        @HeaderParam("X-app-token") String token,
+        /*@HeaderParam("X-app-token") String token,*/
+        @HeaderParam("Authentication") String token,
         @QueryParam("name") String name
     ) {
-        var doc = documentPort.getDocument(name);
+        Document doc;
+        if (token != null && !token.isEmpty()) {
+            logger.info("getDocument with token: " + token);
+            User user = tokenCache.getUser(token);
+            if (user == null) {
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+            }
+            String organizationDocName =
+                documentAccessLogic.getOrganizationDocName(name, user);
+            logger.info("organizationDocName: " + organizationDocName);
+            doc = documentPort.getDocument(organizationDocName);
+        } else {
+            logger.info("No token provided");
+            doc = documentPort.getDocument(name);
+        }
         if (doc == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
