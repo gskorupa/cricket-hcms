@@ -116,6 +116,13 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
                 continue;
             }
             updatedDoc = repositoryPort.getDocument(doc.name);
+            // skip if the document is already in the database and has not been updated
+            if (null != updatedDoc) {
+                if (updatedDoc.updateTimestamp >= doc.updateTimestamp) {
+                    logger.info("skipping not modified: " + doc.name);
+                    continue;
+                }
+            }
             doc = DocumentTransformer.transform(
                 doc,
                 markdownFileExtension,

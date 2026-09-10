@@ -1,16 +1,5 @@
 package pl.experiot.hcms.app.logic;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.jboss.logging.Logger;
-
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.cache.CacheInvalidateAll;
 import io.quarkus.cache.CacheResult;
@@ -20,6 +9,15 @@ import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 import pl.experiot.hcms.adapters.driving.DummyWatcher;
 import pl.experiot.hcms.adapters.driving.FolderWatcher;
 import pl.experiot.hcms.app.logic.dto.Document;
@@ -32,7 +30,9 @@ import pl.experiot.hcms.app.ports.driving.ForChangeWatcherIface;
 import pl.experiot.hcms.app.ports.driving.ForDocumentsIface;
 
 @ApplicationScoped
-public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface {
+public class DocumentLogic
+    implements ForDocumentsIface, ForAdministrationIface
+{
 
     @Inject
     Logger logger;
@@ -41,44 +41,59 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     ForDocumentsLoaderIface loader;
     ForChangeWatcherIface watcher;
     ForTranslatorIface translator;
-    
+
     // Store executors and watchers for proper shutdown
     private List<ExecutorService> watcherExecutors = new ArrayList<>();
     private List<ForChangeWatcherIface> activeWatchers = new ArrayList<>();
 
     @ConfigProperty(name = "document.folders.root")
     String root;
+
     @ConfigProperty(name = "document.watcher.active")
     boolean watcherActive;
+
     @ConfigProperty(name = "document.watcher.file")
     String watchedFile;
+
     @ConfigProperty(name = "github.token")
     String githubToken;
+
     @ConfigProperty(name = "github.repository")
     String githubRepository;
+
     @ConfigProperty(name = "document.folders.sites")
     String sites;
+
     @ConfigProperty(name = "document.folders.assets")
     String assets;
+
     @ConfigProperty(name = "hcms.sevice.url")
     String hcmsServiceUrl;
+
     @ConfigProperty(name = "hcms.file.api")
     String hcmsFileApi;
+
     @ConfigProperty(name = "hcms.database.type")
     String databaseType;
+
     @ConfigProperty(name = "hcms.loader.type")
     String loaderType;
+
     @ConfigProperty(name = "hcms.watcher.type")
     String watcherType;
+
     @ConfigProperty(name = "document.folders.indexes")
     String indexFiles;
 
     @ConfigProperty(name = "document.folders.excluded")
     String excludes;
+
     @ConfigProperty(name = "document.syntax")
     String syntax; /* "obsidian", "github" */
+
     @ConfigProperty(name = "document.extension.markdown")
     String markdownFileExtension;
+
     @ConfigProperty(name = "document.extension.html")
     String htmlFileExtension;
 
@@ -120,7 +135,6 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     }
 
     void onStart(@Observes StartupEvent ev) {
-
         // environment variables should be cleaned from non printable characters
         watcherType = watcherType.trim();
         loaderType = loaderType.trim();
@@ -170,7 +184,10 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
             siteMap = getSiteMap();
         } catch (Exception e) {
             e.printStackTrace();
-            logger.error("Error while reading configuration from environment variables: " + e.getMessage());
+            logger.error(
+                "Error while reading configuration from environment variables: " +
+                    e.getMessage()
+            );
             logger.warn("Press Ctrl+C to stop the service");
             System.exit(1);
         }
@@ -185,14 +202,18 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
         // start
         long timestamp = System.currentTimeMillis();
         int idx = 0;
+        // siteMap.values().forEach(site -> {
+        //     logger.info("loading documents of site " + site.name);
+        //     loader.loadDocuments(site.name, siteMap, idx == 0, idx == siteMap.size() - 1, timestamp);
+        // });
         siteMap.values().forEach(site -> {
             logger.info("loading documents of site " + site.name);
-            loader.loadDocuments(site.name, siteMap, idx == 0, idx == siteMap.size() - 1, timestamp);
+            loader.loadDocuments(site.name, siteMap, idx == 0, true, timestamp);
         });
 
         // Stop any existing watchers before creating new ones to prevent resource leaks
         shutdown();
-        
+
         List<ForChangeWatcherIface> watchers = watcher.getInstances();
         List<ExecutorService> executors = new ArrayList<>();
         for (ForChangeWatcherIface w : watchers) {
@@ -201,7 +222,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
             executor.execute((Runnable) w);
             executors.add(executor);
         }
-        
+
         // Store executors and watchers for later shutdown
         this.watcherExecutors = executors;
         this.activeWatchers = watchers;
@@ -210,12 +231,15 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     /**
      * Creates a watcher instance based on the configured watcher type.
      * Extracted for testability.
-     * 
+     *
      * @param loader the document loader
      * @param siteMap the site configuration map
      * @return a new watcher instance
      */
-    ForChangeWatcherIface createWatcher(ForDocumentsLoaderIface loader, HashMap<String, Site> siteMap) {
+    ForChangeWatcherIface createWatcher(
+        ForDocumentsLoaderIface loader,
+        HashMap<String, Site> siteMap
+    ) {
         if (watcherType.equalsIgnoreCase("filesystem")) {
             return new FolderWatcher(root, siteMap, loader);
         } else {
@@ -263,7 +287,11 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
         long timestamp = System.currentTimeMillis();
         // executing system command to pull, the repository
         String[] sitesList = sites.split(";");
-        String[] command = { "git", "pull", "https://" + githubToken + "@" + githubRepository };
+        String[] command = {
+            "git",
+            "pull",
+            "https://" + githubToken + "@" + githubRepository,
+        };
         try {
             ProcessBuilder pb = new ProcessBuilder(command);
             pb.inheritIO();
@@ -271,14 +299,19 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
             int exitCode = process.waitFor();
             logger.info("Repository updated, exit code: " + exitCode);
             for (int i = 0; i < sitesList.length; i++) {
-                loader.loadDocuments(sitesList[i], siteMap, i == 0, i == sitesList.length - 1, timestamp);
+                loader.loadDocuments(
+                    sitesList[i],
+                    siteMap,
+                    i == 0,
+                    i == sitesList.length - 1,
+                    timestamp
+                );
             }
         } catch (Exception e) {
             logger.error("Error updating repository: " + e.getMessage());
         }
-
     }
-    
+
     // Shutdown executors and watchers when application stops
     public void shutdown() {
         // First, signal all watchers to stop
@@ -286,16 +319,23 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
             try {
                 w.stop();
                 if (logger != null) {
-                    logger.info("Stop signal sent to watcher: " + w.getNameplate());
+                    logger.info(
+                        "Stop signal sent to watcher: " + w.getNameplate()
+                    );
                 }
             } catch (Exception e) {
                 if (logger != null) {
-                    logger.error("Error stopping watcher " + w.getNameplate() + ": " + e.getMessage());
+                    logger.error(
+                        "Error stopping watcher " +
+                            w.getNameplate() +
+                            ": " +
+                            e.getMessage()
+                    );
                 }
             }
         }
         activeWatchers.clear();
-        
+
         // Then shutdown all executors
         for (ExecutorService executor : watcherExecutors) {
             try {
@@ -305,15 +345,17 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
                 }
             } catch (Exception e) {
                 if (logger != null) {
-                    logger.error("Error shutting down executor: " + e.getMessage());
+                    logger.error(
+                        "Error shutting down executor: " + e.getMessage()
+                    );
                 }
             }
         }
         watcherExecutors.clear();
     }
-    
+
     // ==================== Test helper methods ====================
-    
+
     /**
      * Returns the list of watcher executors (for testing).
      */
@@ -334,7 +376,7 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     public HashMap<String, Site> getSiteMapForTesting() {
         return getSiteMap();
     }
-    
+
     @PreDestroy
     public void onShutdown() {
         shutdown();
@@ -342,36 +384,81 @@ public class DocumentLogic implements ForDocumentsIface, ForAdministrationIface 
     }
 
     @Override
-    public List<Document> findDocuments(String path, String tagName, String tagValue) {
+    public List<Document> findDocuments(
+        String path,
+        String tagName,
+        String tagValue
+    ) {
         List<Document> docs = new ArrayList<>();
         docs = repositoryPort.findDocuments(path, tagName, tagValue, false);
         return docs;
     }
 
     @Override
-    public List<Document> findDocuments(String path, String tagName, String tagValue, String sortBy, String sortOrder,
-            boolean withContent) {
+    public List<Document> findDocuments(
+        String path,
+        String tagName,
+        String tagValue,
+        String sortBy,
+        String sortOrder,
+        boolean withContent
+    ) {
         List<Document> docs = new ArrayList<>();
-        docs = repositoryPort.findDocumentsSorted(path, tagName, tagValue, withContent, sortBy, sortOrder);
+        docs = repositoryPort.findDocumentsSorted(
+            path,
+            tagName,
+            tagValue,
+            withContent,
+            sortBy,
+            sortOrder
+        );
         return docs;
     }
 
     @Override
-    public List<Document> findDocumentsSorted(String path, String tagName, String tagValue, String sortBy,
-            String sortOrder) {
+    public List<Document> findDocumentsSorted(
+        String path,
+        String tagName,
+        String tagValue,
+        String sortBy,
+        String sortOrder
+    ) {
         List<Document> docs = new ArrayList<>();
-        docs = repositoryPort.findDocumentsSorted(path, tagName, tagValue, false, sortBy, sortOrder);
+        docs = repositoryPort.findDocumentsSorted(
+            path,
+            tagName,
+            tagValue,
+            false,
+            sortBy,
+            sortOrder
+        );
         return docs;
     }
 
     @Override
-    public Document findFirstDocument(String path, String tagName, String tagValue, String sortBy, String sortOrder) {
-        Document doc = repositoryPort.findFirstDocument(path, tagName, tagValue, true, sortBy, sortOrder);
+    public Document findFirstDocument(
+        String path,
+        String tagName,
+        String tagValue,
+        String sortBy,
+        String sortOrder
+    ) {
+        Document doc = repositoryPort.findFirstDocument(
+            path,
+            tagName,
+            tagValue,
+            true,
+            sortBy,
+            sortOrder
+        );
         return doc;
     }
 
     @Override
-    public List<String> searchDocuments(String textToSearch, String languageCode) {
+    public List<String> searchDocuments(
+        String textToSearch,
+        String languageCode
+    ) {
         List<String> docs = new ArrayList<>();
         docs = repositoryPort.searchDocuments(textToSearch, languageCode);
         return docs;
