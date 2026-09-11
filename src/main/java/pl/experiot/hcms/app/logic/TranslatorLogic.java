@@ -35,12 +35,18 @@ public class TranslatorLogic {
 
     @ConfigProperty(name = "hcms.repository.language.main")
     String mainLanguage;
+
     @ConfigProperty(name = "hcms.repository.languages")
     String[] languages;
+
     @ConfigProperty(name = "deepl.api.key.file")
     String deeplApiKeyFile;
-    @ConfigProperty(name = "deepl.doc.metadata")
+
+    @ConfigProperty(name = "deepl.doc.metadata") // change to doc.metadata
     String metadataToTranslate;
+
+    @ConfigProperty(name = "google.api.key.file")
+    String googleApiKeyFile = "";
 
     String queueName = "to-translate";
 
@@ -59,11 +65,12 @@ public class TranslatorLogic {
         translatorPort = configurator.getTranslatorPort();
         localizationModelPort = configurator.getRepoModelPort();
         options = getOptions();
-
     }
 
     private HashMap<String, Object> getOptions() {
-        String deeplApiKey="";
+        //TODO: use docker secrets to get the API keys
+        String deeplApiKey = "";
+        String googleApiKey = "";
         if (options == null) {
             if ("none".equalsIgnoreCase(deeplApiKeyFile)) {
                 deeplApiKey = "";
@@ -72,13 +79,34 @@ public class TranslatorLogic {
                 try {
                     deeplApiKey = Files.readString(filePath).trim();
                 } catch (IOException e) {
-                    logger.warn("Error reading Deepl API key from file: " + filePath);
-                    e.printStackTrace();
+                    logger.warn(
+                        "Error reading Deepl API key from file: " + filePath
+                    );
+                }
+            }
+            if (
+                googleApiKeyFile == null ||
+                googleApiKeyFile.isEmpty() ||
+                googleApiKeyFile.equalsIgnoreCase("none")
+            ) {
+                googleApiKey = "";
+            } else {
+                Path filePath = Path.of(googleApiKeyFile);
+                try {
+                    googleApiKey = Files.readString(filePath).trim();
+                } catch (IOException e) {
+                    logger.warn(
+                        "Error reading Google API key from file: " + filePath
+                    );
                 }
             }
             options = new HashMap<>();
             options.put("deepl.api.key", deeplApiKey);
-            if (metadataToTranslate != null && !metadataToTranslate.equalsIgnoreCase("none")) {
+            options.put("google.api.key", googleApiKey);
+            if (
+                metadataToTranslate != null &&
+                !metadataToTranslate.equalsIgnoreCase("none")
+            ) {
                 options.put("deepl.doc.metadata", metadataToTranslate);
             }
         }
@@ -97,45 +125,80 @@ public class TranslatorLogic {
         if (localizationModelPort == null) {
             localizationModelPort = configurator.getRepoModelPort();
         }
-        String[] params=documentData.split(";");
-        if(params.length<2){
-            logger.error("Invalid document data: "+documentData);
+        String[] params = documentData.split(";");
+        if (params.length < 2) {
+            logger.error("Invalid document data: " + documentData);
             return;
         }
-        String documentName =   params[0];
-    
+        String documentName = params[0];
+
         Document document = repositoryPort.getDocument(documentName);
-        if(document==null){
-            logger.error("Document not found: "+documentName);
+        if (document == null) {
+            logger.error("Document not found: " + documentName);
             return;
         }
         long updateTimestamp = Long.parseLong(params[1]);
-        long previousTimestamp = repositoryPort.getPreviousUpdateTimestamp(documentName);
-        logger.info("Translating: " + documentName + " with timestamps: "+updateTimestamp+" "+previousTimestamp);
+        long previousTimestamp = repositoryPort.getPreviousUpdateTimestamp(
+            documentName
+        );
+        logger.info(
+            "Translating: " +
+                documentName +
+                " with timestamps: " +
+                updateTimestamp +
+                " " +
+                previousTimestamp
+        );
 
         if (previousTimestamp < updateTimestamp) {
-            if (localizationModelPort.getDocumentLanguage(document).equals(mainLanguage)) {
+            if (
+                localizationModelPort
+                    .getDocumentLanguage(document)
+                    .equals(mainLanguage)
+            ) {
                 for (String language : languages) {
                     if (language.equals(mainLanguage)) {
                         continue;
                     }
-                    if (document.binaryFile && !document.mediaType.equalsIgnoreCase("application/xml")) {
+                    if (
+                        document.binaryFile &&
+                        !document.mediaType.equalsIgnoreCase("application/xml")
+                    ) {
                         continue;
                     }
-                    logger.info("Translating: " + document.name + " to " + language);
-                    Document translatedDocument = translatorPort.translate(document, mainLanguage, language,
-                            getOptions());
+                    logger.info(
+                        "Translating: " + document.name + " to " + language
+                    );
+                    Document translatedDocument = translatorPort.translate(
+                        document,
+                        mainLanguage,
+                        language,
+                        getOptions()
+                    );
                     if (null != translatedDocument) {
-                        translatedDocument = localizationModelPort.setDocumentLanguage(translatedDocument, language);
-                        repositoryPort.addDocument(translatedDocument, documentName);
+                        translatedDocument =
+                            localizationModelPort.setDocumentLanguage(
+                                translatedDocument,
+                                language
+                            );
+                        repositoryPort.addDocument(
+                            translatedDocument,
+                            documentName
+                        );
                     }
                 }
             } else {
                 logger.debug("Skipping (main language): " + document.name);
             }
-        }else{
-            logger.info("Skipping: "+document.name+" - up to date: "+previousTimestamp+">="+updateTimestamp);
+        } else {
+            logger.info(
+                "Skipping: " +
+                    document.name +
+                    " - up to date: " +
+                    previousTimestamp +
+                    ">=" +
+                    updateTimestamp
+            );
         }
     }
-
 }

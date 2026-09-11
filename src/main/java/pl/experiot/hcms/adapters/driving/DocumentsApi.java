@@ -13,6 +13,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import pl.experiot.hcms.app.logic.DocumentAccessLogic;
 import pl.experiot.hcms.app.logic.TokenCache;
@@ -36,6 +38,9 @@ public class DocumentsApi {
     @Inject
     DocumentAccessLogic documentAccessLogic;
 
+    @ConfigProperty(name = "get.document.authorization.required")
+    boolean documentAuthorizationRequired;
+
     @GET
     @Path("/docs/")
     @Produces(MediaType.APPLICATION_JSON)
@@ -47,7 +52,9 @@ public class DocumentsApi {
     ) {
         String p = path == null || path.isEmpty() ? "/" : path;
         List<Document> docs = new ArrayList<>();
-        if (token != null && !token.isEmpty()) {
+        if (
+            documentAuthorizationRequired && token != null && !token.isEmpty()
+        ) {
             logger.info("Token: " + token);
             User user = tokenCache.getUser(token);
             String organizationPath =
@@ -151,7 +158,9 @@ public class DocumentsApi {
         @QueryParam("name") String name
     ) {
         Document doc;
-        if (token != null && !token.isEmpty()) {
+        if (
+            documentAuthorizationRequired && token != null && !token.isEmpty()
+        ) {
             logger.info("getDocument with token: " + token);
             User user = tokenCache.getUser(token);
             if (user == null) {
