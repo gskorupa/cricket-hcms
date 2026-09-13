@@ -34,6 +34,9 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
 
     EventBus eventBus;
     String queueName;
+    
+    // Statistics tracking - use singleton instance
+    private LoadStatistics loadStatistics = LoadStatistics.getInstance();
 
     @Override
     public void setEventBus(EventBus eventBus, String queueName) {
@@ -76,6 +79,9 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             repositoryPort.startReload(siteName);
         }
 
+        // Reset statistics for this load operation
+        loadStatistics.reset();
+
         logger.debug("loading documents");
         logger.debug(
             "actual path: " +
@@ -106,6 +112,12 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             e.printStackTrace();
         }
         files = visitor.getList();
+        
+        // Collect visitor statistics
+        loadStatistics.incrementFilesRead(visitor.getTotalFilesCount());
+        loadStatistics.incrementSkippedFiles(visitor.getSkippedFilesCount());
+        loadStatistics.incrementSkippedFolders(visitor.getSkippedFoldersCount());
+        
         logger.info("found1: " + files.size() + " documents");
         Document doc;
         Document updatedDoc;
@@ -113,6 +125,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             doc = normalize(files.get(i), siteName);
             if (isExcluded(doc.path)) {
                 logger.info("skipping excluded: " + doc.name);
+                loadStatistics.incrementSkippedFiles();
                 continue;
             }
             updatedDoc = repositoryPort.getDocument(doc.name);
@@ -120,6 +133,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             if (null != updatedDoc) {
                 if (updatedDoc.updateTimestamp >= doc.updateTimestamp) {
                     logger.info("skipping not modified: " + doc.name);
+                    loadStatistics.incrementSkippedFiles();
                     continue;
                 }
             }
@@ -135,6 +149,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             if (null != doc) {
                 doc.refreshTimestamp = timestamp;
                 repositoryPort.addDocument(doc);
+                loadStatistics.incrementDocumentsSaved();
             }
         }
         logger.info("loaded: " + files.size() + " documents");
@@ -143,9 +158,13 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
                 repositoryPort.getDocumentsCount()
         );
         if (stop) {
-            repositoryPort.stopReload(timestamp, docPath);
+            int deletedCount = repositoryPort.stopReload(timestamp, docPath);
+            loadStatistics.incrementDeletedDocuments(deletedCount);
             listAll();
         }
+        
+        // Log statistics after loading
+        logStatistics(siteName);
     }
 
     @Override
@@ -156,6 +175,10 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         if (!docPath.isEmpty()) {
             docPath = "/" + docPath;
         }
+        
+        // Reset statistics for this load operation
+        loadStatistics.reset();
+        
         repositoryPort.startReload(site.name);
         logger.debug("loading documents");
         logger.debug(
@@ -187,6 +210,12 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             e.printStackTrace();
         }
         files = visitor.getList();
+        
+        // Collect visitor statistics
+        loadStatistics.incrementFilesRead(visitor.getTotalFilesCount());
+        loadStatistics.incrementSkippedFiles(visitor.getSkippedFilesCount());
+        loadStatistics.incrementSkippedFolders(visitor.getSkippedFoldersCount());
+        
         logger.info("found2: " + files.size() + " documents");
         Document doc;
         Document updatedDoc = null;
@@ -195,6 +224,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             doc = normalize(files.get(i), site.name);
             if (isExcluded(doc.path)) {
                 logger.info("skipping excluded: " + doc.name);
+                loadStatistics.incrementSkippedFiles();
                 continue;
             }
             updatedDoc = repositoryPort.getDocument(doc.name);
@@ -202,6 +232,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             if (null != updatedDoc) {
                 if (updatedDoc.updateTimestamp >= doc.updateTimestamp) {
                     logger.info("skipping not modified: " + doc.name);
+                    loadStatistics.incrementSkippedFiles();
                     continue;
                 }
             }
@@ -217,6 +248,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             if (null != doc) {
                 doc.refreshTimestamp = timestamp;
                 repositoryPort.addDocument(doc);
+                loadStatistics.incrementDocumentsSaved();
             }
         }
         logger.info("loaded: " + files.size() + " documents");
@@ -224,8 +256,12 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             "repositoryPort database size: " +
                 repositoryPort.getDocumentsCount()
         );
-        repositoryPort.stopReload(timestamp, docPath);
+        int deletedCount = repositoryPort.stopReload(timestamp, docPath);
+        loadStatistics.incrementDeletedDocuments(deletedCount);
         listAll();
+        
+        // Log statistics after loading
+        logStatistics(site.name);
     }
 
     private Document normalize(Document doc, String siteRootFolder) {
@@ -282,6 +318,17 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         for (Document doc : docs) {
             logger.info(doc.name + " [" + doc.getSiteName() + "]");
         }
+    }
+    
+    /**
+     * Logs the collected statistics for the document loading process.
+     * Also includes translation statistics from the LoadStatistics singleton.
+     */
+    private void logStatistics(String siteName) {
+        // The loadStatistics already contains all the data including translation stats
+        // since it's a singleton shared across the application
+        logger.info("Site: " + siteName);
+        logger.info(loadStatistics.toLogMessage());
     }
 
     private int getSiteIndex(String[] sitesList, String siteRoot) {

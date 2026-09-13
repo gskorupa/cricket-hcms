@@ -11,8 +11,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.Map;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
+import pl.experiot.hcms.adapters.driven.loader.fs.LoadStatistics;
 import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
 import pl.experiot.hcms.app.ports.driven.ForMultilanguageRepoModelIface;
@@ -128,6 +130,8 @@ public class TranslatorLogic {
         String[] params = documentData.split(";");
         if (params.length < 2) {
             logger.error("Invalid document data: " + documentData);
+            LoadStatistics.getInstance().incrementTranslationApiErrors();
+            logTranslationStatistics();
             return;
         }
         String documentName = params[0];
@@ -135,6 +139,8 @@ public class TranslatorLogic {
         Document document = repositoryPort.getDocument(documentName);
         if (document == null) {
             logger.error("Document not found: " + documentName);
+            LoadStatistics.getInstance().incrementTranslationApiErrors();
+            logTranslationStatistics();
             return;
         }
         long updateTimestamp = Long.parseLong(params[1]);
@@ -169,22 +175,29 @@ public class TranslatorLogic {
                     logger.info(
                         "Translating: " + document.name + " to " + language
                     );
-                    Document translatedDocument = translatorPort.translate(
-                        document,
-                        mainLanguage,
-                        language,
-                        getOptions()
-                    );
-                    if (null != translatedDocument) {
-                        translatedDocument =
-                            localizationModelPort.setDocumentLanguage(
-                                translatedDocument,
-                                language
-                            );
-                        repositoryPort.addDocument(
-                            translatedDocument,
-                            documentName
+                    Document translatedDocument = null;
+                    try {
+                        translatedDocument = translatorPort.translate(
+                            document,
+                            mainLanguage,
+                            language,
+                            getOptions()
                         );
+                        if (null != translatedDocument) {
+                            LoadStatistics.getInstance().incrementDocumentsSentToTranslation(language);
+                            translatedDocument =
+                                localizationModelPort.setDocumentLanguage(
+                                    translatedDocument,
+                                    language
+                                );
+                            repositoryPort.addDocument(
+                                translatedDocument,
+                                documentName
+                            );
+                        }
+                    } catch (Exception e) {
+                        logger.error("Translation API error for document " + document.name + " to " + language + ": " + e.getMessage());
+                        LoadStatistics.getInstance().incrementTranslationApiErrors();
                     }
                 }
             } else {
@@ -200,5 +213,49 @@ public class TranslatorLogic {
                     updateTimestamp
             );
         }
+        
+        logTranslationStatistics();
+    }
+    
+    /**
+     * Logs translation statistics from LoadStatistics singleton.
+     */
+    private void logTranslationStatistics() {
+        LoadStatistics stats = LoadStatistics.getInstance();
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== Translation Statistics ===\n");
+        sb.append("Documents sent to translation by language:\n");
+        Map<String, Integer> translationStats = stats.getDocumentsSentToTranslation();
+        if (translationStats.isEmpty()) {
+            sb.append("  No documents translated yet\n");
+        } else {
+            for (Map.Entry<String, Integer> entry : translationStats.entrySet()) {
+                sb.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+            }
+        }
+        sb.append("Translation API errors: ").append(stats.getTranslationApiErrors()).append("\n");
+        sb.append("=== End of Translation Statistics ===");
+        logger.info(sb.toString());
+    }
+    
+    /**
+     * Returns the number of documents sent to translation for a specific language.
+     */
+    public int getDocumentsTranslatedCount(String language) {
+        return LoadStatistics.getInstance().getDocumentsSentToTranslation().getOrDefault(language, 0);
+    }
+    
+    /**
+     * Returns the total translation API errors count.
+     */
+    public int getTranslationApiErrors() {
+        return LoadStatistics.getInstance().getTranslationApiErrors();
+    }
+    
+    /**
+     * Returns all translation statistics.
+     */
+    public Map<String, Integer> getDocumentsTranslatedByLanguage() {
+        return new HashMap<>(LoadStatistics.getInstance().getDocumentsSentToTranslation());
     }
 }

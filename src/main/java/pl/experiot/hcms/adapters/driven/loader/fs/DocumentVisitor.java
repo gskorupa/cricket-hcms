@@ -26,6 +26,11 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
     String htmlFileExtension = ".html";
     String jsonFileExtension = ".json";
     String xmlFileExtension = ".xml";
+    
+    // Statistics tracking
+    private int skippedFoldersCount = 0;
+    private int skippedFilesCount = 0;
+    private int totalFilesCount = 0;
 
     GithubWikiReader githubWikiReader = new GithubWikiReader();
     HtmlReader htmlReader = new HtmlReader();
@@ -72,6 +77,24 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
         documents.clear();
         return docs;
     }
+    
+    public int getSkippedFoldersCount() {
+        return skippedFoldersCount;
+    }
+    
+    public int getSkippedFilesCount() {
+        return skippedFilesCount;
+    }
+    
+    public int getTotalFilesCount() {
+        return totalFilesCount;
+    }
+    
+    public void resetStatistics() {
+        skippedFoldersCount = 0;
+        skippedFilesCount = 0;
+        totalFilesCount = 0;
+    }
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
@@ -87,6 +110,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
             path = getRelativePath(file, attr);
             name = file.getFileName().toString();
             fileName = path.substring(path.lastIndexOf("/") + 1);
+            totalFilesCount++;
             if (!isExcluded(path)) {
                 if (name.endsWith(markdownFileExtension)) {
                     githubWikiReader.parse(file);
@@ -127,6 +151,7 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
                 //files.add(doc);
                 documents.put(doc.name, doc);
             } else {
+                skippedFilesCount++;
                 logger.debug("excluded: " + path);
             }
         } else {
@@ -137,7 +162,12 @@ public class DocumentVisitor extends SimpleFileVisitor<Path> {
 
     @Override
     public FileVisitResult postVisitDirectory(Path dir, IOException exc) {
-        // do nothing
+        // Check if this directory was excluded
+        String relativePath = dir.toAbsolutePath().toString().substring(root.length());
+        if (isExcluded(relativePath)) {
+            skippedFoldersCount++;
+            logger.debug("skipped folder: " + relativePath);
+        }
         return CONTINUE;
     }
 

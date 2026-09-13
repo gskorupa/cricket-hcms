@@ -148,10 +148,13 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
     }
 
     @Override
-    public void stopReload(long timestamp, String siteName) {
+    public int stopReload(long timestamp, String siteName) {
+        int deletedCount = getDocuments().size() - underConstrDocs.size();
         getDocuments().clear();
         documents.putAll(underConstrDocs);
         reloadInProgress = false;
+        logger.info("Documents removed: " + deletedCount);
+        return deletedCount;
     }
 
     @Override

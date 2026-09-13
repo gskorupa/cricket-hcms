@@ -22,7 +22,7 @@ public interface ForDocumentRepositoryIface {
     public void deleteDocument(String path);
     public long getDocumentsCount();
     public void startReload(String siteName);
-    public void stopReload(long timestamp, String siteName);
+    public int stopReload(long timestamp, String siteName);
     public void init(AgroalDataSource dataSource);
     public HashMap<String, String> getMetadata(String name);
     public void addMetadata(String name, HashMap<String, String> metadata);
