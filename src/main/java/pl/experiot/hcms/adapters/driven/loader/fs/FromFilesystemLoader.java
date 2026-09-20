@@ -34,7 +34,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
 
     EventBus eventBus;
     String queueName;
-    
+
     // Statistics tracking - use singleton instance
     private LoadStatistics loadStatistics = LoadStatistics.getInstance();
 
@@ -112,12 +112,14 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             e.printStackTrace();
         }
         files = visitor.getList();
-        
+
         // Collect visitor statistics
         loadStatistics.incrementFilesRead(visitor.getTotalFilesCount());
         loadStatistics.incrementSkippedFiles(visitor.getSkippedFilesCount());
-        loadStatistics.incrementSkippedFolders(visitor.getSkippedFoldersCount());
-        
+        loadStatistics.incrementSkippedFolders(
+            visitor.getSkippedFoldersCount()
+        );
+
         logger.info("found1: " + files.size() + " documents");
         Document doc;
         Document updatedDoc;
@@ -135,6 +137,11 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
                     logger.info("skipping not modified: " + doc.name);
                     loadStatistics.incrementSkippedFiles();
                     continue;
+                } else {
+                    eventBus.publish(
+                        queueName,
+                        doc.name + ";" + doc.updateTimestamp + ";forceUpdate"
+                    );
                 }
             }
             doc = DocumentTransformer.transform(
@@ -162,7 +169,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             loadStatistics.incrementDeletedDocuments(deletedCount);
             listAll();
         }
-        
+
         // Log statistics after loading
         logStatistics(siteName);
     }
@@ -175,10 +182,10 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         if (!docPath.isEmpty()) {
             docPath = "/" + docPath;
         }
-        
+
         // Reset statistics for this load operation
         loadStatistics.reset();
-        
+
         repositoryPort.startReload(site.name);
         logger.debug("loading documents");
         logger.debug(
@@ -210,12 +217,14 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             e.printStackTrace();
         }
         files = visitor.getList();
-        
+
         // Collect visitor statistics
         loadStatistics.incrementFilesRead(visitor.getTotalFilesCount());
         loadStatistics.incrementSkippedFiles(visitor.getSkippedFilesCount());
-        loadStatistics.incrementSkippedFolders(visitor.getSkippedFoldersCount());
-        
+        loadStatistics.incrementSkippedFolders(
+            visitor.getSkippedFoldersCount()
+        );
+
         logger.info("found2: " + files.size() + " documents");
         Document doc;
         Document updatedDoc = null;
@@ -259,7 +268,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         int deletedCount = repositoryPort.stopReload(timestamp, docPath);
         loadStatistics.incrementDeletedDocuments(deletedCount);
         listAll();
-        
+
         // Log statistics after loading
         logStatistics(site.name);
     }
@@ -319,7 +328,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             logger.info(doc.name + " [" + doc.getSiteName() + "]");
         }
     }
-    
+
     /**
      * Logs the collected statistics for the document loading process.
      * Also includes translation statistics from the LoadStatistics singleton.

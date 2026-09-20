@@ -48,7 +48,10 @@ public class TranslatorLogic {
     String metadataToTranslate;
 
     @ConfigProperty(name = "google.api.key.file")
-    String googleApiKeyFile = "";
+    String geminiApiKeyFile = "";
+
+    @ConfigProperty(name = "gemini.model")
+    String geminiModel = "";
 
     String queueName = "to-translate";
 
@@ -72,7 +75,7 @@ public class TranslatorLogic {
     private HashMap<String, Object> getOptions() {
         //TODO: use docker secrets to get the API keys
         String deeplApiKey = "";
-        String googleApiKey = "";
+        String geminiApiKey = "";
         if (options == null) {
             if ("none".equalsIgnoreCase(deeplApiKeyFile)) {
                 deeplApiKey = "";
@@ -87,24 +90,25 @@ public class TranslatorLogic {
                 }
             }
             if (
-                googleApiKeyFile == null ||
-                googleApiKeyFile.isEmpty() ||
-                googleApiKeyFile.equalsIgnoreCase("none")
+                geminiApiKeyFile == null ||
+                geminiApiKeyFile.isEmpty() ||
+                geminiApiKeyFile.equalsIgnoreCase("none")
             ) {
-                googleApiKey = "";
+                geminiApiKey = "";
             } else {
-                Path filePath = Path.of(googleApiKeyFile);
+                Path filePath = Path.of(geminiApiKeyFile);
                 try {
-                    googleApiKey = Files.readString(filePath).trim();
+                    geminiApiKey = Files.readString(filePath).trim();
                 } catch (IOException e) {
                     logger.warn(
-                        "Error reading Google API key from file: " + filePath
+                        "Error reading Gemini API key from file: " + filePath
                     );
                 }
             }
             options = new HashMap<>();
             options.put("deepl.api.key", deeplApiKey);
-            options.put("google.api.key", googleApiKey);
+            options.put("gemini.api.key", geminiApiKey);
+            options.put("gemini.model", geminiModel);
             if (
                 metadataToTranslate != null &&
                 !metadataToTranslate.equalsIgnoreCase("none")
@@ -131,16 +135,21 @@ public class TranslatorLogic {
         if (params.length < 2) {
             logger.error("Invalid document data: " + documentData);
             LoadStatistics.getInstance().incrementTranslationApiErrors();
-            logTranslationStatistics();
+            //logTranslationStatistics();
             return;
         }
         String documentName = params[0];
+        if (params.length > 2) {
+            //przetłumaczyć wersje językowe które nie są przetłumaczone lub mają starszą wersję niż podany timestamp
+        } else {
+            //jak obecnie
+        }
 
         Document document = repositoryPort.getDocument(documentName);
         if (document == null) {
             logger.error("Document not found: " + documentName);
             LoadStatistics.getInstance().incrementTranslationApiErrors();
-            logTranslationStatistics();
+            //logTranslationStatistics();
             return;
         }
         long updateTimestamp = Long.parseLong(params[1]);
@@ -177,6 +186,9 @@ public class TranslatorLogic {
                     );
                     Document translatedDocument = null;
                     try {
+                        LoadStatistics.getInstance().incrementDocumentsSentToTranslation(
+                            language
+                        );
                         translatedDocument = translatorPort.translate(
                             document,
                             mainLanguage,
@@ -184,7 +196,6 @@ public class TranslatorLogic {
                             getOptions()
                         );
                         if (null != translatedDocument) {
-                            LoadStatistics.getInstance().incrementDocumentsSentToTranslation(language);
                             translatedDocument =
                                 localizationModelPort.setDocumentLanguage(
                                     translatedDocument,
@@ -196,7 +207,14 @@ public class TranslatorLogic {
                             );
                         }
                     } catch (Exception e) {
-                        logger.error("Translation API error for document " + document.name + " to " + language + ": " + e.getMessage());
+                        logger.error(
+                            "Translation API error for document " +
+                                document.name +
+                                " to " +
+                                language +
+                                ": " +
+                                e.getMessage()
+                        );
                         LoadStatistics.getInstance().incrementTranslationApiErrors();
                     }
                 }
@@ -213,10 +231,10 @@ public class TranslatorLogic {
                     updateTimestamp
             );
         }
-        
-        logTranslationStatistics();
+
+        //logTranslationStatistics();
     }
-    
+
     /**
      * Logs translation statistics from LoadStatistics singleton.
      */
@@ -225,37 +243,51 @@ public class TranslatorLogic {
         StringBuilder sb = new StringBuilder();
         sb.append("=== Translation Statistics ===\n");
         sb.append("Documents sent to translation by language:\n");
-        Map<String, Integer> translationStats = stats.getDocumentsSentToTranslation();
+        Map<String, Integer> translationStats =
+            stats.getDocumentsSentToTranslation();
         if (translationStats.isEmpty()) {
             sb.append("  No documents translated yet\n");
         } else {
-            for (Map.Entry<String, Integer> entry : translationStats.entrySet()) {
-                sb.append("  ").append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+            for (Map.Entry<
+                String,
+                Integer
+            > entry : translationStats.entrySet()) {
+                sb.append("  ")
+                    .append(entry.getKey())
+                    .append(": ")
+                    .append(entry.getValue())
+                    .append("\n");
             }
         }
-        sb.append("Translation API errors: ").append(stats.getTranslationApiErrors()).append("\n");
+        sb.append("Translation API errors: ")
+            .append(stats.getTranslationApiErrors())
+            .append("\n");
         sb.append("=== End of Translation Statistics ===");
         logger.info(sb.toString());
     }
-    
+
     /**
      * Returns the number of documents sent to translation for a specific language.
      */
     public int getDocumentsTranslatedCount(String language) {
-        return LoadStatistics.getInstance().getDocumentsSentToTranslation().getOrDefault(language, 0);
+        return LoadStatistics.getInstance()
+            .getDocumentsSentToTranslation()
+            .getOrDefault(language, 0);
     }
-    
+
     /**
      * Returns the total translation API errors count.
      */
     public int getTranslationApiErrors() {
         return LoadStatistics.getInstance().getTranslationApiErrors();
     }
-    
+
     /**
      * Returns all translation statistics.
      */
     public Map<String, Integer> getDocumentsTranslatedByLanguage() {
-        return new HashMap<>(LoadStatistics.getInstance().getDocumentsSentToTranslation());
+        return new HashMap<>(
+            LoadStatistics.getInstance().getDocumentsSentToTranslation()
+        );
     }
 }

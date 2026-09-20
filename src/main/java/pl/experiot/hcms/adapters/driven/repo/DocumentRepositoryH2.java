@@ -460,14 +460,19 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             statement.executeUpdate();
         } catch (Exception e) {
             // If MERGE fails (e.g., due to missing unique constraint), use UPDATE or INSERT
-            logger.debug("MERGE failed, trying UPDATE/INSERT approach: " + e.getMessage());
+            logger.debug(
+                "MERGE failed, trying UPDATE/INSERT approach: " + e.getMessage()
+            );
             try (
                 var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(
                     "UPDATE document_updates SET modification_ts = ? WHERE name = ?"
                 )
             ) {
-                statement.setTimestamp(1, new java.sql.Timestamp(doc.updateTimestamp));
+                statement.setTimestamp(
+                    1,
+                    new java.sql.Timestamp(doc.updateTimestamp)
+                );
                 statement.setString(2, doc.name);
                 int updated = statement.executeUpdate();
                 if (updated == 0) {
@@ -478,14 +483,23 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                         )
                     ) {
                         insertStmt.setString(1, doc.name);
-                        insertStmt.setTimestamp(2, new java.sql.Timestamp(doc.updateTimestamp));
+                        insertStmt.setTimestamp(
+                            2,
+                            new java.sql.Timestamp(doc.updateTimestamp)
+                        );
                         insertStmt.executeUpdate();
                     } catch (Exception insertEx) {
-                        logger.error("Error inserting document timestamp", insertEx);
+                        logger.error(
+                            "Error inserting document timestamp",
+                            insertEx
+                        );
                     }
                 }
             } catch (Exception updateEx) {
-                logger.error("Error updating document timestamp (fallback approach)", updateEx);
+                logger.error(
+                    "Error updating document timestamp (fallback approach)",
+                    updateEx
+                );
             }
         }
     }
@@ -521,7 +535,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
         logger.info(
             "Last update timestamps: " + timestamps[0] + " " + timestamps[1]
         );
-        return timestamps[0];
+        return timestamps[1];
     }
 
     @Override
@@ -568,7 +582,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
     @Override
     public int stopReload(long timestamp, String siteName) {
         int deletedCount = 0;
-        
+
         // remove all documents from the repository which were refreshed before the
         // timestamp -
         // it means that they were not been read from file system during the last reload
@@ -614,7 +628,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             deleteMetadata(name); // Usuń metadata dokumentu
             deletedCount++;
         }
-        
+
         logger.info("Documents removed: " + deletedCount);
         return deletedCount;
     }
