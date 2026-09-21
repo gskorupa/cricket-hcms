@@ -44,7 +44,7 @@ public class TranslatorLogic {
     @ConfigProperty(name = "deepl.api.key.file")
     String deeplApiKeyFile;
 
-    @ConfigProperty(name = "deepl.doc.metadata") // change to doc.metadata
+    @ConfigProperty(name = "doc.metadata") // change to doc.metadata
     String metadataToTranslate;
 
     @ConfigProperty(name = "google.api.key.file")
@@ -113,7 +113,7 @@ public class TranslatorLogic {
                 metadataToTranslate != null &&
                 !metadataToTranslate.equalsIgnoreCase("none")
             ) {
-                options.put("deepl.doc.metadata", metadataToTranslate);
+                options.put("doc.metadata", metadataToTranslate);
             }
         }
         return options;

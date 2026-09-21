@@ -64,7 +64,7 @@ public class GeminiTranslator implements ForTranslatorIface {
             DEFAULT_MODEL
         );
         String[] metadataFields = (
-            (String) options.getOrDefault("gemini.metadata.fields", "")
+            (String) options.getOrDefault("doc.metadata", "")
         ).split(",");
 
         if (apiKey == null || apiKey.isEmpty()) {
