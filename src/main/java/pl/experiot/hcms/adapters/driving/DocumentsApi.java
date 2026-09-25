@@ -157,6 +157,9 @@ public class DocumentsApi {
         @HeaderParam("Authentication") String token,
         @QueryParam("name") String name
     ) {
+        logger.info(
+            "token authRequired: " + token + " " + documentAuthorizationRequired
+        );
         Document doc;
         if (
             documentAuthorizationRequired && token != null && !token.isEmpty()
