@@ -3,7 +3,9 @@ package pl.experiot.hcms.app.logic;
 import io.agroal.api.AgroalDataSource;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.vertx.ConsumeEvent;
+import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.eventbus.EventBus;
+import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
@@ -12,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import pl.experiot.hcms.adapters.driven.loader.fs.LoadStatistics;
@@ -34,6 +37,12 @@ public class TranslatorLogic {
 
     @Inject
     EventBus bus;
+
+    @Inject
+    Vertx vertx;
+
+    private final AtomicInteger activeTranslations = new AtomicInteger(0);
+    private long statsLoggingTimerId = -1L;
 
     @ConfigProperty(name = "hcms.repository.language.main")
     String mainLanguage;
@@ -119,8 +128,7 @@ public class TranslatorLogic {
         return options;
     }
 
-    @ConsumeEvent("to-translate")
-    public void translate(String documentData) {
+    private void init() {
         if (repositoryPort == null) {
             repositoryPort = configurator.getRepositoryPort();
             repositoryPort.setEventBus(bus, queueName);
@@ -131,11 +139,19 @@ public class TranslatorLogic {
         if (localizationModelPort == null) {
             localizationModelPort = configurator.getRepoModelPort();
         }
+    }
+
+    @ConsumeEvent("to-translate")
+    public void translate(String documentData) {
+        init();
+        activeTranslations.incrementAndGet();
         String[] params = documentData.split(";");
         if (params.length < 2) {
             logger.error("Invalid document data: " + documentData);
             LoadStatistics.getInstance().incrementTranslationApiErrors();
-            //logTranslationStatistics();
+            if (activeTranslations.decrementAndGet() == 0) {
+                scheduleStatsLogging();
+            }
             return;
         }
         String documentName = params[0];
@@ -149,7 +165,9 @@ public class TranslatorLogic {
         if (document == null) {
             logger.error("Document not found: " + documentName);
             LoadStatistics.getInstance().incrementTranslationApiErrors();
-            //logTranslationStatistics();
+            if (activeTranslations.decrementAndGet() == 0) {
+                scheduleStatsLogging();
+            }
             return;
         }
         long updateTimestamp = Long.parseLong(params[1]);
@@ -231,8 +249,24 @@ public class TranslatorLogic {
                     updateTimestamp
             );
         }
+        if (activeTranslations.decrementAndGet() == 0) {
+            scheduleStatsLogging();
+        }
+    }
 
-        //logTranslationStatistics();
+    /**
+     * Planuje odroczone zalogowanie statystyk po 2 sekundach braku nowych tłumaczeń.
+     * Jeśli w międzyczasie nadejdzie nowy dokument, timer zostanie anulowany.
+     */
+    private void scheduleStatsLogging() {
+        if (statsLoggingTimerId != -1L) {
+            vertx.cancelTimer(statsLoggingTimerId);
+        }
+        statsLoggingTimerId = vertx.setTimer(2000, timerId -> {
+            if (activeTranslations.get() == 0) {
+                logTranslationStatistics();
+            }
+        });
     }
 
     /**
@@ -289,5 +323,12 @@ public class TranslatorLogic {
         return new HashMap<>(
             LoadStatistics.getInstance().getDocumentsSentToTranslation()
         );
+    }
+
+    @PreDestroy
+    public void onShutdown() {
+        if (activeTranslations.get() == 0) {
+            logTranslationStatistics();
+        }
     }
 }
