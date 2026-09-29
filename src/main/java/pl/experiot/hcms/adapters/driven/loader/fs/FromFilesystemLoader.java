@@ -38,6 +38,12 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
     // Statistics tracking - use singleton instance
     private LoadStatistics loadStatistics = LoadStatistics.getInstance();
 
+    private void logDebug(String format, Object... args) {
+        if (logger.isDebugEnabled()) {
+            logger.debugf(format, args);
+        }
+    }
+
     @Override
     public void setEventBus(EventBus eventBus, String queueName) {
         this.eventBus = eventBus;
@@ -83,12 +89,12 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         loadStatistics.reset();
 
         logger.debug("loading documents");
-        logger.debug(
-            "actual path: " +
+        logDebug(
+            "actual path: %s" +
                 Paths.get(".").toAbsolutePath().normalize().toString()
         );
-        logger.debug("getDocuments: " + docPath);
-        logger.debug("complete path: " + root + docPath);
+        logDebug("getDocuments: %s", docPath);
+        logDebug("complete path: %s", root + docPath);
         ArrayList<Document> files = new ArrayList<>();
         DocumentVisitor visitor = new DocumentVisitor();
         visitor.setRoot(
@@ -106,7 +112,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         Path p;
         try {
             p = Paths.get(root + docPath);
-            logger.info("absolute path: " + p.toAbsolutePath().toString());
+            logDebug("absolute path: %s", p.toAbsolutePath().toString());
             Files.walkFileTree(p, visitor);
         } catch (IOException e) {
             e.printStackTrace();
@@ -120,30 +126,41 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             visitor.getSkippedFoldersCount()
         );
 
-        logger.info("found1: " + files.size() + " documents");
+        logDebug("found1: %d %s", files.size(), "documents");
         Document doc;
         Document updatedDoc;
         for (int i = 0; i < files.size(); i++) {
             doc = normalize(files.get(i), siteName);
             if (isExcluded(doc.path)) {
-                logger.info("skipping excluded: " + doc.name);
+                logDebug("skipping excluded: %s", doc.name);
                 loadStatistics.incrementSkippedFiles();
                 continue;
             }
             updatedDoc = repositoryPort.getDocument(doc.name);
             // skip if the document is already in the database and has not been updated
             if (null != updatedDoc) {
+                /*
+                 * if the document is already in the database and the source file has not been updated, we skip it
+                 * but we still need to check if the document has been translated (could not be translated because of an error)
+                 */
                 if (updatedDoc.updateTimestamp >= doc.updateTimestamp) {
-                    logger.info("skipping not modified: " + doc.name);
+                    logDebug("skipping not modified: %s", doc.name);
                     loadStatistics.incrementSkippedFiles();
-                    continue;
-                } else {
+                    // default document language is already in the database, so we only need to check translated versions
+                    logDebug("Sending to update translations: %s", doc.name);
                     eventBus.publish(
                         queueName,
-                        doc.name + ";" + doc.updateTimestamp + ";forceUpdate"
+                        doc.name +
+                            ";" +
+                            doc.updateTimestamp +
+                            ";checkTranslations"
                     );
+                    continue;
                 }
             }
+            /*
+             * the document is new or has been modified since the last load, so we need to store it in the database and start the translation process
+             */
             doc = DocumentTransformer.transform(
                 doc,
                 markdownFileExtension,
@@ -155,15 +172,19 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             );
             if (null != doc) {
                 doc.refreshTimestamp = timestamp;
-                repositoryPort.addDocument(doc);
+                repositoryPort.addDocument(doc); //translations will be started by the repository
                 loadStatistics.incrementDocumentsSaved();
+                eventBus.publish(
+                    queueName,
+                    doc.name + ";" + doc.updateTimestamp
+                );
             }
         }
         logger.info("loaded: " + files.size() + " documents");
-        logger.info(
-            "repositoryPort database size: " +
-                repositoryPort.getDocumentsCount()
-        );
+        // logger.debug(
+        //     "repositoryPort database size: " +
+        //         repositoryPort.getDocumentsCount()
+        // );
         if (stop) {
             int deletedCount = repositoryPort.stopReload(timestamp, docPath);
             loadStatistics.incrementDeletedDocuments(deletedCount);
@@ -188,12 +209,12 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
 
         repositoryPort.startReload(site.name);
         logger.debug("loading documents");
-        logger.debug(
-            "actual path: " +
-                Paths.get(".").toAbsolutePath().normalize().toString()
+        logDebug(
+            "actual path: %s",
+            Paths.get(".").toAbsolutePath().normalize().toString()
         );
-        logger.debug("getDocuments: " + docPath);
-        logger.debug("complete path: " + root + docPath);
+        logDebug("getDocuments: %s", docPath);
+        logDebug("complete path: %s", root + docPath);
         ArrayList<Document> files = new ArrayList<>();
         DocumentVisitor visitor = new DocumentVisitor();
         visitor.setRoot(
@@ -211,7 +232,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         Path p;
         try {
             p = Paths.get(root + docPath);
-            logger.info("absolute path: " + p.toAbsolutePath().toString());
+            logDebug("absolute path: %s", p.toAbsolutePath().toString());
             Files.walkFileTree(p, visitor);
         } catch (IOException e) {
             e.printStackTrace();
@@ -232,7 +253,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             // logger.info(" " + files.get(i).path);
             doc = normalize(files.get(i), site.name);
             if (isExcluded(doc.path)) {
-                logger.info("skipping excluded: " + doc.name);
+                logDebug("skipping excluded: %s", doc.name);
                 loadStatistics.incrementSkippedFiles();
                 continue;
             }
@@ -240,7 +261,7 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             // skip if the document is already in the database and has not been updated
             if (null != updatedDoc) {
                 if (updatedDoc.updateTimestamp >= doc.updateTimestamp) {
-                    logger.info("skipping not modified: " + doc.name);
+                    logDebug("skipping not modified: %s", doc.name);
                     loadStatistics.incrementSkippedFiles();
                     continue;
                 }
@@ -274,8 +295,8 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
     }
 
     private Document normalize(Document doc, String siteRootFolder) {
-        logger.debug("pre doc.name: " + doc.name);
-        logger.debug("pre doc.path: " + doc.path);
+        logDebug("pre doc.name: %s", doc.name);
+        logDebug("pre doc.path: %s", doc.path);
         doc.siteName = siteRootFolder;
         if (
             !(
@@ -299,8 +320,8 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
         if (!doc.name.startsWith("/")) {
             doc.name = "/" + doc.name;
         }
-        logger.debug("post doc.name: " + doc.name);
-        logger.debug("post doc.path: " + doc.path);
+        logDebug("post doc.name: %s", doc.name);
+        logDebug("post doc.path: %s", doc.path);
         return doc;
     }
 

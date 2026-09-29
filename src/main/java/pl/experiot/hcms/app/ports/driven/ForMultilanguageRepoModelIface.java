@@ -1,4 +1,5 @@
 package pl.experiot.hcms.app.ports.driven;
+
 import pl.experiot.hcms.app.logic.dto.Document;
 
 public interface ForMultilanguageRepoModelIface {
@@ -8,6 +9,13 @@ public interface ForMultilanguageRepoModelIface {
     public String[] getLanguages();
     public String getMainLanguage();
     public String getDocumentLanguage(Document document);
-    public Document setDocumentLanguage(Document document, String targetLanguage);
+    public Document setDocumentLanguage(
+        Document document,
+        String targetLanguage
+    );
     public String translateRepoLinks(String content, String targetLanguage);
+    public String getLanguageDocumentName(
+        String documentName,
+        String targetLanguage
+    );
 }

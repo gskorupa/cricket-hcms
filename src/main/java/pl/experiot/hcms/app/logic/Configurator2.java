@@ -1,8 +1,9 @@
 package pl.experiot.hcms.app.logic;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 import pl.experiot.hcms.adapters.driven.loader.fs.FromFilesystemLoader;
 import pl.experiot.hcms.adapters.driven.loader.test.TestDocLoader;
 import pl.experiot.hcms.adapters.driven.repo.DocumentRepository;
@@ -20,35 +21,51 @@ import pl.experiot.hcms.app.ports.driven.ForTranslatorIface;
 @ApplicationScoped
 public class Configurator2 {
 
+    @Inject
+    Logger logger;
+
     @ConfigProperty(name = "hcms.database.type")
     String databaseType;
+
     @ConfigProperty(name = "hcms.loader.type")
     String loaderType;
+
     @ConfigProperty(name = "document.folders.sites")
     String sites;
+
     @ConfigProperty(name = "document.folders.excluded")
     String excludes;
+
     @ConfigProperty(name = "document.syntax")
     String syntax; /* "obsidian", "github" */
+
     @ConfigProperty(name = "document.extension.markdown")
     String markdownFileExtension;
+
     @ConfigProperty(name = "document.extension.html")
     String htmlFileExtension;
+
     @ConfigProperty(name = "document.folders.root")
     String root;
+
     @ConfigProperty(name = "document.folders.assets")
     String assets;
+
     @ConfigProperty(name = "hcms.sevice.url")
     String hcmsServiceUrl;
-/*     @ConfigProperty(name = "hcms.file.api")
+
+    /*     @ConfigProperty(name = "hcms.file.api")
     String hcmsFileApi; */
 
     @ConfigProperty(name = "hcms.translator.type")
     String translatorType;
+
     @ConfigProperty(name = "hcms.localization.model")
     String localizationModel;
+
     @ConfigProperty(name = "hcms.repository.language.main")
     String mainLanguage;
+
     @ConfigProperty(name = "hcms.repository.languages")
     String[] languages;
 
@@ -103,19 +120,21 @@ public class Configurator2 {
                 break;
         }
         return translator;
-
     }
 
     public ForMultilanguageRepoModelIface getRepoModelPort() {
         ForMultilanguageRepoModelIface repoModel;
         switch (localizationModel) {
             case "dummy":
+                logger.debug("Using dummy repo model");
                 repoModel = new DummyRepoModel();
                 break;
             case "path_prefix":
+                logger.debug("Using path prefix repo model");
                 repoModel = new PathBasedRepoModel();
                 break;
             default:
+                logger.debug("Using dummy repo model");
                 repoModel = new DummyRepoModel();
                 break;
         }
@@ -123,5 +142,4 @@ public class Configurator2 {
         repoModel.setRepoLanguages(languages);
         return repoModel;
     }
-
 }

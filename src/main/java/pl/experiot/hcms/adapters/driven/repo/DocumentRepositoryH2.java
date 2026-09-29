@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import pl.experiot.hcms.app.logic.dto.Document;
 import pl.experiot.hcms.app.ports.driven.ForDocumentRepositoryIface;
@@ -17,6 +18,9 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
     private String queueName = null;
 
     private static AgroalDataSource defaultDataSource;
+
+    @ConfigProperty(name = "hcms.repository.language.main")
+    String mainLanguage;
 
     @Override
     public void init(AgroalDataSource dataSource) {
@@ -114,6 +118,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
         sql =
             "CREATE TABLE IF NOT EXISTS document_updates (" +
             "name VARCHAR(255) NOT NULL, " +
+            "language VARCHAR(10)," +
             "modification_ts TIMESTAMP NOT NULL," +
             "ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP" +
             ");";
@@ -132,7 +137,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
         }
         // create index
         sql =
-            "CREATE INDEX IF NOT EXISTS document_updates_idx ON document_updates (name, ts);";
+            "CREATE INDEX IF NOT EXISTS document_updates_idx ON document_updates (name, language, ts);";
         try (
             var connection = defaultDataSource.getConnection();
             var statement = connection.createStatement()
@@ -437,24 +442,88 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             //e.printStackTrace();
         }
         addMetadata(doc.name, doc.metadata);
-        updateDocumentTimestamp(doc);
-        eventBus.publish(queueName, doc.name + ";" + doc.updateTimestamp);
+
+        // Extract language from document name if it's a translated version
+        String language = extractLanguageFromPath(doc.name, doc.siteName);
+        updateDocumentTimestamp(doc, language);
+        /* initialization of translation process is in FromFilesystemLoader class */
+        // if (
+        //     language == null ||
+        //     language.equals("") ||
+        //     language.equals(mainLanguage)
+        // ) {
+        //     logger.info("Sending to translate: " + doc.name);
+        //     eventBus.publish(queueName, doc.name + ";" + doc.updateTimestamp);
+        // }
     }
 
-    private void updateDocumentTimestamp(Document doc) {
+    /**
+     * Extract language code from document path.
+     * Assumes path format: /siteName/language/... or /siteName/... (for main language)
+     */
+    private String extractLanguageFromPath(
+        String documentName,
+        String siteName
+    ) {
+        if (documentName == null || siteName == null) {
+            return null;
+        }
+
+        String normalizedName = documentName.startsWith("/")
+            ? documentName
+            : "/" + documentName;
+        String normalizedSite = siteName.startsWith("/")
+            ? siteName
+            : "/" + siteName;
+
+        String prefix = normalizedSite + "/";
+        if (!normalizedName.startsWith(prefix)) {
+            return null;
+        }
+
+        String pathAfterSite = normalizedName.substring(prefix.length());
+
+        // Check if the next segment is a language code
+        int firstSlash = pathAfterSite.indexOf("/");
+        if (firstSlash <= 0) {
+            return null;
+        }
+
+        String potentialLanguage = pathAfterSite.substring(0, firstSlash);
+
+        // Simple validation: language codes are typically 2-3 characters
+        if (
+            potentialLanguage.length() >= 2 && potentialLanguage.length() <= 3
+        ) {
+            return potentialLanguage;
+        }
+
+        return null;
+    }
+
+    // private void updateDocumentTimestamp(Document doc) {
+    //     updateDocumentTimestamp(doc, null);
+    // }
+
+    private void updateDocumentTimestamp(Document doc, String language) {
         // First, try to use MERGE
         String sql = """
-        MERGE INTO document_updates (name, modification_ts)
-        KEY (NAME)
-        VALUES (?, ?)
+        MERGE INTO document_updates (name, language, modification_ts, ts)
+        KEY (NAME, LANGUAGE)
+        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
         """;
         try (
             var connection = defaultDataSource.getConnection();
             var statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, doc.name);
+            if (language != null) {
+                statement.setString(2, language);
+            } else {
+                statement.setString(2, "");
+            }
             statement.setTimestamp(
-                2,
+                3,
                 new java.sql.Timestamp(doc.updateTimestamp)
             );
             statement.executeUpdate();
@@ -466,7 +535,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             try (
                 var connection = defaultDataSource.getConnection();
                 var statement = connection.prepareStatement(
-                    "UPDATE document_updates SET modification_ts = ? WHERE name = ?"
+                    "UPDATE document_updates SET modification_ts = ?, ts = CURRENT_TIMESTAMP WHERE name = ? AND language = ?"
                 )
             ) {
                 statement.setTimestamp(
@@ -474,17 +543,27 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
                     new java.sql.Timestamp(doc.updateTimestamp)
                 );
                 statement.setString(2, doc.name);
+                if (language != null) {
+                    statement.setString(3, language);
+                } else {
+                    statement.setString(3, "");
+                }
                 int updated = statement.executeUpdate();
                 if (updated == 0) {
                     // Document not found, insert it
                     try (
                         var insertStmt = connection.prepareStatement(
-                            "INSERT INTO document_updates (name, modification_ts) VALUES (?, ?)"
+                            "INSERT INTO document_updates (name, language, modification_ts,ts) VALUES (?, ?, ?, CURRENT_TIMESTAMP)"
                         )
                     ) {
                         insertStmt.setString(1, doc.name);
+                        if (language != null) {
+                            insertStmt.setString(2, language);
+                        } else {
+                            insertStmt.setString(2, "");
+                        }
                         insertStmt.setTimestamp(
-                            2,
+                            3,
                             new java.sql.Timestamp(doc.updateTimestamp)
                         );
                         insertStmt.executeUpdate();
@@ -509,22 +588,31 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
      */
     @Override
     public long getPreviousUpdateTimestamp(String documentName) {
+        return getPreviousUpdateTimestamp(documentName, null);
+    }
+
+    /**
+     * Get document's previous update timestamp for a specific language.
+     */
+    @Override
+    public long getPreviousUpdateTimestamp(
+        String documentName,
+        String language
+    ) {
         String sql =
-            "SELECT modification_ts FROM document_updates WHERE name = ? ORDER BY modification_ts DESC LIMIT 2";
+            "SELECT ts FROM document_updates WHERE name = ? ORDER BY ts DESC LIMIT 2";
         long[] timestamps = new long[2];
         timestamps[0] = 0;
         timestamps[1] = 0;
+        int i = 0;
         try (
             var connection = defaultDataSource.getConnection();
             var statement = connection.prepareStatement(sql)
         ) {
             statement.setString(1, documentName);
             try (var resultSet = statement.executeQuery()) {
-                int i = 0;
                 while (resultSet.next()) {
-                    timestamps[i] = resultSet
-                        .getTimestamp("modification_ts")
-                        .getTime();
+                    timestamps[i] = resultSet.getTimestamp("ts").getTime();
                     i++;
                 }
             }
@@ -533,9 +621,20 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             logger.error(e.getMessage());
         }
         logger.info(
-            "Last update timestamps: " + timestamps[0] + " " + timestamps[1]
+            "Last update timestamps for " +
+                documentName +
+                " (" +
+                language +
+                "): " +
+                timestamps[0] +
+                " " +
+                timestamps[1]
         );
-        return timestamps[1];
+        if (i < 2) {
+            return timestamps[0];
+        } else {
+            return timestamps[1];
+        }
     }
 
     @Override

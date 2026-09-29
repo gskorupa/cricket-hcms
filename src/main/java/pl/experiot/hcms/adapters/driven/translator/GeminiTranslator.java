@@ -75,7 +75,7 @@ public class GeminiTranslator implements ForTranslatorIface {
         }
 
         try {
-            logger.info(
+            logger.debug(
                 "Translating (gemini) " +
                     document.name +
                     " from " +
@@ -153,7 +153,7 @@ public class GeminiTranslator implements ForTranslatorIface {
                     ": " +
                     e.getMessage()
             );
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
     }

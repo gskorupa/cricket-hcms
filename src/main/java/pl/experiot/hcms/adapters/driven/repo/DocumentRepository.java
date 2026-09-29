@@ -118,12 +118,53 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
     public void addDocument(Document doc, String origin) {
         if(!reloadInProgress){
             //TODO: for real, not in memory database, this won't be needed
+            // Still update timestamps for translation tracking
+            String language = extractLanguageFromPath(doc.name);
+            updateDocumentTimestamp(doc, language);
             return;
         }
         logger.info("addDocument: " + doc.name);
         deleteMetadata(doc.name);
         getUnderConstrDocs().put(doc.name, doc);
         addMetadata(doc.name, doc.metadata);
+        
+        String language = extractLanguageFromPath(doc.name);
+        updateDocumentTimestamp(doc, language);
+    }
+
+    /**
+     * Extract language code from document path.
+     * Assumes path format: /siteName/language/... or /siteName/... (for main language)
+     */
+    private String extractLanguageFromPath(String documentName) {
+        if (documentName == null) {
+            return null;
+        }
+        
+        String normalizedName = documentName.startsWith("/") ? documentName : "/" + documentName;
+        
+        // Simple approach: extract second path segment as language code
+        String[] parts = normalizedName.split("/");
+        if (parts.length >= 3) {
+            // parts[0] is empty (starts with /), parts[1] is site name, parts[2] is language
+            String potentialLanguage = parts[2];
+            if (potentialLanguage.length() >= 2 && potentialLanguage.length() <= 3) {
+                return potentialLanguage;
+            }
+        }
+        
+        return null;
+    }
+
+    private void updateDocumentTimestamp(Document doc, String language) {
+        if (documentTimestamps == null) {
+            documentTimestamps = new ConcurrentHashMap<>();
+        }
+        
+        String key = language != null ? language : "";
+        documentTimestamps
+            .computeIfAbsent(doc.name, k -> new ConcurrentHashMap<>())
+            .put(key, doc.updateTimestamp);
     }
 
     @Override
@@ -244,10 +285,24 @@ public class DocumentRepository implements ForDocumentRepositoryIface {
         // TODO: filter by languageCode
     }
 
+    // In-memory storage for document timestamps by language
+    private ConcurrentHashMap<String, ConcurrentHashMap<String, Long>> documentTimestamps = new ConcurrentHashMap<>();
+
     @Override
     public long getPreviousUpdateTimestamp(String documentName) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getPreviousUpdateTimestamp'");
+        return getPreviousUpdateTimestamp(documentName, null);
+    }
+
+    @Override
+    public long getPreviousUpdateTimestamp(String documentName, String language) {
+        ConcurrentHashMap<String, Long> languageTimestamps = documentTimestamps.get(documentName);
+        if (languageTimestamps == null) {
+            return 0;
+        }
+        
+        String key = language != null ? language : "";
+        Long timestamp = languageTimestamps.get(key);
+        return timestamp != null ? timestamp : 0;
     }
 
     @Override

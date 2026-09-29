@@ -29,6 +29,7 @@ public interface ForDocumentRepositoryIface {
     public void deleteMetadata(String name);
     public List<String> searchDocuments(String textToSearch, String languageCode);
     public long getPreviousUpdateTimestamp(String documentName);
+    public long getPreviousUpdateTimestamp(String documentName, String language);
     public void setEventBus(EventBus eventBus, String queName);
     public long getSize();
 }

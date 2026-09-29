@@ -40,4 +40,9 @@ public class DummyRepoModel implements ForMultilanguageRepoModelIface {
         public String translateRepoLinks(String content, String targetLanguage) {
             return content;
         }
+
+        @Override
+        public String getLanguageDocumentName(String documentName, String targetLanguage) {
+            return documentName;
+        }
 }

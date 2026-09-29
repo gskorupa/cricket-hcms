@@ -15,7 +15,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Supplier;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 import pl.experiot.hcms.adapters.driven.loader.fs.LoadStatistics;
@@ -65,21 +67,20 @@ public class TranslatorLogic {
 
     String queueName = "to-translate";
 
-    ForDocumentRepositoryIface repositoryPort;
-    ForTranslatorIface translatorPort;
-    ForMultilanguageRepoModelIface localizationModelPort;
+    ForDocumentRepositoryIface repositoryPort = null;
+    ForTranslatorIface translatorPort = null;
+    ForMultilanguageRepoModelIface localizationModelPort = null;
 
     HashMap<String, Object> options = null;
 
     void onStart(@Observes StartupEvent ev) {
-        logger.info("TranslatorLogic starting...");
-
-        repositoryPort = configurator.getRepositoryPort();
-        repositoryPort.setEventBus(bus, queueName);
-
-        translatorPort = configurator.getTranslatorPort();
-        localizationModelPort = configurator.getRepoModelPort();
         options = getOptions();
+    }
+
+    private void logDebug(Supplier<String> messageSupplier) {
+        if (logger.isDebugEnabled()) {
+            logger.debug(messageSupplier.get());
+        }
     }
 
     private HashMap<String, Object> getOptions() {
@@ -139,8 +140,56 @@ public class TranslatorLogic {
         }
         if (localizationModelPort == null) {
             localizationModelPort = configurator.getRepoModelPort();
+            logDebug(
+                () ->
+                    "Localization model port initialized: " +
+                    localizationModelPort.getClass().getName()
+            );
         }
     }
+
+    /**
+     * Construct document name for a specific language by replacing main language code
+     * in the path with the target language code.
+     * Example: /site/pl/page with target language "en" becomes /site/en/page
+     */
+    //     private String getLanguageDocumentName(
+    //         String documentName,
+    //         String targetLanguage
+    //     ) {
+    //         if (
+    //             documentName == null ||
+    //             targetLanguage == null ||
+    //             mainLanguage == null
+    //         ) {
+    //             return documentName;
+    //         }
+    //
+    //         // Replace mainLanguage with targetLanguage in the path
+    //         // Handle both "/pl/page" -> "/en/page" and "/site/pl/page" -> "/site/en/page"
+    //         String normalizedName = documentName.startsWith("/")
+    //             ? documentName
+    //             : "/" + documentName;
+    //
+    //         // Replace "/pl/" with "/en/" or "/pl" at end with "/en"
+    //         String result = normalizedName.replace(
+    //             "/" + mainLanguage + "/",
+    //             "/" + targetLanguage + "/"
+    //         );
+    //
+    //         // Handle case where mainLanguage is at the end without trailing slash
+    //         if (
+    //             !result.equals(normalizedName) ||
+    //             normalizedName.endsWith("/" + mainLanguage)
+    //         ) {
+    //             result = normalizedName.replace(
+    //                 "/" + mainLanguage,
+    //                 "/" + targetLanguage
+    //             );
+    //         }
+    //
+    //         return result;
+    //     }
 
     @ConsumeEvent("to-translate")
     public Uni<Void> translate(String documentData) {
@@ -157,9 +206,7 @@ public class TranslatorLogic {
                         return null;
                     }
                     String documentName = params[0];
-                    if (params.length > 2) {
-                        // przetłumaczyć wersje językowe które nie są przetłumaczone lub mają starszą wersję niż podany timestamp
-                    }
+                    boolean updateLanguageVersions = params.length > 2;
 
                     Document document = repositoryPort.getDocument(
                         documentName
@@ -169,19 +216,103 @@ public class TranslatorLogic {
                         LoadStatistics.getInstance().incrementTranslationApiErrors();
                         return null;
                     }
-                    long updateTimestamp = Long.parseLong(params[1]);
-                    long previousTimestamp =
-                        repositoryPort.getPreviousUpdateTimestamp(documentName);
-                    logger.info(
-                        "Translating: " +
-                            documentName +
-                            " with timestamps: " +
-                            updateTimestamp +
-                            " " +
-                            previousTimestamp
-                    );
+                    if (
+                        document.binaryFile &&
+                        !document.mediaType.equalsIgnoreCase("application/xml")
+                    ) {
+                        return null;
+                    }
 
-                    if (previousTimestamp < updateTimestamp) {
+                    long updateTimestamp = Long.parseLong(params[1]);
+                    long previousTimestamp = 0L;
+
+                    if (updateLanguageVersions) {
+                        // Update language versions: check each language timestamp individually
+                        String tmpLanguage =
+                            localizationModelPort.getDocumentLanguage(document);
+                        logger.info(
+                            "Translating (updating) from language: " +
+                                tmpLanguage
+                        );
+                        if (mainLanguage.equals(tmpLanguage)) {
+                            for (String language : languages) {
+                                if (
+                                    updateLanguageVersions &&
+                                    language.equals(mainLanguage)
+                                ) continue;
+                                // if (
+                                //     document.binaryFile &&
+                                //     !document.mediaType.equalsIgnoreCase(
+                                //         "application/xml"
+                                //     )
+                                // ) continue;
+
+                                // Construct the language document name by replacing mainLanguage with target language
+                                String languageDocumentName =
+                                    localizationModelPort.getLanguageDocumentName(
+                                        documentName,
+                                        language
+                                    );
+                                long languageTimestamp =
+                                    repositoryPort.getPreviousUpdateTimestamp(
+                                        languageDocumentName,
+                                        language
+                                    );
+                                logDebug(
+                                    () ->
+                                        "Checking language version: " +
+                                        document.name +
+                                        " for " +
+                                        language +
+                                        " (doc: " +
+                                        languageDocumentName +
+                                        ") with timestamps: " +
+                                        updateTimestamp +
+                                        " " +
+                                        languageTimestamp
+                                );
+
+                                if (languageTimestamp < updateTimestamp) {
+                                    startTranslationInNewThread(
+                                        document,
+                                        documentName,
+                                        language,
+                                        updateTimestamp
+                                    );
+                                } else {
+                                    logDebug(
+                                        () ->
+                                            "Skipping language: " +
+                                            document.name +
+                                            " to " +
+                                            language +
+                                            " - up to date: " +
+                                            languageTimestamp +
+                                            ">=" +
+                                            updateTimestamp
+                                    );
+                                }
+                            }
+                        } else {
+                            logDebug(
+                                () ->
+                                    "Skipping translation (update): " +
+                                    document.name
+                            );
+                        }
+                    } else {
+                        // Update all language versions based on main document timestamp
+
+                        logger.debug(
+                            "Translating: " +
+                                documentName +
+                                " with timestamps: " +
+                                updateTimestamp +
+                                " " +
+                                previousTimestamp
+                        );
+
+                        //if (previousTimestamp < updateTimestamp) {
                         if (
                             localizationModelPort
                                 .getDocumentLanguage(document)
@@ -195,64 +326,37 @@ public class TranslatorLogic {
                                         "application/xml"
                                     )
                                 ) continue;
-
-                                logger.info(
-                                    "Translating: " +
-                                        document.name +
-                                        " to " +
-                                        language
-                                );
-                                try {
-                                    LoadStatistics.getInstance().incrementDocumentsSentToTranslation(
+                                previousTimestamp =
+                                    repositoryPort.getPreviousUpdateTimestamp(
+                                        documentName,
                                         language
                                     );
-                                    Document translatedDocument =
-                                        translatorPort.translate(
-                                            document,
-                                            mainLanguage,
-                                            language,
-                                            getOptions()
-                                        );
-                                    if (translatedDocument != null) {
-                                        translatedDocument =
-                                            localizationModelPort.setDocumentLanguage(
-                                                translatedDocument,
-                                                language
-                                            );
-                                        repositoryPort.addDocument(
-                                            translatedDocument,
-                                            documentName
-                                        );
-                                        // TODO: add number tokens used
-                                    }
-                                } catch (Exception e) {
-                                    logger.error(
-                                        "Translation API error for document " +
-                                            document.name +
-                                            " to " +
-                                            language +
-                                            ": " +
-                                            e.getMessage()
+                                if (previousTimestamp < updateTimestamp) {
+                                    startTranslationInNewThread(
+                                        document,
+                                        documentName,
+                                        language,
+                                        updateTimestamp
                                     );
-                                    LoadStatistics.getInstance().incrementTranslationApiErrors();
                                 }
                             }
                         } else {
-                            if (logger.isDebugEnabled()) {
-                                logger.debug(
+                            logDebug(
+                                () ->
                                     "Skipping (main language): " + document.name
-                                );
-                            }
+                            );
                         }
-                    } else {
-                        logger.info(
-                            "Skipping: " +
-                                document.name +
-                                " - up to date: " +
-                                previousTimestamp +
-                                ">=" +
-                                updateTimestamp
-                        );
+                        // } else {
+                        //     logDebug(
+                        //         () ->
+                        //             "Skipping: " +
+                        //             document.name +
+                        //             " - up to date: " +
+                        //             previousTimestamp +
+                        //             ">=" +
+                        //             updateTimestamp
+                        //     );
+                        // }
                     }
                 } catch (Exception e) {
                     logger.error("Unexpected error in translation handler", e);
@@ -266,6 +370,70 @@ public class TranslatorLogic {
                 }
             })
             .replaceWithVoid();
+    }
+
+    private void startTranslationInNewThread(
+        Document document,
+        String documentName,
+        String language,
+        long updateTimestamp
+    ) {
+        logDebug(
+            () ->
+                "Starting translation in new thread: " +
+                document.name +
+                " to " +
+                language
+        );
+
+        vertx
+            .executeBlocking(
+                (Callable<Void>) () -> {
+                    // ✅ Callable<Void> jest poprawny dla Mutiny
+                    try {
+                        LoadStatistics.getInstance().incrementDocumentsSentToTranslation(
+                            language
+                        );
+
+                        Document translatedDocument = translatorPort.translate(
+                            document,
+                            mainLanguage,
+                            language,
+                            getOptions()
+                        );
+
+                        if (translatedDocument != null) {
+                            translatedDocument =
+                                localizationModelPort.setDocumentLanguage(
+                                    translatedDocument,
+                                    language
+                                );
+                            repositoryPort.addDocument(
+                                translatedDocument,
+                                documentName
+                            );
+                        }
+                        return null;
+                    } catch (Exception e) {
+                        logger.error(
+                            "Translation API error for document " +
+                                document.name +
+                                " to " +
+                                language +
+                                ": " +
+                                e.getMessage()
+                        );
+                        LoadStatistics.getInstance().incrementTranslationApiErrors();
+                        throw e; // ✅ Rzucamy wyjątek, Mutiny go złapie
+                    }
+                },
+                false // ordered
+            )
+            .subscribe() // ✅ OBOWIĄZKOWE: subskrypcja uruchamia executesBlocking
+            .with(
+                result -> {}, // onSuccess
+                error -> logger.error("Translation thread failed", error) // onFailure
+            );
     }
 
     /**
