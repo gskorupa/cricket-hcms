@@ -181,10 +181,6 @@ public class FromFilesystemLoader implements ForDocumentsLoaderIface {
             }
         }
         logger.info("loaded: " + files.size() + " documents");
-        // logger.debug(
-        //     "repositoryPort database size: " +
-        //         repositoryPort.getDocumentsCount()
-        // );
         if (stop) {
             int deletedCount = repositoryPort.stopReload(timestamp, docPath);
             loadStatistics.incrementDeletedDocuments(deletedCount);

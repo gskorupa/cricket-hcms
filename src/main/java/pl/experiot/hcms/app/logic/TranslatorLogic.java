@@ -148,49 +148,6 @@ public class TranslatorLogic {
         }
     }
 
-    /**
-     * Construct document name for a specific language by replacing main language code
-     * in the path with the target language code.
-     * Example: /site/pl/page with target language "en" becomes /site/en/page
-     */
-    //     private String getLanguageDocumentName(
-    //         String documentName,
-    //         String targetLanguage
-    //     ) {
-    //         if (
-    //             documentName == null ||
-    //             targetLanguage == null ||
-    //             mainLanguage == null
-    //         ) {
-    //             return documentName;
-    //         }
-    //
-    //         // Replace mainLanguage with targetLanguage in the path
-    //         // Handle both "/pl/page" -> "/en/page" and "/site/pl/page" -> "/site/en/page"
-    //         String normalizedName = documentName.startsWith("/")
-    //             ? documentName
-    //             : "/" + documentName;
-    //
-    //         // Replace "/pl/" with "/en/" or "/pl" at end with "/en"
-    //         String result = normalizedName.replace(
-    //             "/" + mainLanguage + "/",
-    //             "/" + targetLanguage + "/"
-    //         );
-    //
-    //         // Handle case where mainLanguage is at the end without trailing slash
-    //         if (
-    //             !result.equals(normalizedName) ||
-    //             normalizedName.endsWith("/" + mainLanguage)
-    //         ) {
-    //             result = normalizedName.replace(
-    //                 "/" + mainLanguage,
-    //                 "/" + targetLanguage
-    //             );
-    //         }
-    //
-    //         return result;
-    //     }
-
     @ConsumeEvent("to-translate")
     public Uni<Void> translate(String documentData) {
         init();
@@ -230,22 +187,18 @@ public class TranslatorLogic {
                         // Update language versions: check each language timestamp individually
                         String tmpLanguage =
                             localizationModelPort.getDocumentLanguage(document);
-                        logger.info(
-                            "Translating (updating) from language: " +
-                                tmpLanguage
-                        );
+                        if (logger.isDebugEnabled()) {
+                            logger.debug(
+                                "Translating (updating) from language: " +
+                                    tmpLanguage
+                            );
+                        }
                         if (mainLanguage.equals(tmpLanguage)) {
                             for (String language : languages) {
                                 if (
                                     updateLanguageVersions &&
                                     language.equals(mainLanguage)
                                 ) continue;
-                                // if (
-                                //     document.binaryFile &&
-                                //     !document.mediaType.equalsIgnoreCase(
-                                //         "application/xml"
-                                //     )
-                                // ) continue;
 
                                 // Construct the language document name by replacing mainLanguage with target language
                                 String languageDocumentName =
@@ -258,19 +211,21 @@ public class TranslatorLogic {
                                         languageDocumentName,
                                         language
                                     );
-                                logDebug(
-                                    () ->
-                                        "Checking language version: " +
-                                        document.name +
-                                        " for " +
-                                        language +
-                                        " (doc: " +
-                                        languageDocumentName +
-                                        ") with timestamps: " +
-                                        updateTimestamp +
-                                        " " +
-                                        languageTimestamp
-                                );
+                                if (logger.isDebugEnabled()) {
+                                    logger.debug(
+                                        "Checking " +
+                                            document.name +
+                                            "langauge version " +
+                                            language +
+                                            " timestamps " +
+                                            languageTimestamp +
+                                            " < " +
+                                            updateTimestamp +
+                                            " " +
+                                            (languageTimestamp <
+                                                updateTimestamp)
+                                    );
+                                }
 
                                 if (languageTimestamp < updateTimestamp) {
                                     startTranslationInNewThread(
@@ -312,7 +267,6 @@ public class TranslatorLogic {
                                 previousTimestamp
                         );
 
-                        //if (previousTimestamp < updateTimestamp) {
                         if (
                             localizationModelPort
                                 .getDocumentLanguage(document)
@@ -346,17 +300,6 @@ public class TranslatorLogic {
                                     "Skipping (main language): " + document.name
                             );
                         }
-                        // } else {
-                        //     logDebug(
-                        //         () ->
-                        //             "Skipping: " +
-                        //             document.name +
-                        //             " - up to date: " +
-                        //             previousTimestamp +
-                        //             ">=" +
-                        //             updateTimestamp
-                        //     );
-                        // }
                     }
                 } catch (Exception e) {
                     logger.error("Unexpected error in translation handler", e);

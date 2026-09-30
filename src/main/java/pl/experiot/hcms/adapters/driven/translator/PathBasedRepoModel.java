@@ -44,20 +44,20 @@ public class PathBasedRepoModel implements ForMultilanguageRepoModelIface {
         // document name is started with /siteName/language code, e.g. "/demo/en/" for
         // English
         for (String lang : languages) {
-            System.out.println(
-                "Checking: " +
-                    document.name +
-                    " " +
-                    document.siteName +
-                    " " +
-                    lang
-            );
+            // System.out.println(
+            //     "Checking: " +
+            //         document.name +
+            //         " " +
+            //         document.siteName +
+            //         " " +
+            //         lang
+            // );
             if (
                 document.name.startsWith(
                     "/" + document.siteName + "/" + lang + "/"
                 )
             ) {
-                System.out.println("Found document language: " + lang);
+                //System.out.println("Found document language: " + lang);
                 return lang;
             }
         }

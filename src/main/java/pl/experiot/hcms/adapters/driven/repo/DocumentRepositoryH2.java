@@ -393,14 +393,7 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
     @Override
     public void addDocument(Document doc, String origin) {
         logger.info("addDocumentToH2: " + doc.name);
-        /*
-         * if(getAllDocuments(false).size()>100){
-         * logger.
-         * info("Too many documents in the repository. Skipping adding document: " +
-         * doc.name);
-         * return;
-         * }
-         */
+
         deleteMetadata(doc.name);
         String sql = """
         MERGE INTO documents (path, name, file_name, content, binary, binary_content, created, modified, refreshed, media_type, site, origin)
@@ -446,15 +439,6 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
         // Extract language from document name if it's a translated version
         String language = extractLanguageFromPath(doc.name, doc.siteName);
         updateDocumentTimestamp(doc, language);
-        /* initialization of translation process is in FromFilesystemLoader class */
-        // if (
-        //     language == null ||
-        //     language.equals("") ||
-        //     language.equals(mainLanguage)
-        // ) {
-        //     logger.info("Sending to translate: " + doc.name);
-        //     eventBus.publish(queueName, doc.name + ";" + doc.updateTimestamp);
-        // }
     }
 
     /**
@@ -620,16 +604,18 @@ public class DocumentRepositoryH2 implements ForDocumentRepositoryIface {
             //e.printStackTrace();
             logger.error(e.getMessage());
         }
-        logger.info(
-            "Last update timestamps for " +
-                documentName +
-                " (" +
-                language +
-                "): " +
-                timestamps[0] +
-                " " +
-                timestamps[1]
-        );
+        if (logger.isDebugEnabled()) {
+            logger.debug(
+                "Last update timestamps for " +
+                    documentName +
+                    " (" +
+                    language +
+                    "): " +
+                    timestamps[0] +
+                    " " +
+                    timestamps[1]
+            );
+        }
         if (i < 2) {
             return timestamps[0];
         } else {
