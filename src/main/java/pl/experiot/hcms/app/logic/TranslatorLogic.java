@@ -351,6 +351,12 @@ public class TranslatorLogic {
                                     translatedDocument,
                                     language
                                 );
+                            translatedDocument.content =
+                                translatedDocument.content.concat(
+                                    "\n\r<div class=\"container\">" +
+                                        "<i>The text on this page was translated by AI.</i>\n\r" +
+                                        "</div>"
+                                );
                             repositoryPort.addDocument(
                                 translatedDocument,
                                 documentName
